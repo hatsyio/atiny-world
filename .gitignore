@@ -1,0 +1,15 @@
+.vercel
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+dist/
+coverage/
+.DS_Store
+*.log
+.supabase/
+supabase/.temp/
+supabase/.branches/
+.codex/
+.agents/
