@@ -14,7 +14,7 @@
 
 - pnpm es el único gestor de paquetes y `pnpm-lock.yaml` se versiona.
 - Todo el código propio se escribe en TypeScript estricto.
-- Cada entrega funcional parte de escenarios Gherkin trazables a las especificaciones.
+- Cada comportamiento de producto parte de escenarios Gherkin trazables a las especificaciones; las comprobaciones de infraestructura son pruebas técnicas.
 - El navegador nunca recibe credenciales de PostgreSQL ni accede directamente a Supabase.
 - Clerk gestiona identidad; roles, perfiles y suspensiones pertenecerán a PostgreSQL.
 - Se usa Node.js, no Edge Runtime.
@@ -35,8 +35,8 @@
 - Create: `postcss.config.mjs`
 - Create: `vitest.config.ts`
 - Create: `cucumber.mjs`
-- Create: `tests/acceptance/features/bootstrap.feature`
-- Create: `tests/acceptance/steps/bootstrap.steps.ts`
+- Create: `tests/bdd/features/bootstrap.feature`
+- Create: `tests/bdd/step_definitions/bootstrap.steps.ts`
 
 **Interfaces:**
 - Produces: scripts `dev`, `build`, `lint`, `typecheck`, `test`, `test:unit`, `test:bdd`.
@@ -139,13 +139,14 @@ Postgres.js se inicializa solo al pedirlo, con `max: 1`, `prepare: false` y SSL 
 
 - [x] **Step 4: Verificar con Supabase local**
 
-Run: `supabase start`, configurar `DATABASE_URL` localmente y ejecutar `pnpm test:db`.
+Run: `supabase start`, configurar `DATABASE_URL` localmente y ejecutar `pnpm test:integration`.
 Expected: PASS con `select 1` real.
 
-- [x] **Step 5: Expresar las respuestas HTTP de salud en Gherkin**
+- [x] **Step 5: Cubrir técnicamente las respuestas HTTP de salud**
 
-Los escenarios verifican el `200` saludable y el `503` sanitizado. Docker y
-Compose permanecen fuera de BDD por decisión explícita del propietario.
+Las pruebas unitarias verifican el `200` saludable y el `503` sanitizado. Las
+comprobaciones PostgreSQL, Docker y Compose permanecen fuera de BDD por ser
+infraestructura técnica.
 
 ### Task 4: Documentation and full verification
 
@@ -174,3 +175,9 @@ Expected: PASS sin advertencias de aplicación.
 
 Run: `git diff --check` y búsqueda de patrones de credenciales en archivos versionables.
 Expected: sin secretos ni errores de whitespace.
+
+- [x] **Step 5: Separar suites y automatizar la integración continua**
+
+Organizar BDD, unitarias e integración bajo `tests/`, añadir cobertura V8 y
+validar pruebas, estilo, tipos, Next.js y Docker mediante GitHub Actions. Vercel
+gestiona previews y producción mediante su integración con GitHub.

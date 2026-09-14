@@ -3,10 +3,10 @@ import {
   SignInButton,
   SignUpButton,
   UserButton,
-} from "@clerk/nextjs"
-import Link from "next/link"
+} from '@clerk/nextjs'
+import Link from 'next/link'
 
-import { getPublicAppIdentity } from "@/app-identity"
+import { getPublicAppIdentity } from '@/app-identity'
 
 export default function Home() {
   const { name } = getPublicAppIdentity()

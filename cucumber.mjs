@@ -1,8 +1,11 @@
 const config = {
-  paths: ["tests/acceptance/features/**/*.feature"],
-  requireModule: ["tsx/cjs"],
-  require: ["tests/acceptance/steps/**/*.ts"],
-  format: ["progress"],
+  paths: ['tests/bdd/features/**/*.feature'],
+  requireModule: ['tsx/cjs'],
+  require: [
+    'tests/bdd/support/**/*.ts',
+    'tests/bdd/step_definitions/**/*.ts',
+  ],
+  format: ['progress'],
   publish: false,
 }
 

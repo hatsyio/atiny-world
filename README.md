@@ -40,20 +40,36 @@ arrancar Supabase y ejecutar la aplicación.
 El desarrollo sigue `Specs → Gherkin → BDD`:
 
 1. Las decisiones se mantienen en `docs/requisitos.md` y `docs/arquitectura.md`.
-2. Cada comportamiento se expresa en español en `tests/acceptance/features/`.
-3. Cucumber.js ejecuta los pasos TypeScript de `tests/acceptance/steps/`.
+2. Cada comportamiento se expresa en español en `tests/bdd/features/`.
+3. Cucumber.js ejecuta los pasos TypeScript de
+   `tests/bdd/step_definitions/`.
 4. La implementación empieza con el escenario en rojo y termina con el
-   escenario en verde; Vitest cubre las unidades y las integraciones técnicas.
+   escenario en verde.
+
+Las pruebas están separadas por propósito: `tests/bdd` contiene comportamiento
+de producto, `tests/unit` unidades aisladas de aplicación y servidor, y
+`tests/integration` colaboración real con infraestructura. Vitest genera la
+cobertura técnica con el proveedor V8.
+
+Los literales TypeScript usan comillas simples, exigidas por ESLint. Los
+atributos JSX conservan las comillas dobles convencionales.
 
 Comandos principales:
 
 ```sh
 pnpm install
 pnpm test
+pnpm test:integration
+pnpm test:coverage
 pnpm lint
 pnpm typecheck
 pnpm build
 ```
+
+GitHub Actions valida lint, tipos, BDD, pruebas unitarias, integración,
+cobertura, build de Next.js y build de Docker. Vercel gestiona los despliegues:
+crea una preview para cada pull request y publica producción al integrar en
+`main`.
 
 También puede levantarse la aplicación y PostgreSQL con Docker:
 

@@ -12,10 +12,11 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
-    "test": "pnpm test:unit && pnpm test:bdd",
+    "test": "pnpm test:bdd && pnpm test:unit",
     "test:unit": "vitest run tests/unit",
     "test:bdd": "cucumber-js --config cucumber.mjs",
-    "test:db": "vitest run tests/integration/db-health.test.ts",
+    "test:integration": "vitest run tests/integration",
+    "test:coverage": "vitest run tests/unit tests/integration --coverage",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs --follow app"
@@ -29,11 +30,14 @@
   },
   "devDependencies": {
     "@cucumber/cucumber": "13.2.1",
+    "@testing-library/react": "16.3.3",
     "@types/node": "26.5.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@vitest/coverage-v8": "5.0.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.5",
+    "jsdom": "30.0.1",
     "tsx": "4.23.13",
     "typescript": "5.9.3",
     "vitest": "5.0.0"

@@ -11,7 +11,7 @@ export function getDatabaseUrl(
       : environment.DATABASE_URL
 
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL is required on the server")
+    throw new Error('DATABASE_URL is required on the server')
   }
 
   return databaseUrl

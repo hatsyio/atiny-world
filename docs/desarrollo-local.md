@@ -32,7 +32,7 @@ Desde la raíz del repositorio:
 pnpm install
 supabase start
 supabase db query --local 'select 1 as ok;'
-pnpm test:db
+pnpm test:integration
 pnpm dev
 ```
 
@@ -92,20 +92,43 @@ a ningún proyecto remoto.
 ## Pruebas y BDD
 
 Las especificaciones de producto y arquitectura originan escenarios Gherkin en
-español. Las features viven en `tests/acceptance/features/` y sus definiciones
-TypeScript en `tests/acceptance/steps/`.
+español. Las features viven en `tests/bdd/features/` y sus definiciones
+TypeScript en `tests/bdd/step_definitions/`.
+El estado de cada escenario se encapsula en `tests/bdd/support/world.ts` para
+evitar compartir datos entre ejecuciones.
+
+`tests/bdd` contiene comportamientos observables de producto. Las pruebas
+técnicas usan Vitest: `tests/unit` cubre unidades aisladas de aplicación y
+servidor, mientras `tests/integration` comprueba colaboraciones reales como la
+conexión a PostgreSQL.
 
 ```sh
 pnpm test:bdd
 pnpm test:unit
-pnpm test:db
+pnpm test:integration
+pnpm test:coverage
 pnpm test
 ```
 
 Para cada comportamiento nuevo se añade primero un escenario o prueba que falle
 por la ausencia del comportamiento, se implementa el mínimo y se vuelve a
 ejecutar hasta obtener verde. `pnpm test` ejecuta unidades y aceptación; las
-pruebas de PostgreSQL se invocan aparte porque requieren Supabase local activo.
+pruebas de integración y cobertura se invocan aparte porque requieren
+PostgreSQL activo. La cobertura usa V8 e incluye el código TypeScript y TSX de
+la aplicación, salvo los puntos de entrada de framework verificados por el
+build.
+
+## Integración y despliegue continuos
+
+El workflow `.github/workflows/ci.yml` se ejecuta en pull requests y en pushes a
+`main`. Valida estilo, tipos, BDD, unidades, integración PostgreSQL, cobertura,
+build de Next.js y construcción de la imagen Docker sin utilizar secretos
+reales.
+
+Vercel conserva la responsabilidad de despliegue continuo mediante su
+integración con GitHub: genera previews para las pull requests y despliega a
+producción después de integrar en `main`. GitHub Actions no duplica esos
+despliegues.
 
 ## Servicios remotos
 

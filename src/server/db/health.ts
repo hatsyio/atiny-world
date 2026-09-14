@@ -1,7 +1,7 @@
-import { getDb } from "@/server/db/client"
+import { getDb } from '@/server/db/client'
 
 export type DatabaseHealth = {
-  database: "ok"
+  database: 'ok'
 }
 
 export type DatabaseQuery = (query: string) => Promise<readonly unknown[]>
@@ -13,11 +13,11 @@ async function queryDatabase(query: string): Promise<readonly unknown[]> {
 export async function checkDatabaseHealth(
   query: DatabaseQuery = queryDatabase,
 ): Promise<DatabaseHealth> {
-  const rows = await query("select 1 as ok")
+  const rows = await query('select 1 as ok')
 
   if (rows.length === 0) {
-    throw new Error("Database health probe returned no rows")
+    throw new Error('Database health probe returned no rows')
   }
 
-  return { database: "ok" }
+  return { database: 'ok' }
 }
