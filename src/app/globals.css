@@ -1,0 +1,244 @@
+:root {
+  --mist: #f2faf8;
+  --paper: #fffef8;
+  --ink: #12333f;
+  --ocean: #0b5061;
+  --star: #f6b73c;
+  --signal: #f45b69;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--mist);
+  color: var(--ink);
+  font-family: var(--font-interface), sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--star);
+  outline-offset: 4px;
+}
+
+.shell {
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 1.25rem clamp(1.25rem, 4vw, 4.5rem) 3rem;
+}
+
+.site-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 88rem;
+}
+
+.wordmark {
+  align-items: center;
+  color: var(--ink);
+  display: inline-flex;
+  font-family: var(--font-display), serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  gap: 0.55rem;
+  text-decoration: none;
+}
+
+.wordmark span {
+  color: var(--signal);
+}
+
+.account-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.account-actions button {
+  border: 0;
+  cursor: pointer;
+}
+
+.text-action {
+  background: transparent;
+  color: var(--ocean);
+  padding: 0.75rem;
+}
+
+.primary-action {
+  background: var(--ocean);
+  border-radius: 999px;
+  color: white;
+  padding: 0.75rem 1.15rem;
+}
+
+.hero {
+  align-items: center;
+  display: grid;
+  gap: clamp(3rem, 7vw, 8rem);
+  grid-template-columns: minmax(0, 0.9fr) minmax(19rem, 1.1fr);
+  margin: 0 auto;
+  max-width: 88rem;
+  min-height: calc(100vh - 6rem);
+  padding: clamp(4rem, 8vw, 8rem) 0;
+}
+
+.hero-copy {
+  max-width: 40rem;
+}
+
+.intro,
+.status {
+  color: var(--ocean);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+h1 {
+  font-family: var(--font-display), serif;
+  font-size: clamp(3.4rem, 8vw, 7.8rem);
+  font-variation-settings: "SOFT" 75, "WONK" 1;
+  font-weight: 650;
+  letter-spacing: -0.055em;
+  line-height: 0.88;
+  margin: 1.25rem 0 1.75rem;
+  max-width: 11ch;
+}
+
+.summary {
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+  line-height: 1.65;
+  max-width: 34rem;
+}
+
+.status {
+  border-left: 3px solid var(--signal);
+  margin-top: 2rem;
+  padding-left: 0.85rem;
+}
+
+.globe {
+  aspect-ratio: 1;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(rgb(11 80 97 / 12%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(11 80 97 / 12%) 1px, transparent 1px);
+  background-size: 12.5% 12.5%;
+  border: 2px solid var(--ocean);
+  border-radius: 50%;
+  box-shadow: 1.4rem 1.7rem 0 var(--star);
+  max-width: 42rem;
+  position: relative;
+  transform: rotate(-7deg);
+}
+
+.globe::before,
+.globe::after,
+.orbit {
+  border: 1px solid rgb(11 80 97 / 45%);
+  border-radius: 50%;
+  content: "";
+  inset: 10% 35%;
+  position: absolute;
+}
+
+.globe::after {
+  inset: 35% 10%;
+}
+
+.orbit-one {
+  inset: 18% 8%;
+  transform: rotate(28deg);
+}
+
+.orbit-two {
+  inset: 8% 18%;
+  transform: rotate(-32deg);
+}
+
+.star {
+  color: var(--signal);
+  font-size: clamp(1.5rem, 4vw, 3.5rem);
+  line-height: 1;
+  position: absolute;
+  z-index: 2;
+}
+
+.star-one {
+  left: 23%;
+  top: 27%;
+}
+
+.star-two {
+  color: var(--ocean);
+  right: 22%;
+  top: 42%;
+}
+
+.star-three {
+  bottom: 20%;
+  left: 46%;
+}
+
+.route {
+  border-bottom: 3px dashed var(--signal);
+  border-radius: 50%;
+  height: 38%;
+  left: 20%;
+  position: absolute;
+  top: 28%;
+  transform: rotate(18deg);
+  width: 60%;
+}
+
+@media (max-width: 760px) {
+  .site-header {
+    align-items: flex-start;
+  }
+
+  .account-actions {
+    gap: 0.25rem;
+  }
+
+  .text-action {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-top: 5rem;
+  }
+
+  .globe {
+    justify-self: center;
+    width: min(86vw, 34rem);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .globe {
+    animation: arrive 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  @keyframes arrive {
+    from {
+      opacity: 0;
+      transform: rotate(-11deg) scale(0.94);
+    }
+  }
+}
