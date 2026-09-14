@@ -1,6 +1,7 @@
 # ATINY World — Plan de implementación por entregas
 
-Estado: borrador condicionado a la aprobación de la arquitectura por el propietario. No iniciar la implementación ni completar las altas externas antes de dicha aprobación.
+Estado: arquitectura aprobada e implementación iniciada el 14 de septiembre de
+2026 en la rama `feat/bootstrap`.
 
 **Objetivo:** implementar el alcance validado sin publicar funciones simuladas ni activar servicios de pago.
 **Arquitectura:** Next.js App Router con TypeScript, frontend y backend en un mismo proyecto y despliegue en Vercel; identidad Clerk y datos PostgreSQL en Supabase. Esta base está confirmada. Leaflet y el mapa base de CARTO están confirmados. Geoapify está confirmado para geocodificación, inicialmente en su plan gratuito. Los detalles operativos siguen pendientes.
@@ -28,13 +29,15 @@ Estado: borrador condicionado a la aprobación de la arquitectura por el propiet
 - [x] Confirmar que todas las lecturas y escrituras de datos de Supabase pasan por el backend, sin acceso directo desde el navegador.
 - [x] Acordar un único proyecto remoto, desarrollo local y previews con acceso de solo lectura por defecto.
 - [x] Acordar migraciones compatibles antes del código dependiente y retirada posterior de estructuras antiguas.
-- [ ] Confirmar el resto de la arquitectura antes de implementar.
+- [x] Confirmar el resto de la arquitectura antes de implementar.
 - [x] Acordar Europa para backend y base de datos, priorizando su proximidad.
-- [ ] Comprobar las regiones exactas disponibles, configurar la conexión de Supabase y completar las aceptaciones necesarias de los proveedores elegidos.
-- [ ] Completar las altas gratuitas y comprobar que no se crean recursos duplicados.
-- [ ] Descargar las variables de desarrollo sin imprimir sus valores y excluirlas de Git.
-- [ ] Crear Next.js con TypeScript y lockfile, conservando los documentos existentes.
-- [ ] Configurar Clerk y el acceso a Supabase; verificar identidad real y conexión real.
+- [x] Comprobar la región de Supabase (`eu-west-3`), vincular el proyecto y completar las aceptaciones necesarias de Clerk y Supabase.
+- [ ] Validar la región efectiva del backend de Vercel y su proximidad con Supabase antes del lanzamiento.
+- [x] Completar las altas gratuitas y comprobar que no se crean recursos duplicados.
+- [x] Descargar las variables de desarrollo sin imprimir sus valores y excluirlas de Git.
+- [x] Crear Next.js con TypeScript, pnpm y lockfile, conservando los documentos existentes.
+- [x] Configurar los adaptadores de Clerk y PostgreSQL; verificar la conexión real de base de datos.
+- [ ] Verificar registro, inicio de sesión, recuperación y Google con identidades reales.
 - [ ] Configurar accesos separados para aplicación, migraciones y previews; comprobar que una preview de solo lectura no puede escribir ni acceder a tablas privadas no autorizadas.
 
 Archivos: `package.json`, lockfile, `.gitignore`, `src/app/layout.tsx`, `src/server/auth/session.ts`, `src/server/db/client.ts`, `src/proxy.ts`.

@@ -2,7 +2,11 @@
 
 Fecha: 2026-09-13.
 Base de producto: [requisitos validados](./requisitos.md).
-Estado: base tecnológica, modelo principal de datos, permisos y estrategia de entornos y migraciones confirmados por el propietario. La configuración operativa y la provisión de servicios están pendientes. Esta publicación documenta las decisiones; no inicia la implementación de la aplicación.
+Estado: base tecnológica ejecutable, modelo principal de datos, permisos y
+estrategia de entornos y migraciones confirmados por el propietario. Clerk y el
+proyecto remoto de Supabase están provisionados; los flujos funcionales, el
+esquema de aplicación y las credenciales restringidas de previews siguen
+pendientes.
 
 Decisiones confirmadas durante la revisión: Clerk como proveedor de autenticación, Supabase como proveedor de PostgreSQL y Next.js con App Router y TypeScript para frontend y backend en un mismo proyecto y despliegue en Vercel. Se elige Supabase por su encaje funcional y por la experiencia previa del propietario. Si surge una necesidad concreta, se podrá separar el backend en el futuro. Leaflet queda confirmado como biblioteca del mapa y CARTO como proveedor del mapa base. Geoapify queda confirmado como proveedor inicial de geocodificación en su plan gratuito. Europa queda confirmada para el backend y la base de datos, procurando elegir la misma región o las ubicaciones disponibles más próximas. La ubicación exacta se comprobará al provisionar los servicios. Los demás detalles operativos siguen pendientes de confirmación.
 
@@ -14,7 +18,11 @@ Las rutas y acciones de Next.js serán adaptadores delgados hacia los módulos d
 
 Acceso a datos confirmado: el navegador no consultará ni modificará directamente los datos de Supabase. Tanto las lecturas públicas como las operaciones autenticadas pasarán por el backend de la aplicación, que centralizará permisos, visibilidad, moderación y límites. Las credenciales de base de datos permanecerán exclusivamente en el servidor. Esta decisión no impide el flujo de autenticación del navegador con Clerk ni las peticiones de cartografía al proveedor que se acuerde.
 
-Se propone comenzar con Clerk Hobby y Supabase Free. Se acuerda alojar backend y base de datos en Europa, priorizando su proximidad. La ubicación exacta y la forma de conectar los servicios se comprobarán antes de su alta. No se activan planes de pago. Clerk tiene pendiente la aceptación de condiciones; Supabase aún no se ha provisionado para este proyecto.
+Se comienza con Clerk Hobby y Supabase Free, sin activar planes de pago. Clerk
+está conectado al proyecto Vercel y sus variables de desarrollo se mantienen
+fuera de Git. Supabase está provisionado en París (`eu-west-3`), vinculado a la
+CLI y verificado con PostgreSQL 17.6. La región efectiva del backend de Vercel y
+su proximidad con la base de datos se validarán antes del lanzamiento.
 
 Alternativas consideradas:
 
@@ -135,10 +143,13 @@ Pruebas unitarias para la matriz completa de visibilidad, transiciones, grafemas
 ## Situación de provisión
 
 - Proyecto local vinculado a `joseppascualbadia-8623s-projects/atiny-world` en Vercel.
-- Alta de Clerk detenida por aceptación de condiciones requerida.
+- Clerk Hobby provisionado y conectado a development, preview y production;
+  sus variables locales se descargan a archivos excluidos de Git.
 - El intento de alta de Neon se detuvo por aceptación de condiciones; no se retomará tras elegir Supabase.
-- Supabase confirmado como proveedor, pendiente de provisión para este proyecto.
-- Sin aplicación desplegada ni afirmación de que los servicios estén creados.
+- Supabase Free provisionado en París (`eu-west-3`), vinculado y verificado
+  mediante una consulta de solo lectura.
+- La base ejecutable existe localmente; todavía no hay despliegue público,
+  esquema de producto, credencial restringida de aplicación ni rol de preview.
 
 ## Fuentes consultadas
 
