@@ -125,10 +125,10 @@ El workflow `.github/workflows/ci.yml` se ejecuta en pull requests y en pushes a
 build de Next.js y construcción de la imagen Docker sin utilizar secretos
 reales.
 
-Vercel conserva la responsabilidad de despliegue continuo mediante su
-integración con GitHub: genera previews para las pull requests y despliega a
-producción después de integrar en `main`. GitHub Actions no duplica esos
-despliegues.
+El proyecto Vercel `atiny-world` está conectado al repositorio GitHub. Vercel
+conserva la responsabilidad de despliegue continuo mediante esa integración:
+genera previews para las pull requests y despliega a producción después de
+integrar en `main`. GitHub Actions no duplica esos despliegues.
 
 ## Servicios remotos
 
