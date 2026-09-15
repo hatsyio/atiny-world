@@ -53,6 +53,21 @@ describe('Geoapify location autocomplete', () => {
     )).rejects.toMatchObject<Partial<GeoapifyProviderError>>({ outcome: 'rate_limited' })
   })
 
+  it('drops provider results whose coordinates are outside public point bounds', async () => {
+    const providerFetch = vi.fn<typeof fetch>()
+    providerFetch.mockResolvedValue(new Response(JSON.stringify({
+      results: [
+        { ...providerPayload.results[0], lat: 90.0001 },
+        { ...providerPayload.results[0], lon: -180.0001 },
+      ],
+    }), { status: 200 }))
+
+    await expect(searchGeoapifyLocations(
+      { query: 'Madrid', language: 'es', limit: 2 },
+      { apiKey: 'test-server-key', fetch: providerFetch },
+    )).resolves.toEqual([])
+  })
+
   it('maps an aborted upstream call to the stable unavailable provider outcome', async () => {
     const providerFetch = vi.fn<typeof fetch>()
     providerFetch.mockImplementation((_url, init) => new Promise<Response>((_, reject) => {

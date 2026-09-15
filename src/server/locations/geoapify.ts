@@ -59,8 +59,8 @@ function normalizeResult(result: GeoapifyResult): GeoapifyLocationSuggestion | n
     .find((value): value is string => value !== null)
 
   if (!country || !countryCode || !/^[a-z]{2}$/.test(countryCode) || !locality
-    || typeof result.lat !== 'number' || !Number.isFinite(result.lat)
-    || typeof result.lon !== 'number' || !Number.isFinite(result.lon)) {
+    || typeof result.lat !== 'number' || !Number.isFinite(result.lat) || result.lat < -90 || result.lat > 90
+    || typeof result.lon !== 'number' || !Number.isFinite(result.lon) || result.lon < -180 || result.lon > 180) {
     return null
   }
 

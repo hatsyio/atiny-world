@@ -55,3 +55,28 @@ Cannot find module '../../src/app/api/locations/suggestions/route'
 ## Dudas y preocupaciones
 
 - Ninguna para T045. El typecheck global queda bloqueado de forma preexistente por T047 aún no implementada.
+
+## Corrección 1 — límites de coordenadas públicas
+
+- Se corrigió `normalizeResult` para descartar resultados de Geoapify cuya latitud no esté entre `-90` y `90` o cuya longitud no esté entre `-180` y `180`.
+- Se añadió una regresión con `lat: 90.0001` y `lon: -180.0001`; ambas sugerencias deben descartarse.
+
+RED:
+
+```text
+$ pnpm vitest run tests/unit/server/locations/geoapify.test.ts
+FAIL  drops provider results whose coordinates are outside public point bounds
+Expected: []
+Received: two normalized suggestions with latitude 90.0001 and longitude -180.0001
+```
+
+GREEN:
+
+```text
+$ pnpm vitest run tests/unit/server/locations/geoapify.test.ts
+Test Files  1 passed (1)
+Tests  4 passed (4)
+
+$ pnpm exec eslint src/server/locations/geoapify.ts tests/unit/server/locations/geoapify.test.ts
+# sin salida; código 0
+```
