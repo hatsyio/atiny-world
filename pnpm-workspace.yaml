@@ -1,3 +1,6 @@
 allowBuilds:
   esbuild: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@vercel/config@0.7.1'
+  - '@vercel/routing-utils@6.6.0'

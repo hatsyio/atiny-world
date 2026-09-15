@@ -8,6 +8,16 @@
 
 **Input**: User description: "Crear la especificación base de ATINY World MVP usando `docs/requisitos.md` como fuente autoritativa, manteniendo un máximo inicial de 10 mensajes, sin sistema de «Me gusta» y con la acción «Pedir revisión»."
 
+## Clarifications
+
+### Session 2026-09-15
+
+- Q: ¿Qué protocolo debe usarse para medir los porcentajes y tiempos de SC-001 y SC-002? → A: Pruebas automatizadas cronometradas.
+- Q: ¿Con qué matriz y criterio objetivo debe validarse que los recorridos móviles de SC-010 se completan “sin bloqueos”? → A: Safari estable actual en iOS y Chrome estable actual en Android, a 320 y 390 píxeles CSS, en inglés y español; sin desbordamiento horizontal, controles inaccesibles ni errores no gestionados.
+- Q: ¿Cómo debe convertirse la intención “cálida y participativa” de FR-003 en un criterio verificable? → A: Orientación estética SHOULD; mapa como mayor región de contenido visible antes del formulario y prohibición de fotografías y logotipos oficiales como requisitos MUST.
+- Q: ¿Puede el nombre público coincidir con el usuario único y repetirse entre distintas cuentas? → A: Sí; solo el usuario es único.
+- Q: ¿Qué debe ver y poder hacer una persona cuando el mapa o la búsqueda de ubicaciones falla temporalmente? → A: Estado específico con reintento manual, conservación de filtros y borrador, y publicación solo con una ubicación válida ya confirmada.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Explorar mensajes en el mapa (Priority: P1)
@@ -147,6 +157,7 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 - Cambiar la moderación previa puede mostrar u ocultar mensajes pendientes, pero no cambia sus estados.
 - Una solicitud de revisión conserva solo su copia privada; no crea un historial público de versiones del mensaje.
 - Al vencer dos años naturales desde el cierre de una solicitud de revisión, se elimina su copia privada conservada.
+- Si el mapa o la búsqueda de ubicaciones falla temporalmente, la interfaz muestra qué servicio no está disponible y ofrece reintento manual sin perder los filtros ni el borrador; publicar solo sigue permitido cuando ya existe una ubicación válida confirmada.
 
 ## Requirements *(mandatory)*
 
@@ -154,14 +165,14 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 
 - **FR-001**: El producto MUST presentarse como «ATINY World» y mostrar en español el subtítulo «Un mundo de buenos deseos para ATEEZ».
 - **FR-002**: La página principal MUST presentar, en este orden, cabecera de cuenta, título e introducción, mapa, formulario de publicación y footer.
-- **FR-003**: La apariencia MUST ser cálida y participativa, con el mapa como elemento protagonista, sin fotografías del grupo ni logotipos oficiales.
+- **FR-003**: La apariencia SHOULD transmitir una sensación cálida y participativa; el mapa MUST ocupar la mayor región de contenido visible antes del formulario, y la interfaz MUST NOT usar fotografías del grupo ni logotipos oficiales.
 - **FR-004**: El footer MUST mostrar un correo de contacto y declarar que el proyecto es una iniciativa de fans sin afiliación oficial con ATEEZ ni su agencia.
 - **FR-005**: La interfaz MUST estar disponible en inglés y español, usar inglés por defecto y permitir cambiar de idioma.
 - **FR-006**: Los mensajes MUST admitir y conservar texto en cualquier idioma, emojis y saltos de línea, sin traducción automática en esta versión.
 - **FR-007**: Una persona MUST poder registrarse con usuario único, correo obligatorio verificado y contraseña, recuperar el acceso por correo y acceder con Google.
 - **FR-008**: Una cuenta creada mediante Google MUST completar los datos obligatorios de perfil antes de publicar.
 - **FR-009**: Las credenciales de Google y contraseña MUST poder vincularse a una misma cuenta tras verificar la titularidad, sin duplicar el perfil ni los mensajes.
-- **FR-010**: Cada cuenta MUST tener un usuario único y un nombre público distinto; el nombre público MUST admitir coreano, espacios y emojis.
+- **FR-010**: Cada cuenta MUST tener un usuario único y un nombre público independiente que MAY coincidir con el usuario y repetirse entre cuentas; el nombre público MUST admitir coreano, espacios y emojis.
 - **FR-011**: El correo MUST permanecer privado y los mensajes públicos MUST mostrar el nombre público.
 - **FR-012**: Cualquier visitante MUST poder leer el mapa y abrir enlaces de mensajes públicos sin iniciar sesión.
 - **FR-013**: Solo una cuenta autenticada y no suspendida MUST poder publicar, editar o pedir la revisión de un mensaje.
@@ -232,8 +243,8 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 
 ### Measurable Outcomes
 
-- **SC-001**: Al menos el 95 % de las personas de prueba puede encontrar y abrir un mensaje visible desde el mapa en menos de 60 segundos sin iniciar sesión.
-- **SC-002**: Al menos el 90 % de las fans de prueba puede completar registro, perfil y primera publicación en menos de 5 minutos sin ayuda externa.
+- **SC-001**: El 100 % de los recorridos automatizados de exploración MUST encontrar y abrir un mensaje visible desde el mapa en menos de 60 segundos, medidos desde la portada cargada y sin iniciar sesión ni intervención manual.
+- **SC-002**: El 100 % de los recorridos automatizados de alta y publicación MUST completar registro, perfil y primera publicación en menos de 5 minutos, medidos desde el inicio del registro hasta la creación del mensaje y sin intervención manual.
 - **SC-003**: El 100 % de los intentos verificados de publicar por encima del límite de 10 mensajes o antes de terminar el intervalo configurado se bloquea con una explicación accionable.
 - **SC-004**: El 100 % de las pruebas de visibilidad para los cuatro estados, ambos modos de moderación y cuentas activas o suspendidas devuelve exclusivamente el contenido autorizado.
 - **SC-005**: El 100 % de los mensajes de prueba con coreano, saltos de línea y emojis compuestos dentro del límite conserva exactamente su contenido visible tras publicar y editar.
@@ -241,7 +252,7 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 - **SC-007**: El 100 % de las ubicaciones aproximadas de prueba mantiene el mismo punto entre lecturas y ediciones de texto, y ninguna muestra la dirección escrita de búsqueda.
 - **SC-008**: El 100 % de las solicitudes de revisión de prueba permanece privado, conserva la versión correcta durante el plazo acordado y se elimina al vencer su conservación.
 - **SC-009**: El 100 % de las acciones administrativas de prueba respeta los roles, rechaza decisiones sobre versiones obsoletas y produce un registro auditable.
-- **SC-010**: Los recorridos esenciales de exploración, publicación, gestión propia y contacto por suspensión pueden completarse en inglés y español desde una pantalla móvil sin bloqueos.
+- **SC-010**: El 100 % de los recorridos automatizados esenciales de exploración, publicación, gestión propia y contacto por suspensión MUST completarse en Safari estable actual sobre iOS y Chrome estable actual sobre Android, a 320 y 390 píxeles CSS y en inglés y español, sin desbordamiento horizontal, controles inaccesibles ni errores no gestionados.
 
 ## Assumptions
 
