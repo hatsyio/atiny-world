@@ -56,4 +56,40 @@ $ git diff --check
 
 ## Dudas y preocupaciones
 
-- La limitación de tasa cubierta aquí es la señal de cuota del proveedor (429), que es el mecanismo disponible en las interfaces T045/T046. No existe todavía una abstracción de rate limiter por cliente en el repositorio; añadir una política local de ventana/IP excedería el corte y requeriría definir almacenamiento y semántica de despliegue.
+- El rate limiter es local al proceso. Por tanto, en despliegues con varias instancias el límite efectivo se aplica por instancia; una cuota global requeriría un almacén compartido, fuera del alcance de este corte.
+
+## Corrección 1 — limitación local por cliente
+
+- Se añadió un limiter de ventana fija antes de llamar a Geoapify: 30 solicitudes por cliente y minuto.
+- La clave se obtiene de `x-forwarded-for`, después de `x-real-ip`, con el fallback `anonymous`; nunca se registra. La clave se trunca a 200 caracteres para acotar memoria.
+- El `Map` de estado se limita a 10.000 clientes y elimina el cliente menos reciente al llenarse, de forma que no crece sin cota.
+- `clientKey` y `rateLimiter` se pueden inyectar en el factory de la ruta para que la prueba no dependa de red, IP real ni reloj.
+
+RED:
+
+```text
+$ pnpm vitest run tests/contract/location-suggestions-api.test.ts
+FAIL  rate limits the same client locally before calling the provider
+Expected: 429
+Received: 200
+```
+
+GREEN:
+
+```text
+$ pnpm vitest run tests/contract/location-suggestions-api.test.ts
+Test Files  1 passed (4)
+
+$ pnpm exec eslint src/app/api/locations/suggestions/route.ts tests/contract/location-suggestions-api.test.ts
+# sin salida; código 0
+
+$ pnpm typecheck
+$ tsc --noEmit
+# código 0
+
+$ pnpm test:contract
+Test Files  2 passed (14)
+
+$ git diff --check
+# código 0
+```

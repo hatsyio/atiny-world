@@ -13,6 +13,9 @@ import { signLocationSelection, type LocationSelection } from '@/server/location
 
 const DEFAULT_LIMIT = 5
 const PROVIDER_RETRY_AFTER_SECONDS = 60
+const LOCAL_RATE_LIMIT = 30
+const LOCAL_RATE_LIMIT_WINDOW_MS = 60_000
+const MAX_RATE_LIMIT_CLIENTS = 10_000
 const GEOAPIFY_ATTRIBUTION = {
   label: 'Geoapify',
   url: 'https://www.geoapify.com/',
@@ -29,19 +32,68 @@ type LocationSuggestionRequest = z.infer<typeof locationSuggestionRequestSchema>
 type LocationSuggestionsDependencies = {
   search?: (query: GeoapifyLocationQuery) => Promise<GeoapifyLocationSuggestion[]>
   signSelection?: (selection: LocationSelection) => string
+  clientKey?: (request: Request) => string
+  rateLimiter?: RateLimiter
 }
 
-function providerProblem(status: 429 | 502): Response {
-  const rateLimited = status === 429
+type RateLimitResult = { allowed: boolean; retryAfterSeconds: number }
+type RateLimiter = (clientKey: string) => RateLimitResult
+
+type RateLimitEntry = { windowStart: number; requests: number }
+
+function createFixedWindowRateLimiter(
+  limit = LOCAL_RATE_LIMIT,
+  windowMs = LOCAL_RATE_LIMIT_WINDOW_MS,
+  maxClients = MAX_RATE_LIMIT_CLIENTS,
+  now: () => number = Date.now,
+): RateLimiter {
+  const entries = new Map<string, RateLimitEntry>()
+
+  return (clientKey) => {
+    const currentTime = now()
+    const windowStart = Math.floor(currentTime / windowMs) * windowMs
+    const retryAfterSeconds = Math.max(1, Math.ceil((windowStart + windowMs - currentTime) / 1_000))
+    const previous = entries.get(clientKey)
+
+    if (previous?.windowStart === windowStart) {
+      previous.requests += 1
+      entries.delete(clientKey)
+      entries.set(clientKey, previous)
+      return { allowed: previous.requests <= limit, retryAfterSeconds }
+    }
+
+    if (!previous && entries.size >= maxClients) {
+      const oldestClient = entries.keys().next().value
+      if (oldestClient !== undefined) entries.delete(oldestClient)
+    }
+
+    entries.set(clientKey, { windowStart, requests: 1 })
+    return { allowed: true, retryAfterSeconds }
+  }
+}
+
+function getClientKey(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  const client = forwarded || request.headers.get('x-real-ip') || 'anonymous'
+  return client.slice(0, 200)
+}
+
+function rateLimitedProblem(messageKey: string, retryAfterSeconds: number): Response {
   const problem = createProblem('LOCATION_PROVIDER_UNAVAILABLE', {
-    messageKey: rateLimited ? 'location.providerRateLimited' : 'location.providerUnavailable',
-    ...(rateLimited ? { retryAfterSeconds: PROVIDER_RETRY_AFTER_SECONDS } : {}),
+    messageKey,
+    retryAfterSeconds,
   })
 
   return Response.json(toProblemEnvelope(problem), {
-    status,
-    ...(rateLimited ? { headers: { 'retry-after': String(PROVIDER_RETRY_AFTER_SECONDS) } } : {}),
+    status: 429,
+    headers: { 'retry-after': String(retryAfterSeconds) },
   })
+}
+
+function providerUnavailableProblem(): Response {
+  return Response.json(toProblemEnvelope(createProblem('LOCATION_PROVIDER_UNAVAILABLE', {
+    messageKey: 'location.providerUnavailable',
+  })), { status: 502 })
 }
 
 function publicSuggestion(suggestion: GeoapifyLocationSuggestion, selectionToken: string) {
@@ -62,11 +114,16 @@ export function createLocationSuggestionsPostHandler(
   const signSelection = dependencies.signSelection ?? ((selection) => (
     signLocationSelection(selection, getLocationSelectionSecret())
   ))
+  const clientKey = dependencies.clientKey ?? getClientKey
+  const rateLimiter = dependencies.rateLimiter ?? createFixedWindowRateLimiter()
 
   return async function POST(request: Request): Promise<Response> {
     const parsed = await parseJsonBody(request, locationSuggestionRequestSchema)
 
     if (!parsed.ok) return Response.json(parsed.error, { status: 400 })
+
+    const rateLimit = rateLimiter(clientKey(request))
+    if (!rateLimit.allowed) return rateLimitedProblem('location.rateLimited', rateLimit.retryAfterSeconds)
 
     const input: LocationSuggestionRequest = parsed.data
     try {
@@ -80,9 +137,9 @@ export function createLocationSuggestionsPostHandler(
       }, { headers: { 'cache-control': 'no-store' } })
     } catch (error) {
       if (error instanceof GeoapifyProviderError && error.outcome === 'rate_limited') {
-        return providerProblem(429)
+        return rateLimitedProblem('location.providerRateLimited', PROVIDER_RETRY_AFTER_SECONDS)
       }
-      return providerProblem(502)
+      return providerUnavailableProblem()
     }
   }
 }

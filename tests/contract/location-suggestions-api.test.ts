@@ -68,4 +68,26 @@ describe('POST /api/locations/suggestions', () => {
       code: 'LOCATION_PROVIDER_UNAVAILABLE', messageKey: 'location.providerUnavailable',
     })
   })
+
+  it('rate limits the same client locally before calling the provider', async () => {
+    const search = vi.fn().mockResolvedValue([])
+    const handler = createLocationSuggestionsPostHandler({
+      search,
+      signSelection: () => 'unused',
+      rateLimiter: (() => {
+        let attempts = 0
+        return () => ({ allowed: ++attempts <= 2, retryAfterSeconds: 60 })
+      })(),
+    })
+
+    await expect(handler(request({ query: 'Seoul', language: 'ko' }))).resolves.toMatchObject({ status: 200 })
+    await expect(handler(request({ query: 'Seoul', language: 'ko' }))).resolves.toMatchObject({ status: 200 })
+    const response = await handler(request({ query: 'Seoul', language: 'ko' }))
+
+    expect(response.status).toBe(429)
+    expect(search).toHaveBeenCalledTimes(2)
+    await expect(response.json()).resolves.toEqual({
+      code: 'LOCATION_PROVIDER_UNAVAILABLE', messageKey: 'location.rateLimited', retryAfterSeconds: 60,
+    })
+  })
 })
