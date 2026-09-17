@@ -1,6 +1,10 @@
 import { isRecipient, type Recipient } from '@/domain/contracts'
 
-const MAX_GRAPHEMES = 500
+export const MAX_GRAPHEMES = 500
+
+export function countGraphemes(content: string): number {
+  return [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(content)].length
+}
 
 export type ContentValidation =
   | { ok: true }
@@ -16,8 +20,7 @@ export function validateMessageContent(
   if (options.recipient !== undefined && !isRecipient(options.recipient)) {
     return { ok: false, code: 'VALIDATION_ERROR', field: 'recipient' }
   }
-  const graphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(content)
-  if (content.length === 0 || [...graphemes].length > MAX_GRAPHEMES) {
+  if (content.length === 0 || countGraphemes(content) > MAX_GRAPHEMES) {
     return { ok: false, code: 'VALIDATION_ERROR', field: 'content' }
   }
   return { ok: true }

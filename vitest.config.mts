@@ -37,6 +37,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'node',
           include: ['tests/unit/**/*.test.{ts,tsx}'],
+          setupFiles: ['tests/support/jest-dom.ts'],
         },
       },
       {
