@@ -33,6 +33,25 @@ a:focus-visible {
   outline-offset: 4px;
 }
 
+.map {
+  min-height: 32rem;
+  position: relative;
+}
+
+.map--fullscreen {
+  background: var(--paper);
+  inset: 0;
+  padding: 1rem;
+  position: fixed;
+  z-index: 10;
+}
+
+.map__canvas {
+  height: min(70vh, 44rem);
+  min-height: 32rem;
+  width: 100%;
+}
+
 .shell {
   min-height: 100vh;
   overflow: hidden;

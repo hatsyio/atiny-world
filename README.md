@@ -2,7 +2,7 @@
 
 Un mundo de buenos deseos para ATEEZ.
 
-ATINY World será un mapa público y permanente de mensajes de ATINY, con ubicaciones elegidas por sus autoras, reacciones y moderación configurable.
+ATINY World será un mapa público y permanente de mensajes de ATINY, con ubicaciones elegidas por sus autoras y moderación configurable.
 
 ## Estado
 

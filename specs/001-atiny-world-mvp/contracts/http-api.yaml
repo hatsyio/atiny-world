@@ -1,0 +1,354 @@
+openapi: 3.1.0
+info:
+  title: ATINY World MVP HTTP API
+  version: 0.1.0
+  description: >-
+    Contratos HTTP consumidos por componentes cliente o integraciones externas.
+    Las mutaciones propias de la UI se documentan en server-actions.md.
+servers:
+  - url: /
+paths:
+  /api/map/features:
+    get:
+      operationId: getMapFeatures
+      summary: Obtiene puntos públicos mínimos para el viewport y filtros activos
+      parameters:
+        - $ref: '#/components/parameters/West'
+        - $ref: '#/components/parameters/South'
+        - $ref: '#/components/parameters/East'
+        - $ref: '#/components/parameters/North'
+        - $ref: '#/components/parameters/Zoom'
+        - $ref: '#/components/parameters/Recipient'
+        - name: fan
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Solo mensajes públicos en la lectura actual
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [features]
+                properties:
+                  features:
+                    type: array
+                    maxItems: 2000
+                    items: { $ref: '#/components/schemas/MapFeature' }
+                  truncated:
+                    type: boolean
+                    default: false
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503': { $ref: '#/components/responses/MapDataUnavailable' }
+  /api/map/messages:
+    get:
+      operationId: getMapMessages
+      summary: Pagina mensajes públicos de un área/grupo con orden estable
+      parameters:
+        - $ref: '#/components/parameters/West'
+        - $ref: '#/components/parameters/South'
+        - $ref: '#/components/parameters/East'
+        - $ref: '#/components/parameters/North'
+        - $ref: '#/components/parameters/Recipient'
+        - name: fan
+          in: query
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Página ordenada por publishedAt DESC y desempate interno estable
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessagePage' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '503': { $ref: '#/components/responses/MapDataUnavailable' }
+  /api/messages/{publicId}:
+    get:
+      operationId: getPublicMessage
+      summary: Obtiene la versión pública actual de un mensaje enlazable
+      parameters:
+        - name: publicId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Mensaje visible
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PublicMessage' }
+        '404':
+          description: Ausente o no público; la respuesta no distingue ambos casos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /api/users/search:
+    get:
+      operationId: searchPublicUsers
+      summary: Busca fans por usuario o nombre público sin revelar datos privados
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 2, maxLength: 80 }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Resultados públicos mínimos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/PublicUser' }
+                  nextCursor: { type: [string, 'null'] }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /api/locations/suggestions:
+    post:
+      operationId: suggestLocations
+      summary: Obtiene sugerencias normalizadas de Geoapify sin registrar la consulta
+      description: >-
+        La dirección se envía en el cuerpo y no debe aparecer en logs, trazas ni
+        analítica. selectionId es firmado, opaco y de vida corta.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [query, language]
+              properties:
+                query: { type: string, minLength: 2, maxLength: 200 }
+                language: { type: string, enum: [en, es, ko] }
+                limit: { type: integer, minimum: 1, maximum: 8, default: 5 }
+                mapCenter:
+                  oneOf:
+                    - $ref: '#/components/schemas/Point'
+                    - type: 'null'
+      responses:
+        '200':
+          description: Sugerencias recortadas a campos necesarios
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [suggestions, providerAttribution]
+                properties:
+                  suggestions:
+                    type: array
+                    maxItems: 8
+                    items: { $ref: '#/components/schemas/LocationSuggestion' }
+                  providerAttribution: { $ref: '#/components/schemas/Attribution' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '502': { $ref: '#/components/responses/LocationProviderUnavailable' }
+  /api/clerk/webhook:
+    post:
+      operationId: receiveClerkWebhook
+      summary: Reconcilia eventos Clerk firmados, incluido user.deleted
+      security:
+        - clerkWebhookSignature: []
+      responses:
+        '204': { description: Evento válido procesado o ya procesado }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/internal/account-deletions:
+    post:
+      operationId: retryAccountDeletions
+      summary: Reclama y reintenta jobs idempotentes solo en producción
+      security:
+        - cronSecret: []
+      responses:
+        '200':
+          description: Resultado agregado, nunca payloads de Clerk
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [claimed, completed, retryable]
+                properties:
+                  claimed: { type: integer, minimum: 0 }
+                  completed: { type: integer, minimum: 0 }
+                  retryable: { type: integer, minimum: 0 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+components:
+  securitySchemes:
+    clerkWebhookSignature:
+      type: apiKey
+      in: header
+      name: svix-signature
+    cronSecret:
+      type: http
+      scheme: bearer
+  parameters:
+    West:
+      name: west
+      in: query
+      required: true
+      schema: { type: number, minimum: -180, maximum: 180 }
+    South:
+      name: south
+      in: query
+      required: true
+      schema: { type: number, minimum: -90, maximum: 90 }
+    East:
+      name: east
+      in: query
+      required: true
+      schema: { type: number, minimum: -180, maximum: 180 }
+    North:
+      name: north
+      in: query
+      required: true
+      schema: { type: number, minimum: -90, maximum: 90 }
+    Zoom:
+      name: zoom
+      in: query
+      required: true
+      schema: { type: number, minimum: 0, maximum: 22 }
+    Recipient:
+      name: recipient
+      in: query
+      schema: { $ref: '#/components/schemas/Recipient' }
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string, maxLength: 500 }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+  responses:
+    ValidationError:
+      description: Entrada no válida
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Credencial ausente o no válida
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    RateLimited:
+      description: Límite de solicitudes o cuota alcanzado
+      headers:
+        Retry-After:
+          schema: { type: integer, minimum: 1 }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    MapDataUnavailable:
+      description: Datos del mapa temporalmente no disponibles; la UI conserva filtros y ofrece reintento manual
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Problem' }
+          example:
+            code: MAP_DATA_UNAVAILABLE
+            messageKey: map.dataUnavailable
+            retryable: true
+    LocationProviderUnavailable:
+      description: Geoapify temporalmente no disponible; la UI conserva borrador y selección confirmada
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Problem' }
+          example:
+            code: LOCATION_PROVIDER_UNAVAILABLE
+            messageKey: location.providerUnavailable
+            retryable: true
+  schemas:
+    Recipient:
+      type: [string, 'null']
+      enum: [null, ateez, hongjoong, seonghwa, yunho, yeosang, san, mingi, wooyoung, jongho, atiny]
+    Point:
+      type: object
+      additionalProperties: false
+      required: [latitude, longitude]
+      properties:
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
+    PublicUser:
+      type: object
+      additionalProperties: false
+      required: [publicId, username, displayName]
+      properties:
+        publicId: { type: string, format: uuid }
+        username: { type: string }
+        displayName: { type: string }
+    MapFeature:
+      type: object
+      additionalProperties: false
+      required: [publicId, point, precision, locality, country, recipient, publishedAt, author]
+      properties:
+        publicId: { type: string, format: uuid }
+        point: { $ref: '#/components/schemas/Point' }
+        precision: { type: string, enum: [approximate, precise] }
+        locality: { type: [string, 'null'] }
+        country: { type: string }
+        recipient: { $ref: '#/components/schemas/Recipient' }
+        publishedAt: { type: string, format: date-time }
+        author: { $ref: '#/components/schemas/PublicUser' }
+    PublicMessage:
+      allOf:
+        - $ref: '#/components/schemas/MapFeature'
+        - type: object
+          required: [content]
+          properties:
+            content: { type: string, maxLength: 2000 }
+    MessagePage:
+      type: object
+      additionalProperties: false
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/PublicMessage' }
+        nextCursor: { type: [string, 'null'] }
+    Attribution:
+      type: object
+      additionalProperties: false
+      required: [label, url]
+      properties:
+        label: { type: string }
+        url: { type: string, format: uri }
+    LocationSuggestion:
+      type: object
+      additionalProperties: false
+      required: [selectionId, label, locality, country, countryCode, resultType, point, sourceAttribution]
+      properties:
+        selectionId: { type: string }
+        label: { type: string, description: Solo previsualización; no persistir }
+        locality: { type: [string, 'null'] }
+        country: { type: string }
+        countryCode: { type: string, pattern: '^[a-z]{2}$' }
+        resultType: { type: string }
+        point: { $ref: '#/components/schemas/Point' }
+        sourceAttribution: { $ref: '#/components/schemas/Attribution' }
+    Problem:
+      type: object
+      additionalProperties: false
+      required: [code, messageKey]
+      properties:
+        code: { type: string }
+        messageKey: { type: string }
+        fieldErrors:
+          type: object
+          additionalProperties: { type: string }
+        retryAfterSeconds: { type: integer, minimum: 0 }
+        retryable: { type: boolean, default: false }
