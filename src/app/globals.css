@@ -47,9 +47,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .stat-plaque strong { font-size: 1.55rem; font-weight: 500; line-height: 1; }
 .stat-plaque span { font-size: .73rem; margin-top: .3rem; }
 .map-section { max-width: 1360px; margin: auto; scroll-margin-top: 1rem; }
-.map-heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: .2rem; }
-.map-heading h2 { max-width: 13ch; font-size: clamp(1.45rem, 2.5vw, 2.5rem); letter-spacing: .15em; text-transform: uppercase; line-height: 1.2; }
-.map-heading p { max-width: 20ch; font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: clamp(1.2rem, 2.2vw, 2rem); font-style: italic; text-align: right; }
+.map-heading { display: grid; justify-items: center; gap: .55rem; max-width: 760px; margin: 0 auto .6rem; text-align: center; }
+.map-heading h2 { margin: 0; font-size: clamp(1.45rem, 2.5vw, 2.5rem); letter-spacing: .15em; text-transform: uppercase; line-height: 1.2; }
+.map-heading h2::after { content: ''; display: block; width: min(13rem, 45vw); height: 1px; margin: .55rem auto 0; background: linear-gradient(90deg, transparent, #6b3e20, transparent); }
+.map-heading p { margin: 0; max-width: 34rem; font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: clamp(1.2rem, 2.2vw, 2rem); font-style: italic; }
 .map-hint { margin: 0 0 .7rem; text-align: center; font-style: italic; }
 .live-map-frame { max-width: 1200px; margin: 0 auto 4.5rem; }
 .live-map-frame > section { background: transparent; }
@@ -144,9 +145,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .stat-plaque { min-width: 95px; min-height: 62px; }
   .stat-plaque strong { font-size: 1.1rem; }
   .stat-plaque span { font-size: .58rem; }
-  .map-heading { display: block; text-align: center; }
-  .map-heading h2 { max-width: none; margin: 0; }
-  .map-heading p { max-width: none; text-align: center; margin: .5rem 0; }
+  .map-heading { gap: .4rem; }
+  .map-heading h2 { max-width: none; }
+  .map-heading p { max-width: none; }
   .live-map-frame { margin-bottom: 3rem; }
   .map__canvas { height: 310px; }
   .section-heading h2 { letter-spacing: .1em; }
