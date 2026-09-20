@@ -40,11 +40,13 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
 
     async function initialize(key: string) {
       try {
-        const leaflet = await import('leaflet')
+        type LeafletModule = typeof import('leaflet')
+        const leafletModule = await import('leaflet')
         await import('leaflet.markercluster')
 
         if (disposed || !element.current) return
 
+        const leaflet = (leafletModule as { default?: LeafletModule }).default ?? leafletModule
         const instance = leaflet.map(element.current, {
           attributionControl: true,
           zoomControl: true,
