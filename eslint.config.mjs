@@ -11,5 +11,12 @@ export default defineConfig([
       quotes: ['error', 'single', { avoidEscape: true }],
     },
   },
-  globalIgnores(['.next/**', 'coverage/**', 'next-env.d.ts']),
+  globalIgnores([
+    '.next/**',
+    'node_modules/**',
+    'dist/**',
+    'build/**',
+    'coverage/**',
+    'next-env.d.ts',
+  ]),
 ])

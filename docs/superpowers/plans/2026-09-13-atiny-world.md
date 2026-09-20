@@ -11,9 +11,9 @@ Estado: arquitectura aprobada e implementación iniciada el 14 de septiembre de
 ## Restricciones comunes
 
 - Inglés y español; texto internacional y emojis; 500 grafemas por mensaje.
-- 50 mensajes por cuenta y cooldown de 10 segundos, ambos configurables.
-- Moderación desactivada inicialmente; un cambio de moderación conserva los «Me gusta».
-- Una edición reemplaza contenido, vuelve a pendiente y reinicia los «Me gusta», conservando el identificador público.
+- 10 mensajes por cuenta y cooldown de 10 segundos, ambos configurables.
+- Moderación desactivada inicialmente; un cambio de moderación conserva estados, contenido y ubicación.
+- Una edición reemplaza contenido y vuelve a pendiente, conservando el identificador público.
 - El acceso público nunca revela mensajes ocultos ni evidencias privadas.
 - Solo la autora edita; administradores moderan y el propietario asigna administradores.
 - Ningún servicio de pago se activa sin autorización.
@@ -52,7 +52,7 @@ Resultado: aplicación arrancable con servicios reales, aún sin publicación p�
 - [ ] Probar grafemas con coreano, emoji compuesto y textos de 500/501 caracteres visibles.
 - [ ] Probar coordenadas estables entre lecturas, distintas por mensaje y conservadas al editar solo texto.
 - [ ] Implementar las reglas y ejecutar las pruebas hasta que pasen.
-- [ ] Aplicar la migración en desarrollo y comprobar las restricciones únicas de usuarios y «Me gusta».
+- [ ] Aplicar la migración en desarrollo y comprobar las restricciones únicas de usuarios.
 
 Archivos: `src/domain/messages/{policy,validation}.ts`, `src/domain/location/position.ts`, `src/server/db/schema.ts`, `drizzle/`, `tests/domain/`.
 Resultado: reglas ejecutables y almacenamiento preparado con pruebas de los invariantes acordados.
@@ -71,22 +71,20 @@ Resultado: reglas ejecutables y almacenamiento preparado con pruebas de los inva
 Archivos: `src/app/[locale]/page.tsx`, `src/components/map/`, `src/components/messages/`, `src/i18n/`, `src/server/messages/`, `src/app/api/messages/`, `src/app/api/places/`.
 Resultado: flujo principal de extremo a extremo con datos persistidos.
 
-## 4. Gestión personal e interacciones
+## 4. Gestión personal y solicitudes de revisión
 
 - [ ] Implementar «Mis mensajes», edición y borrado.
-- [ ] Implementar «Me gusta» revocable, incluidos mensajes propios.
-- [ ] Probar simultáneamente edición y «Me gusta»: nunca trasladar una reacción a otra versión.
-- [ ] Implementar denuncia con copia privada de la versión y motivo.
+- [ ] Implementar «Pedir revisión» con copia privada de la versión y motivo.
 - [ ] Verificar enlaces después de editar, retirar y borrar.
 
-Archivos: `src/app/[locale]/my-messages/`, `src/server/messages/`, `src/server/moderation/reports.ts`, `tests/integration/messages.test.ts`.
+Archivos: `src/app/[locale]/my-messages/`, `src/server/messages/`, `src/server/moderation/review-requests.ts`, `tests/integration/messages.test.ts`.
 Resultado: todas las operaciones de una fan, con límites y privacidad comprobados.
 
 ## 5. Administración
 
-- [ ] Crear panel con búsqueda, revisión, denuncias, configuración y suspensión.
+- [ ] Crear panel con búsqueda, revisión, solicitudes de revisión, configuración y suspensión.
 - [ ] Implementar aprobación/rechazo por versión, retirada y motivos traducidos con nota.
-- [ ] Mostrar impacto antes del cambio de moderación y conservar estados y reacciones.
+- [ ] Mostrar impacto antes del cambio de moderación y conservar estados, contenido y ubicación.
 - [ ] Implementar roles y auditoría atómica; impedir que un administrador edite texto ajeno.
 - [ ] Probar suspensión y restitución, incluida la visibilidad y los permisos de borrado.
 
@@ -96,7 +94,7 @@ Resultado: panel usable por varios administradores sin exposición de datos priv
 ## 6. Eliminación y preparación del lanzamiento
 
 - [ ] Implementar eliminación de cuenta y reintentos entre Supabase y Clerk.
-- [ ] Implementar purga de copias dos años después del cierre de la denuncia.
+- [ ] Implementar purga de copias dos años después del cierre de la solicitud de revisión.
 - [ ] Configurar propietario, correo de contacto, dominio y Google de producción.
 - [ ] Completar textos de privacidad y normas coherentes con la conservación acordada.
 - [ ] Ejecutar comprobación de tipos, pruebas de dominio/integración y compilación.

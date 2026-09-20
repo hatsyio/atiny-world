@@ -36,7 +36,7 @@ Se usará el runtime Node.js. No se necesitan microservicios, WebSockets, almace
 - Un único proyecto remoto de Supabase, destinado a producción, dado que el propietario dispone de un solo hueco gratuito.
 - Desarrollo habitual y pruebas destructivas con Supabase local y datos de prueba.
 - Previews de Vercel conectadas a la base remota con credenciales propias de solo lectura por defecto. Esta restricción debe imponerse en los permisos de base de datos, no solo ocultando controles en la interfaz.
-- La capacidad de lectura no implica acceso a todas las tablas: las previews no deben recibir acceso indiscriminado a denuncias privadas u otros datos sensibles. Los permisos y la visibilidad de aplicación siguen aplicándose.
+- La capacidad de lectura no implica acceso a todas las tablas: las previews no deben recibir acceso indiscriminado a solicitudes de revisión privadas u otros datos sensibles. Los permisos y la visibilidad de aplicación siguen aplicándose.
 - Habilitar escrituras únicamente para previews concretas, revisadas y autorizadas caso por caso, reconociendo que sus operaciones afectan a producción. No reutilizar indiscriminadamente credenciales de escritura en todas las ramas.
 - Las previews no ejecutan migraciones automáticamente.
 - Migraciones versionadas y probadas localmente. Aplicación remota mediante un paso controlado e independiente de los builds de previews, con credenciales de migración separadas del acceso de la aplicación.
@@ -51,7 +51,7 @@ Se usará el runtime Node.js. No se necesitan microservicios, WebSockets, almace
 - `src/server/auth`: identidad verificada y resolución del perfil local.
 - `src/server/db`: acceso a PostgreSQL y transacciones.
 - `src/server/messages`: lectura pública, publicación, edición, eliminación y límites.
-- `src/server/moderation`: denuncias, decisiones, suspensión, configuración e historial.
+- `src/server/moderation`: solicitudes de revisión, decisiones, suspensión, configuración e historial.
 - `src/components/map`: mapa, marcadores, agrupaciones, filtros y selección de ubicación.
 - `src/i18n`: diccionarios inglés/español, incluidos motivos de moderación.
 
@@ -59,27 +59,26 @@ La UI no decide permisos. Todas las mutaciones comprueban sesión, propietario d
 
 ## Modelo de datos conceptual
 
-Modelo principal aprobado por el propietario: perfiles, mensajes, «Me gusta», denuncias, configuración e historial administrativo. Las credenciales y el inicio de sesión permanecen en Clerk. Se confirma un identificador estable y una versión incremental por mensaje; editar sustituye el texto, reinicia las reacciones y vuelve a pendiente de forma atómica. El texto anterior solo se conserva cuando forma parte de una denuncia sujeta a retención.
+Modelo principal aprobado por el propietario: perfiles, mensajes, solicitudes de revisión, configuración e historial administrativo. Las credenciales y el inicio de sesión permanecen en Clerk. Se confirma un identificador estable y una versión incremental por mensaje; editar sustituye el texto y vuelve a pendiente de forma atómica. El texto anterior solo se conserva cuando forma parte de una solicitud de revisión sujeta a retención.
 
 Permisos aprobados:
 
-- Fan: gestiona sus mensajes, da o retira «Me gusta» y denuncia.
-- Administrador: modera, gestiona denuncias, suspende cuentas y cambia configuración; no edita textos ajenos.
+- Fan: gestiona sus mensajes y puede pedir la revisión de mensajes.
+- Administrador: modera, gestiona solicitudes de revisión, suspende cuentas y cambia configuración; no edita textos ajenos.
 - Propietario: tiene los permisos administrativos y asigna o retira administradores.
 - Solo el propietario puede suspender a un administrador o retirarle el rol. Un administrador no puede suspender a otro administrador; esta restricción se comprueba en el backend según los roles vigentes.
 - Visitante anónima: consulta exclusivamente información pública.
-- Cuenta suspendida: mantiene las posibilidades de consulta, contacto y borrado acordadas, sin poder publicar, editar, reaccionar ni denunciar.
+- Cuenta suspendida: mantiene las posibilidades de consulta, contacto y borrado acordadas, sin poder publicar, editar ni pedir revisión.
 
-Roles y suspensiones residen en Supabase y se verifican en el backend en cada operación protegida. Ningún rol enviado por el navegador es fuente de autoridad. Denuncias e historial administrativo quedan fuera de las consultas públicas del mapa.
+Roles y suspensiones residen en Supabase y se verifican en el backend en cada operación protegida. Ningún rol enviado por el navegador es fuente de autoridad. Las solicitudes de revisión y el historial administrativo quedan fuera de las consultas públicas del mapa.
 
 Las entidades auxiliares de implementación siguientes concretan la persistencia de esas responsabilidades, sin añadir funciones de producto.
 
 - `profiles`: identificador local, identidad Clerk, usuario único, nombre público, rol, suspensión y fechas. No almacena contraseñas.
 - `messages`: identificador público estable, autora, versión actual, texto, destinatario opcional, estado, precisión, coordenadas públicas persistidas, localidad, país y fechas.
-- `likes`: cuenta, mensaje y versión. Restricción única por cuenta y mensaje.
-- `reports`: denunciante, referencia nullable al mensaje, número de versión, copia privada del texto denunciado, motivo, estado del caso, cierre y vencimiento de conservación.
+- `review_requests`: solicitante, referencia nullable al mensaje, número de versión, copia privada del texto sujeto a revisión, motivo, estado del caso, cierre y vencimiento de conservación.
 - `moderation_actions`: decisión, motivo traducible y nota opcional.
-- `settings`: moderación inicialmente desactivada, límite de 50 y cooldown de 10 segundos.
+- `settings`: moderación inicialmente desactivada, límite de 10 mensajes y cooldown de 10 segundos.
 - `admin_audit`: actor, acción, objeto, fecha y metadatos pertinentes, sin duplicar innecesariamente texto privado.
 - `account_deletion_jobs`: seguimiento de la eliminación entre la aplicación y Clerk para poder reintentar fallos sin restaurar el acceso público.
 
@@ -87,9 +86,7 @@ Los identificadores públicos serán opacos. El rol de propietario se asigna med
 
 ## Mensajes, versiones y concurrencia
 
-El identificador del mensaje es estable. Editar incrementa su versión, sustituye el texto, vuelve a pendiente y elimina sus «Me gusta» dentro de la misma transacción. No se conserva un historial público de textos. Una denuncia mantiene solo su propia copia privada.
-
-Una petición de «Me gusta» incluye la versión que la fan estaba leyendo. Si ha cambiado, el servidor rechaza la operación y solicita refrescar el mensaje: no debe trasladarse apoyo al contenido nuevo por una carrera entre edición y clic.
+El identificador del mensaje es estable. Editar incrementa su versión, sustituye el texto y vuelve a pendiente dentro de la misma transacción. No se conserva un historial público de textos. Una solicitud de revisión mantiene solo su propia copia privada.
 
 Publicar bloquea el registro de la cuenta durante la comprobación del límite y cooldown y durante la inserción. Dos solicitudes simultáneas no pueden superar los límites. El borrado de un mensaje no reinicia el instante del último envío.
 
@@ -106,7 +103,7 @@ cuenta activa AND (
 )
 ```
 
-Rechazados y retirados nunca son públicos. Cambiar la configuración no reescribe mensajes ni altera «Me gusta». No se utilizará caché pública persistente para contenido moderable en la primera versión; al modificarlo, la interfaz volverá a consultar los datos. Una respuesta ya entregada a un navegador no puede revocarse, pero las nuevas lecturas sí deben reflejar el cambio.
+Rechazados y retirados nunca son públicos. Cambiar la configuración no reescribe mensajes. No se utilizará caché pública persistente para contenido moderable en la primera versión; al modificarlo, la interfaz volverá a consultar los datos. Una respuesta ya entregada a un navegador no puede revocarse, pero las nuevas lecturas sí deben reflejar el cambio.
 
 «Mis mensajes» utiliza un endpoint privado independiente para incluir estados ocultos. No se expone esta información mediante parámetros de la consulta pública.
 
@@ -118,7 +115,7 @@ La comparación de geocodificación prioriza cobertura internacional, búsqueda 
 
 Para ubicaciones aproximadas, partir del centro de la localidad, no de una dirección privada. Calcular una vez el desplazamiento con el identificador del mensaje y guardar las coordenadas resultantes y la versión del algoritmo. El hash no convierte coordenadas precisas en datos anónimos: no se conservará una dirección privada para obtener la posición aproximada.
 
-Las consultas del mapa usarán área visible y filtros para no descargar todos los textos a escala mundial. Los grupos devuelven conteos; los mensajes de un grupo se consultan con paginación y orden estable por fecha o «Me gusta», con identificador como desempate.
+Las consultas del mapa usarán área visible y filtros para no descargar todos los textos a escala mundial. Los grupos devuelven conteos; los mensajes de un grupo se consultan con paginación y orden estable por fecha, con identificador como desempate.
 
 Como alternativa de arranque, los servicios públicos de OpenStreetMap exigirían atribución, respeto de caché y límites de uso. Nominatim no se utilizará para autocompletar ni para enviar direcciones privadas; requiere una revisión específica de su política antes de adoptarlo. No es el proveedor definitivo de este diseño.
 
@@ -132,13 +129,13 @@ La activación de Google en producción y el dominio final pueden requerir confi
 
 ## Eliminación y conservación
 
-Al solicitar eliminación de cuenta, desactivar primero su visibilidad y capacidad de operar. Borrar mensajes y «Me gusta» y completar después la eliminación de identidad con reintentos registrados si Clerk falla. La respuesta no afirmará una eliminación completa mientras haya pasos pendientes.
+Al solicitar eliminación de cuenta, desactivar primero su visibilidad y capacidad de operar. Borrar sus mensajes y completar después la eliminación de identidad con reintentos registrados si Clerk falla. La respuesta no afirmará una eliminación completa mientras haya pasos pendientes.
 
-Las denuncias abiertas conservan su copia privada. Al cerrar un caso se calcula el vencimiento a dos años naturales; un proceso periódico elimina la copia vencida. Las referencias al mensaje o cuenta eliminados serán anulables, evitando que el borrado en cascada destruya la evidencia retenida. Su acceso es exclusivamente administrativo.
+Las solicitudes de revisión abiertas conservan su copia privada. Al cerrar un caso se calcula el vencimiento a dos años naturales; un proceso periódico elimina la copia vencida. Las referencias al mensaje o cuenta eliminados serán anulables, evitando que el borrado en cascada destruya la evidencia retenida. Su acceso es exclusivamente administrativo.
 
 ## Verificación
 
-Pruebas unitarias para la matriz completa de visibilidad, transiciones, grafemas y coordenadas estables. Pruebas con PostgreSQL para carreras de publicación, edición/«Me gusta», autorizaciones y auditoría atómica. Comprobación del flujo real de registro, recuperación, Google, mensajes, filtros, moderación y borrado antes de abrir el lanzamiento.
+Pruebas unitarias para la matriz completa de visibilidad, transiciones, grafemas y coordenadas estables. Pruebas con PostgreSQL para carreras de publicación, autorizaciones y auditoría atómica. Comprobación del flujo real de registro, recuperación, Google, mensajes, filtros, moderación y borrado antes de abrir el lanzamiento.
 
 ## Situación de provisión
 

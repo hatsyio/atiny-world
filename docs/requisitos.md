@@ -1,6 +1,6 @@
 # ATINY World — Requisitos de producto
 
-Estado: validado por el propietario el 13 de septiembre de 2026. Alcance acordado para la primera versión.
+Estado: validado por el propietario el 13 de septiembre de 2026 y actualizado el 14 de septiembre de 2026. Alcance acordado para la primera versión.
 
 ## Propósito y lanzamiento
 
@@ -44,8 +44,8 @@ El footer incluirá un correo de contacto administrativo y una nota que identifi
 - Google y contraseña podrán vincularse a una misma cuenta tras verificar su titularidad, conservando perfil y mensajes.
 - El correo es privado. Los mensajes muestran el nombre público.
 - Leer el mapa y abrir enlaces de mensajes no requiere cuenta.
-- Publicar, dar «Me gusta» y denunciar requiere iniciar sesión.
-- Cada fan podrá eliminar su cuenta con confirmación explícita. Se eliminarán sus mensajes y sus «Me gusta», y se cerrará su sesión, con la excepción de conservación de denuncias descrita más abajo.
+- Publicar y pedir la revisión de un mensaje requiere iniciar sesión.
+- Cada fan podrá eliminar su cuenta con confirmación explícita. Se eliminarán sus mensajes y se cerrará su sesión, con la excepción de conservación de solicitudes de revisión descrita más abajo.
 
 ## Contenido y publicación
 
@@ -53,7 +53,7 @@ El footer incluirá un correo de contacto administrativo y una nota que identifi
 - Hasta 500 caracteres visibles; un emoji completo cuenta como una unidad.
 - Destinatario opcional y único. Sin selección significa «para todo el mundo».
 - Destinatarios seleccionables: ATEEZ, cada uno de sus ocho miembros y ATINY en general.
-- Máximo inicial de 50 mensajes por cuenta, configurable por el administrador.
+- Máximo inicial de 10 mensajes por cuenta, configurable por el administrador.
 - Los pendientes, aprobados, rechazados y retirados cuentan para el límite mientras no se eliminen.
 - Cooldown inicial de 10 segundos entre nuevos mensajes de una cuenta, configurable por el administrador. El formulario mostrará el tiempo de espera.
 - Al alcanzar el límite, el formulario dirigirá a «Mis mensajes» para liberar espacio.
@@ -82,7 +82,7 @@ El footer incluirá un correo de contacto administrativo y una nota que identifi
 - Los filtros respetan las reglas de visibilidad: buscar una cuenta no revela sus mensajes ocultos.
 - Pulsar un marcador abre una ficha con texto completo, nombre público, ubicación elegida y fecha de publicación.
 - Los grupos permiten acercarse y recorrer los mensajes individualmente.
-- Dentro de una agrupación, orden por más recientes y opción de ordenar por «Me gusta».
+- Dentro de una agrupación, orden estable por mensajes más recientes.
 - Botón para expandir el mapa a toda la ventana del navegador, también en móvil, y control visible para volver a la página.
 - Cada mensaje tendrá un enlace público que centre el mapa y abra su ficha.
 - Si el mensaje no está disponible públicamente, su enlace mostrará un aviso sin revelar contenido.
@@ -94,7 +94,7 @@ El footer incluirá un correo de contacto administrativo y una nota que identifi
 
 - Eliminar un mensaje libera un espacio del límite.
 - Rechazados y retirados siguen disponibles para su autora en esta sección.
-- Editar sustituye el contenido anterior y reinicia los «Me gusta» a cero.
+- Editar sustituye el contenido anterior.
 - La versión anterior deja de mostrarse; no permanece visible mientras se revisa la nueva.
 - La sustitución no consume otro espacio del límite de mensajes.
 - Una edición vuelve a estado pendiente, conservando enlace y ubicación si esta no cambia.
@@ -114,26 +114,22 @@ La moderación previa es configurable y estará desactivada inicialmente. El est
 Reglas de transición:
 
 - Crear un mensaje: pendiente de revisión.
-- Editar un mensaje, incluido uno rechazado o retirado: pendiente de revisión, con reinicio de «Me gusta».
+- Editar un mensaje, incluido uno rechazado o retirado: pendiente de revisión.
 - Aprobar un mensaje pendiente: aprobado.
 - Rechazar un mensaje pendiente: rechazado, con motivo.
 - Retirar un mensaje publicado: retirado, con motivo.
 - Eliminar un mensaje: deja de estar disponible y deja de contar para el límite; no constituye otro estado público recuperable.
-- Denunciar no cambia automáticamente el estado ni la visibilidad.
+- Pedir revisión no cambia automáticamente el estado ni la visibilidad.
 
-El interruptor de moderación se aplica también a todos los mensajes existentes. No modifica sus estados, contenido, ubicación ni «Me gusta». Antes de aplicar el cambio, el panel indicará cuántos mensajes aparecerán o se ocultarán.
+El interruptor de moderación se aplica también a todos los mensajes existentes. No modifica sus estados, contenido ni ubicación. Antes de aplicar el cambio, el panel indicará cuántos mensajes aparecerán o se ocultarán.
 
 La suspensión de la cuenta autora oculta sus mensajes independientemente del estado. El resultado de moderación se consulta en «Mis mensajes», sin correos por cada revisión.
 
-## «Me gusta» y denuncias
+## Pedir revisión
 
-- Botón «Me gusta» y contador público.
-- Un «Me gusta» por cuenta y mensaje, revocable.
-- Se permite dar «Me gusta» a mensajes propios.
-- Sin dislikes ni contadores negativos.
-- Denuncias con motivo, privadas y revisables por administradores.
-- Cada denuncia conserva una copia privada de la versión denunciada, aunque la autora edite o elimine el mensaje o su cuenta.
-- La copia permanece mientras la denuncia esté abierta y durante dos años desde su cierre.
+- Acción «Pedir revisión» con motivo, privada y gestionada por administradores.
+- Cada solicitud conserva una copia privada de la versión cuya revisión se pide, aunque la autora edite o elimine el mensaje o su cuenta.
+- La copia permanece mientras la solicitud esté abierta y durante dos años desde su cierre.
 - Esta excepción de conservación se explicará en los flujos de eliminación correspondientes.
 
 ## Administración
@@ -141,7 +137,7 @@ La suspensión de la cuenta autora oculta sus mensajes independientemente del es
 - Varios administradores con permisos de moderación y configuración.
 - El propietario gestiona quién tiene el rol de administrador.
 - Solo el propietario puede suspender a un administrador o retirarle ese rol; los administradores no pueden suspenderse entre sí.
-- Panel para buscar y revisar mensajes, aprobar, rechazar, retirar, gestionar denuncias y suspender cuentas.
+- Panel para buscar y revisar mensajes, aprobar, rechazar, retirar, gestionar solicitudes de revisión y suspender cuentas.
 - Configuración de moderación, máximo de mensajes por cuenta y cooldown.
 - Motivos predefinidos traducidos al inglés y español, con nota opcional en texto libre, para rechazo, retirada y suspensión.
 - Historial privado de acciones administrativas: quién, cuándo, acción y motivo cuando corresponda. Incluye cambios de configuración y suspensión de cuentas.
@@ -149,10 +145,10 @@ La suspensión de la cuenta autora oculta sus mensajes independientemente del es
 
 Una cuenta suspendida:
 
-- No puede publicar, editar, dar «Me gusta» ni denunciar.
+- No puede publicar, editar ni pedir revisión.
 - Tiene sus mensajes ocultos mientras dure la suspensión.
 - Puede acceder, consultar el motivo, contactar por correo, borrar sus mensajes o eliminar su cuenta.
-- Al levantarse la suspensión, sus mensajes recuperan la visibilidad correspondiente a su estado y conservan sus «Me gusta».
+- Al levantarse la suspensión, sus mensajes recuperan la visibilidad correspondiente a su estado.
 
 ## Mejoras futuras
 
@@ -167,7 +163,7 @@ Estos puntos no han sido elegidos durante la entrevista y no deben tratarse como
 - Dominio y dirección de correo de contacto reales.
 - Identidad de la cuenta propietaria y administradores iniciales.
 - Proveedores y arquitectura de alojamiento, mapas, búsqueda geográfica, autenticación y envío de correo, dentro del presupuesto acordado.
-- Textos finales de introducción, normas de publicación y documentación de privacidad, incluido el tratamiento de las copias de denuncias.
+- Textos finales de introducción, normas de publicación y documentación de privacidad, incluido el tratamiento de las copias de solicitudes de revisión.
 
 ## Flujos esenciales que verificar antes de publicar
 
@@ -175,10 +171,10 @@ Estos puntos no han sido elegidos durante la entrevista y no deben tratarse como
 - Publicación internacional con emojis, destinatario opcional y ambas precisiones de ubicación.
 - Posición aproximada estable, agrupación, exploración y expansión del mapa.
 - Límite por cuenta, cooldown configurable y liberación de espacio al eliminar.
-- Edición que conserva enlace y punto cuando corresponde, sustituye contenido y reinicia «Me gusta».
-- Cambios de moderación que alteran visibilidad sin modificar estados ni «Me gusta».
+- Edición que conserva enlace y punto cuando corresponde y sustituye el contenido.
+- Cambios de moderación que alteran la visibilidad sin modificar los estados.
 - Enlaces públicos que no revelan contenido oculto.
-- Denuncias con copia de la versión y conservación acordada.
+- Solicitudes de revisión con copia de la versión y conservación acordada.
 - Separación entre permisos de autora, administrador y propietario.
 - Suspensión, restitución y eliminación de cuenta con las reglas acordadas.
 - Interfaz en inglés y español y uso desde móvil.

@@ -4,7 +4,16 @@
 
 Entorno local inicializado con Supabase CLI 2.109.1 y PostgreSQL 17.
 Verificado el 13 de septiembre de 2026 mediante una consulta SQL: PostgreSQL
-17.6 responde correctamente. Todavía no hay tablas de la aplicación.
+17.6 responde correctamente.
+
+El 15 de septiembre de 2026 se aplicaron las migraciones fundacionales
+(`20260915000100` a `20260915000300`) mediante un `supabase db reset` local.
+Esquema verificado tras el reinicio: tablas `app_private.profiles`,
+`app_private.messages` y `app_private.settings`; roles `atiny_app_runtime` y
+`atiny_preview_reader`; 3 claves foráneas; defaults de configuración
+`premoderation_enabled=false`, `message_limit=10`, `cooldown_seconds=10`.
+Los 22 tests de `tests/integration` (base de datos, salud y transacciones)
+pasan contra el esquema reconstruido.
 
 Proyecto remoto creado y vinculado: `atiny-world`, región París (`eu-west-3`),
 referencia `ngwsobelmdwiqsdmuonw`, organización «Josep Test» (plan Free confirmado
