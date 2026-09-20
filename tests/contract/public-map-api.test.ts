@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { GET as getMessage } from '../../src/app/api/messages/[publicId]/route'
-import { GET as getFeatures } from '../../src/app/api/map/features/route'
+import { createMapFeaturesGetHandler, GET as getFeatures } from '../../src/app/api/map/features/route'
 import { GET as getMessages } from '../../src/app/api/map/messages/route'
 import { GET as searchUsers } from '../../src/app/api/users/search/route'
 import { getDb } from '../../src/server/db/client'
@@ -127,6 +127,52 @@ describe('GET /api/map/features', () => {
 
     expect(response.status).toBe(200)
   })
+
+  it('serves the full world bbox with a healthy database', async () => {
+    const response = await getFeatures(
+      new Request(
+        apiUrl('/api/map/features', {
+          west: '-180',
+          south: '-90',
+          east: '180',
+          north: '90',
+        }),
+      ),
+    )
+
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as {
+      features: Array<Record<string, unknown>>
+      truncated: boolean
+    }
+    expect(typeof body.truncated).toBe('boolean')
+    expect(Array.isArray(body.features)).toBe(true)
+  })
+
+  it('keeps a controlled error when the database is unavailable', async () => {
+    const handler = createMapFeaturesGetHandler({
+      list: async () => {
+        throw new Error('connection to localhost:54322 refused')
+      },
+    })
+
+    const response = await handler(
+      new Request(
+        apiUrl('/api/map/features', {
+          west: '-180',
+          south: '-90',
+          east: '180',
+          north: '90',
+        }),
+      ),
+    )
+
+    expect(response.status).toBe(503)
+    const body = (await response.json()) as Record<string, unknown>
+    expect(body.code).toBe('MAP_DATA_UNAVAILABLE')
+    expect(body.messageKey).toBe('map.dataUnavailable')
+    expect(JSON.stringify(body)).not.toMatch(/localhost|54322|refused|connection/i)
+  })
 })
 
 describe('GET /api/map/messages', () => {
@@ -199,6 +245,24 @@ describe('GET /api/map/messages', () => {
     )
 
     expect(response.status).toBe(400)
+  })
+
+  it('serves the full world bbox with a healthy database', async () => {
+    const response = await getMessages(
+      new Request(
+        apiUrl('/api/map/messages', {
+          west: '-180',
+          south: '-90',
+          east: '180',
+          north: '90',
+          limit: '20',
+        }),
+      ),
+    )
+
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as { items: Array<Record<string, unknown>> }
+    expect(Array.isArray(body.items)).toBe(true)
   })
 })
 
