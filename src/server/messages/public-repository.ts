@@ -65,14 +65,14 @@ function visibilityCondition(sql: Sql): Fragment {
 function bboxCondition(sql: Sql, bounds: MapBounds): Fragment {
   if (bounds.west <= bounds.east) {
     return sql`ST_Intersects(
-      m.public_point,
-      ST_MakeEnvelope(${bounds.west}, ${bounds.south}, ${bounds.east}, ${bounds.north}, 4326)::geography
+      m.public_point::geometry,
+      ST_MakeEnvelope(${bounds.west}, ${bounds.south}, ${bounds.east}, ${bounds.north}, 4326)
     )`
   }
 
   return sql`(
-    ST_Intersects(m.public_point, ST_MakeEnvelope(${bounds.west}, ${bounds.south}, 180, ${bounds.north}, 4326)::geography)
-    or ST_Intersects(m.public_point, ST_MakeEnvelope(-180, ${bounds.south}, ${bounds.east}, ${bounds.north}, 4326)::geography)
+    ST_Intersects(m.public_point::geometry, ST_MakeEnvelope(${bounds.west}, ${bounds.south}, 180, ${bounds.north}, 4326))
+    or ST_Intersects(m.public_point::geometry, ST_MakeEnvelope(-180, ${bounds.south}, ${bounds.east}, ${bounds.north}, 4326))
   )`
 }
 
