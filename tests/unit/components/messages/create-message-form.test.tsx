@@ -1,12 +1,16 @@
 /** @vitest-environment jsdom */
 
 import { act } from 'react'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { CreateMessageActionResult } from '@/app/[lang]/actions/create-message'
 import type { CreateMessageActionInput } from '@/server/actions/create-message'
-import { CreateMessageForm, type CreateMessageFormProps } from '@/components/messages/create-message-form'
+import {
+  CreateMessageForm,
+  type CreateMessageFormProps,
+  type CreateMessageSubmit,
+} from '@/components/messages/create-message-form'
 import type { LocationPickerSelection } from '@/components/map/location-picker'
 import { RECIPIENTS, type ProblemCode } from '@/domain/contracts'
 
@@ -126,7 +130,7 @@ describe('CreateMessageForm', () => {
   })
 
   it('mantiene la publicación deshabilitada hasta confirmar una ubicación', async () => {
-    const submit = vi.fn(async (_input: CreateMessageActionInput) => okResult('message-1'))
+    const submit = vi.fn<CreateMessageSubmit>(async () => okResult('message-1'))
     renderForm({ submitMessage: submit })
 
     typeContent('Hola ATINY')
@@ -144,7 +148,7 @@ describe('CreateMessageForm', () => {
   })
 
   it('envía contenido, destinatario opcional y ubicación seleccionada a la acción de T049', async () => {
-    const submit = vi.fn(async (_input: CreateMessageActionInput) => okResult('message-1'))
+    const submit = vi.fn<CreateMessageSubmit>(async () => okResult('message-1'))
     renderForm({ submitMessage: submit })
 
     typeContent('Siempre contigo')
@@ -164,7 +168,7 @@ describe('CreateMessageForm', () => {
   })
 
   it('publica al enviar el formulario con el teclado', async () => {
-    const submit = vi.fn(async (_input: CreateMessageActionInput) => okResult('message-1'))
+    const submit = vi.fn<CreateMessageSubmit>(async () => okResult('message-1'))
     const { container } = renderForm({ submitMessage: submit })
 
     typeContent('Siempre contigo')
