@@ -8,6 +8,9 @@ import type {
   ClerkAuthReader,
   SessionIdentity,
 } from '../../../src/server/auth/session'
+import type { AccountGate } from '../../../src/server/auth/account-gate'
+import type { ClerkUserReader } from '../../../src/server/actions/complete-profile'
+import type { ActionResult } from '../../../src/domain/contracts'
 
 export type BddResponse = { status: number; body: Record<string, unknown> }
 
@@ -20,6 +23,10 @@ export class AtinyWorld extends World {
   publicId?: string
   hiddenId?: string
   fanPublicId?: string
+  clerkUserId?: string
+  clerkUser?: Awaited<ReturnType<ClerkUserReader>>
+  profileActionResult?: ActionResult<{ profilePublicId: string }>
+  accountGate?: AccountGate
 
   constructor(options: IWorldOptions) {
     super(options)
