@@ -9,5 +9,5 @@ export default async function PublicMessagePage({ params }: { params: Promise<{ 
   const { lang, publicId } = await params
   const message = await getVisibleMessage(getDb(), publicId)
   const locale = lang === 'es' ? 'es' : 'en'
-  return <main><Link href={`/${locale}`}>ATINY World</Link><PublicMessageCard message={message} /><PublicMapController lang={locale} selectedPublicId={publicId} /></main>
+  return <main className="message-page"><Link className="auth-back" href={`/${locale}`}>← {locale === 'es' ? 'Volver al mapa' : 'Back to the map'}</Link><div className="message-content"><p className="auth-script">Dear, ATEEZ…</p><h1>{locale === 'es' ? 'Una carta de ATINY' : 'A letter from ATINY'}</h1><PublicMessageCard message={message} /><div className="message-map"><PublicMapController lang={locale} selectedPublicId={publicId} /></div></div></main>
 }

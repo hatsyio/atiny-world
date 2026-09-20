@@ -11,6 +11,7 @@ import { MessageClusterList } from './message-cluster-list'
 interface Props {
   features: PublicMapFeature[]
   onSelect: (publicId: string) => void
+  lang?: 'en' | 'es'
   onViewportChange?: (bounds: MapBounds) => void
   groupRequestUrl?: string
   selectedPublicId?: string
@@ -23,7 +24,7 @@ function cartoTileUrl(apiKey: string): string {
   return `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?api_key=${encodeURIComponent(apiKey)}`
 }
 
-export function LeafletMap({ features, onSelect, onViewportChange, groupRequestUrl, selectedPublicId }: Props) {
+export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, groupRequestUrl, selectedPublicId }: Props) {
   const element = useRef<HTMLDivElement>(null)
   const map = useRef<import('leaflet').Map | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -96,7 +97,12 @@ export function LeafletMap({ features, onSelect, onViewportChange, groupRequestU
   }, [cartoApiKey, features, onSelect, onViewportChange, selectedPublicId])
 
   if (!cartoApiKey) {
-    return <p role="status">El mapa no está configurado.</p>
+    return (
+      <section className="map map--preview" aria-label="Mapa de mensajes">
+        <div className="map__canvas" role="img" aria-label="Mapa del mundo" />
+        <p role="status">{lang === 'es' ? 'El mapa interactivo estará disponible próximamente.' : 'The interactive map is coming soon.'}</p>
+      </section>
+    )
   }
 
   return (

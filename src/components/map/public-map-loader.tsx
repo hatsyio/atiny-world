@@ -15,11 +15,12 @@ const LeafletMap = dynamic(
 interface Props {
   features: PublicMapFeature[]
   onSelect: (publicId: string) => void
+  lang?: 'en' | 'es'
   onViewportChange?: (bounds: MapBounds) => void
   groupRequestUrl?: string
   selectedPublicId?: string
 }
 
-export function PublicMapLoader({ features, onSelect, onViewportChange, groupRequestUrl, selectedPublicId }: Props) {
-  return <LeafletMap features={features} onSelect={onSelect} onViewportChange={onViewportChange} groupRequestUrl={groupRequestUrl} selectedPublicId={selectedPublicId} />
+export function PublicMapLoader({ features, onSelect, lang, onViewportChange, groupRequestUrl, selectedPublicId }: Props) {
+  return <LeafletMap features={features} onSelect={onSelect} lang={lang} onViewportChange={onViewportChange} groupRequestUrl={groupRequestUrl} selectedPublicId={selectedPublicId} />
 }

@@ -14,7 +14,7 @@ export function PublicMessageCard({ message }: Props) {
   }
 
   return (
-    <article aria-label="Mensaje público">
+    <article className="public-message-card" aria-label="Mensaje público">
       <p>{message.content}</p>
       <p>{message.author.displayName}</p>
       <p>{locationLabel(message)}</p>
