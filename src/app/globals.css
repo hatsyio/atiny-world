@@ -106,6 +106,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .public-message-card p:nth-child(2) { font-style: italic; }
 .message-map { margin-top: 2rem; }
 
+.profile-intro { margin: 0 auto 1rem; max-width: 46ch; line-height: 1.5; }
+.profile-form { width: 100%; display: grid; gap: 1.2rem; text-align: left; }
+.profile-field label { display: block; font-weight: 700; margin-bottom: .2rem; }
+.profile-hint { margin: 0 0 .4rem; font-size: .82rem; line-height: 1.4; opacity: .85; }
+.profile-field input { width: 100%; padding: .65rem .8rem; font-size: 1rem; border: 1px solid #6b3e20; background: #faf0da; color: #171b20; }
+.profile-field input[aria-invalid='true'] { border-color: #8c1d18; box-shadow: 0 0 0 2px #8c1d1840; }
+.profile-error { margin: .4rem 0 0; font-size: .85rem; color: #7a160f; font-weight: 600; }
+.profile-note { margin: 0; color: #2c5c2c; font-weight: 600; }
+.profile-actions { display: flex; gap: .8rem; justify-content: center; margin-top: .5rem; }
+.profile-submit, .profile-cancel { padding: .7rem 1.4rem; font-size: 1rem; cursor: pointer; }
+.profile-submit { background: #6b3e20; color: #f4dbad; border: 1px solid #4a2a13; }
+.profile-submit:disabled, .profile-cancel:disabled { opacity: .55; cursor: default; }
+.profile-cancel { background: transparent; color: #4a2a13; border: 1px solid #6b3e20; }
+
 @media (max-width: 1100px) {
   .site-header { flex-wrap: wrap; justify-content: center; }
   .nav-brand { order: -1; margin-right: auto; }

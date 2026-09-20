@@ -31,14 +31,14 @@ const sampleLetters = [
 
 export function PublicHome({ lang }: { lang: 'en' | 'es' }) {
   const t = copy[lang]
-  const signupUrl = `/${lang}/sign-up`
+  const writeUrl = `/${lang}/messages/new`
 
   return (
     <div className="voyage" id="home">
       <header className="site-header" aria-label="Site header">
         <nav className="main-nav" aria-label="Main navigation">
           <Link href="#home">{t.home}</Link>
-          <Link href={signupUrl}>{t.send}</Link>
+          <Link href={writeUrl}>{t.send}</Link>
           <Link href="#map">{t.explore}</Link>
           <Link href="#letters">{t.letters}</Link>
           <Link href="#about">{t.about}</Link>
@@ -62,7 +62,7 @@ export function PublicHome({ lang }: { lang: 'en' | 'es' }) {
             <p className="hero-subtitle">{t.heroSub}</p>
             <p className="hero-description">{t.heroText}</p>
             <div className="hero-actions">
-              <Link className="ornate-button" href={signupUrl}>{t.send}</Link>
+              <Link className="ornate-button" href={writeUrl}>{t.send}</Link>
               <Link className="ornate-button" href="#map">{t.explore}</Link>
             </div>
           </div>
@@ -99,7 +99,7 @@ export function PublicHome({ lang }: { lang: 'en' | 'es' }) {
           </section>
         </div>
 
-        <section className="send-banner" aria-labelledby="send-title"><div><h2 id="send-title">{t.bannerTitle}</h2><p>{t.bannerText}</p></div><Link className="ornate-button" href={signupUrl}>{t.bannerAction} <span aria-hidden="true">→</span></Link><span className="banner-seal" aria-hidden="true">✧</span></section>
+        <section className="send-banner" aria-labelledby="send-title"><div><h2 id="send-title">{t.bannerTitle}</h2><p>{t.bannerText}</p></div><Link className="ornate-button" href={writeUrl}>{t.bannerAction} <span aria-hidden="true">→</span></Link><span className="banner-seal" aria-hidden="true">✧</span></section>
       </main>
       <footer className="site-footer" id="about"><p className="footer-script">Dear, ATEEZ…</p><p>{t.footer}</p><p className="footer-motto">DIFFERENT PLACES <span>•</span> SAME SKY <span>•</span> ONE ATEEZ</p></footer>
     </div>
