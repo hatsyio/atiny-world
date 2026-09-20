@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@clerk/nextjs', () => ({
@@ -25,5 +25,13 @@ describe('PublicHome', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Messages across the seas' })).toBeTruthy()
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
     expect(screen.getAllByRole('link', { name: /send a letter/i }).length).toBeGreaterThan(0)
+  })
+
+  it('renders the ATEEZ logo asset in the hero emblem', () => {
+    render(<PublicHome lang="en" />)
+
+    const hero = screen.getAllByRole('region', { name: 'Messages across the seas' }).at(-1)
+
+    expect(within(hero!).getByRole('img', { name: 'ATEEZ' })).toHaveAttribute('src', '/images/ateez-logo-gold.png')
   })
 })

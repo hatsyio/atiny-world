@@ -28,11 +28,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .voyage-hero { position: relative; min-height: clamp(520px, 54vw, 760px); background: #3b281b url('/images/nautical-desk.png') center center / cover no-repeat; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5.5rem 1rem 3.5rem; isolation: isolate; }
 .voyage-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(#1b120d24, transparent 40%, #3d1e0b1a); z-index: -1; }
-.hero-emblem { width: clamp(130px, 17vw, 220px); height: clamp(90px, 12vw, 150px); position: absolute; top: clamp(.7rem, 2vw, 2rem); left: 50%; transform: translateX(-50%); display: grid; place-items: center; color: #ebc477; border: 2px solid #d2a954; border-radius: 50%; box-shadow: inset 0 0 0 5px #27170b90, 0 0 0 2px #3b250f; background: radial-gradient(circle, #3a2413db 0, #29180cdb 65%, #1f140bb8); text-shadow: 1px 2px #281608; }
-.hero-emblem::before, .hero-emblem::after { content: ''; position: absolute; width: 150%; height: 1px; background: #cda254; top: 50%; left: -25%; }
-.hero-emblem::after { width: 1px; height: 145%; top: -22.5%; left: 50%; }
-.hero-emblem > span:last-child { position: relative; z-index: 1; font-size: clamp(1.7rem, 3.7vw, 3.7rem); font-style: italic; font-weight: bold; letter-spacing: -.08em; transform: skew(-8deg); }
-.hero-emblem__star { position: absolute; z-index: 0; font-size: clamp(5rem, 10vw, 11rem); line-height: 1; opacity: .65; }
+.hero-emblem { width: clamp(250px, 33vw, 460px); height: clamp(110px, 13vw, 165px); position: absolute; top: clamp(.7rem, 2vw, 2rem); left: 50%; transform: translateX(-50%); display: grid; place-items: center; overflow: hidden; border: 2px solid #d2a954; border-radius: 50%; box-shadow: inset 0 0 0 5px #27170b90, 0 0 0 2px #3b250f; background: radial-gradient(circle, #3a2413db 0, #29180cdb 65%, #1f140bb8); }
+.hero-emblem__logo { width: 112%; height: auto; transform: translateY(-1%); }
 .hero-message { text-align: center; max-width: 700px; margin-top: clamp(10rem, 15vw, 15rem); padding: 1rem 2rem 1.7rem; text-shadow: 0 1px #f9e0b6a3; }
 .script-title { font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: clamp(3.1rem, 6vw, 5.3rem); font-style: italic; line-height: 1; margin: 0 0 1.5rem; transform: rotate(-3deg); }
 .hero-message h1 { margin: 0; font-size: clamp(1.4rem, 2.6vw, 2.55rem); letter-spacing: .19em; line-height: 1.2; text-transform: uppercase; }
