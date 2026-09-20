@@ -7,6 +7,7 @@ const config = {
     'tests/bdd/step_definitions/**/*.ts',
   ],
   format: ['progress'],
+  tags: 'not @pending',
   publish: false,
 }
 

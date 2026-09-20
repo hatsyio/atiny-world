@@ -76,8 +76,10 @@ export function PublicMapController({
   const [features, setFeatures] = useState<PublicMapFeature[]>([])
   const [error, setError] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
+  const hasBasemap = Boolean(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY)
 
   useEffect(() => {
+    if (!hasBasemap) return
     const controller = new AbortController()
 
     async function loadFeatures() {
@@ -100,7 +102,7 @@ export function PublicMapController({
 
     void loadFeatures()
     return () => controller.abort()
-  }, [bounds, filters, retry])
+  }, [bounds, filters, retry, hasBasemap])
 
   const selectMessage = useCallback((publicId: string) => {
     router.push(`/${lang}/messages/${publicId}`)
@@ -108,7 +110,7 @@ export function PublicMapController({
 
   return (
     <section aria-label="Explorar mensajes">
-      <MapFilters value={filters} onChange={setFilters} />
+      {hasBasemap ? <MapFilters value={filters} onChange={setFilters} /> : null}
       {error ? (
         <div role="status">
           <p>{error}</p>
@@ -120,6 +122,7 @@ export function PublicMapController({
       <PublicMapLoader
         features={features}
         onSelect={selectMessage}
+        lang={lang}
         onViewportChange={setBounds}
         groupRequestUrl={buildMessageRequest(bounds, filters)}
         selectedPublicId={selectedPublicId}
