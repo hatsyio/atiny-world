@@ -5,6 +5,9 @@ let processCursorKey: Buffer | undefined
 function cursorKey(): Buffer {
   const configured = process.env.CURSOR_SECRET
   if (configured) return Buffer.from(configured, 'utf8')
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('CURSOR_SECRET is required in production')
+  }
   if (!processCursorKey) processCursorKey = randomBytes(32)
   return processCursorKey
 }

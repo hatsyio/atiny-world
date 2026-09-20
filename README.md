@@ -6,9 +6,9 @@ ATINY World será un mapa público y permanente de mensajes de ATINY, con ubicac
 
 ## Estado
 
-Primera base ejecutable en desarrollo: Next.js, TypeScript, pnpm, Clerk y la
-conexión de servidor a PostgreSQL están configurados. El dominio de mensajes y
-el mapa todavía no están implementados.
+La base ejecutable incluye Next.js, TypeScript, pnpm, Clerk, persistencia en
+PostgreSQL, mapa público y creación de mensajes. Moderación y gestión de
+mensajes siguen en desarrollo.
 
 ## Documentación
 
@@ -60,6 +60,7 @@ Comandos principales:
 pnpm install
 pnpm test
 pnpm test:integration
+pnpm test:contract
 pnpm test:coverage
 pnpm lint
 pnpm typecheck
@@ -67,7 +68,7 @@ pnpm build
 ```
 
 GitHub Actions valida lint, tipos, BDD, pruebas unitarias, integración,
-cobertura, build de Next.js y build de Docker. Vercel gestiona los despliegues:
+contratos, cobertura, build de Next.js, migraciones de Compose y build de Docker. Vercel gestiona los despliegues:
 crea una preview para cada pull request y publica producción al integrar en
 `main`.
 
@@ -78,7 +79,8 @@ docker compose up --build
 ```
 
 Este modo usa `.env.local` para Clerk, publica Next.js en el puerto `3000` y
-PostgreSQL en el `54332` para no colisionar con Supabase CLI.
+PostgreSQL con PostGIS en el `54332` para no colisionar con Supabase CLI. Antes
+de arrancar la aplicación aplica las migraciones SQL pendientes de `supabase/migrations`.
 
 ## Iniciativa de fans
 

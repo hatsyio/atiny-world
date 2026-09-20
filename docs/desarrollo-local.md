@@ -50,9 +50,14 @@ PostgreSQL en `http://localhost:3000/api/health`. El desarrollo utiliza la URL
 local no sensible guardada en `.env.development.local`; Clerk se descarga desde
 Vercel a `.env.local`. Ninguno de esos archivos se versiona.
 
+En producción, el servidor comprueba al iniciarse `DATABASE_URL`, las claves de
+Clerk, Geoapify y CARTO, `LOCATION_SELECTION_SECRET` y `CURSOR_SECRET`. Este
+último debe ser estable y compartido por todas las instancias para que los
+cursores de paginación sigan siendo válidos.
+
 ## Docker Compose
 
-El modo Docker levanta Next.js y PostgreSQL 17 con un solo comando. Antes del
+El modo Docker levanta Next.js y PostgreSQL 17 con PostGIS con un solo comando. Antes del
 primer arranque, `.env.local` debe contener las variables de Clerk; pueden
 descargarse sin imprimir sus valores:
 
@@ -62,6 +67,9 @@ chmod 600 .env.local
 docker compose up --build
 ```
 
+El servicio `migrate` aplica las migraciones pendientes de `supabase/migrations`
+antes de iniciar Next.js. Las migraciones aplicadas se registran en
+`app_migrations.applied`, también cuando se reutiliza el volumen de datos.
 La aplicación usa recarga en caliente sobre el checkout local. PostgreSQL se
 publica únicamente en `127.0.0.1:54332`, mientras el contenedor de aplicación
 se conecta a `db:5432`. Se usa un puerto
@@ -154,9 +162,10 @@ Crear cada migración con `supabase migration new nombre`, revisarla y probarla
 localmente. La aplicación en producción requiere un paso separado y controlado;
 nunca ejecutar migraciones desde un build de preview.
 
-Las previews deberán usar un rol específico con permisos de solo lectura sobre
-los datos autorizados. Ese rol todavía no está creado: se definirá junto con el
-esquema y sus permisos. No utilizar credenciales de administrador para previews.
+El esquema local crea `atiny_preview_reader` y le concede lectura de la vista
+`preview_api.public_messages`. Su credencial y su uso efectivo en previews
+remotas deben provisionarse y verificarse por separado. No utilizar credenciales
+de administrador para previews.
 
 Los cambios de esquema seguirán expand/contract: primero cambios compatibles,
 después la funcionalidad y, cuando dejen de existir versiones dependientes,

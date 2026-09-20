@@ -129,3 +129,29 @@ export function parseClientEnvironment(
 
   return parsed.data
 }
+
+const requiredProductionKeys = [
+  'DATABASE_URL',
+  'CLERK_SECRET_KEY',
+  'GEOAPIFY_API_KEY',
+  'LOCATION_SELECTION_SECRET',
+  'CURSOR_SECRET',
+  'NEXT_PUBLIC_CARTO_BASEMAP_KEY',
+  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+] as const
+
+export function validateRuntimeEnvironment(
+  environment: ServerEnvironmentSource = process.env,
+  nodeEnvironment = process.env.NODE_ENV,
+): void {
+  getServerEnvironment(environment)
+  parseClientEnvironment(environment)
+
+  if (nodeEnvironment === 'production') {
+    for (const key of requiredProductionKeys) {
+      if (!environment[key]) {
+        throw new Error(`${key} is required in production`)
+      }
+    }
+  }
+}
