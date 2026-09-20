@@ -1,4 +1,5 @@
 import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
+import Image from 'next/image'
 import Link from 'next/link'
 
 import { PublicMapController } from '@/components/map/public-map-controller'
@@ -55,7 +56,9 @@ export function PublicHome({ lang }: { lang: 'en' | 'es' }) {
 
       <main>
         <section className="voyage-hero" aria-labelledby="public-home-title">
-          <div className="hero-emblem" aria-hidden="true"><span className="hero-emblem__star">✦</span><span>ATEEZ</span></div>
+          <div className="hero-emblem">
+            <Image alt="ATEEZ" className="hero-emblem__logo" height={941} priority src="/images/ateez-logo-gold.png" unoptimized width={1672} />
+          </div>
           <div className="hero-message">
             <p className="script-title">{t.heroScript}</p>
             <h1 id="public-home-title">{t.heroTitle}</h1>

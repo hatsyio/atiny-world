@@ -28,11 +28,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .voyage-hero { position: relative; min-height: clamp(520px, 54vw, 760px); background: #3b281b url('/images/nautical-desk.png') center center / cover no-repeat; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5.5rem 1rem 3.5rem; isolation: isolate; }
 .voyage-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(#1b120d24, transparent 40%, #3d1e0b1a); z-index: -1; }
-.hero-emblem { width: clamp(130px, 17vw, 220px); height: clamp(90px, 12vw, 150px); position: absolute; top: clamp(.7rem, 2vw, 2rem); left: 50%; transform: translateX(-50%); display: grid; place-items: center; color: #ebc477; border: 2px solid #d2a954; border-radius: 50%; box-shadow: inset 0 0 0 5px #27170b90, 0 0 0 2px #3b250f; background: radial-gradient(circle, #3a2413db 0, #29180cdb 65%, #1f140bb8); text-shadow: 1px 2px #281608; }
-.hero-emblem::before, .hero-emblem::after { content: ''; position: absolute; width: 150%; height: 1px; background: #cda254; top: 50%; left: -25%; }
-.hero-emblem::after { width: 1px; height: 145%; top: -22.5%; left: 50%; }
-.hero-emblem > span:last-child { position: relative; z-index: 1; font-size: clamp(1.7rem, 3.7vw, 3.7rem); font-style: italic; font-weight: bold; letter-spacing: -.08em; transform: skew(-8deg); }
-.hero-emblem__star { position: absolute; z-index: 0; font-size: clamp(5rem, 10vw, 11rem); line-height: 1; opacity: .65; }
+.hero-emblem { width: clamp(250px, 33vw, 460px); position: absolute; top: clamp(.7rem, 2vw, 2rem); left: 50%; transform: translateX(-50%); }
+.hero-emblem__logo { display: block; width: 100%; height: auto; }
 .hero-message { text-align: center; max-width: 700px; margin-top: clamp(10rem, 15vw, 15rem); padding: 1rem 2rem 1.7rem; text-shadow: 0 1px #f9e0b6a3; }
 .script-title { font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: clamp(3.1rem, 6vw, 5.3rem); font-style: italic; line-height: 1; margin: 0 0 1.5rem; transform: rotate(-3deg); }
 .hero-message h1 { margin: 0; font-size: clamp(1.4rem, 2.6vw, 2.55rem); letter-spacing: .19em; line-height: 1.2; text-transform: uppercase; }
@@ -50,9 +47,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .stat-plaque strong { font-size: 1.55rem; font-weight: 500; line-height: 1; }
 .stat-plaque span { font-size: .73rem; margin-top: .3rem; }
 .map-section { max-width: 1360px; margin: auto; scroll-margin-top: 1rem; }
-.map-heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: .2rem; }
-.map-heading h2 { max-width: 13ch; font-size: clamp(1.45rem, 2.5vw, 2.5rem); letter-spacing: .15em; text-transform: uppercase; line-height: 1.2; }
-.map-heading p { max-width: 20ch; font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: clamp(1.2rem, 2.2vw, 2rem); font-style: italic; text-align: right; }
+.map-heading { display: grid; justify-items: center; gap: .55rem; max-width: 760px; margin: 0 auto .6rem; text-align: center; }
+.map-heading h2 { margin: 0; font-size: clamp(1.45rem, 2.5vw, 2.5rem); letter-spacing: .15em; text-transform: uppercase; line-height: 1.2; }
+.map-heading h2::after { content: ''; display: block; width: min(13rem, 45vw); height: 1px; margin: .55rem auto 0; background: linear-gradient(90deg, transparent, #6b3e20, transparent); }
+.map-heading p { margin: 0; max-width: 34rem; font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: clamp(1.2rem, 2.2vw, 2rem); font-style: italic; }
 .map-hint { margin: 0 0 .7rem; text-align: center; font-style: italic; }
 .live-map-frame { max-width: 1200px; margin: 0 auto 4.5rem; }
 .live-map-frame > section { background: transparent; }
@@ -61,7 +59,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map-filters input, .map-filters select { width: 110px; max-width: 100%; padding: .35rem; background: #f2dfb7; color: #291910; border: 1px solid #8b603a; border-radius: 0; }
 .map { min-height: 390px; position: relative; }
 .map--fullscreen { position: fixed; inset: 0; padding: 1rem; z-index: 20; background: #e0bb83; }
-.map__canvas { height: clamp(360px, 43vw, 540px); width: 100%; background: transparent url('/images/world-silhouette.svg') center / contain no-repeat; filter: sepia(.42) contrast(.94); }
+.map__canvas { height: clamp(360px, 43vw, 540px); width: 100%; background: transparent url('/images/world-silhouette.svg') center / contain no-repeat; }
+.map__canvas .leaflet-tile-pane { filter: saturate(1.08) contrast(1.16); }
 .map--preview .map__canvas { position: relative; }
 .map--preview .map__canvas::after { content: '✧'; position: absolute; right: 3%; top: 3%; font-size: clamp(3rem, 7vw, 7rem); color: #6a3b20; }
 .map--fullscreen .map__canvas { height: calc(100vh - 100px); }
@@ -147,9 +146,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .stat-plaque { min-width: 95px; min-height: 62px; }
   .stat-plaque strong { font-size: 1.1rem; }
   .stat-plaque span { font-size: .58rem; }
-  .map-heading { display: block; text-align: center; }
-  .map-heading h2 { max-width: none; margin: 0; }
-  .map-heading p { max-width: none; text-align: center; margin: .5rem 0; }
+  .map-heading { gap: .4rem; }
+  .map-heading h2 { max-width: none; }
+  .map-heading p { max-width: none; }
   .live-map-frame { margin-bottom: 3rem; }
   .map__canvas { height: 310px; }
   .section-heading h2 { letter-spacing: .1em; }
