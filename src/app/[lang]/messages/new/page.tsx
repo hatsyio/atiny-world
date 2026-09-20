@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import { CreateMessageForm } from '@/components/messages/create-message-form'
 import { resolveAccountGate, writeLetterRedirect } from '@/server/auth/account-gate'
 import { getDb } from '@/server/db/client'
 
@@ -9,15 +10,15 @@ const copy = {
     back: 'Back to the map',
     script: 'Dear, ATEEZ…',
     title: 'Write your letter',
+    intro: 'Write your letter and choose where it will appear on the map.',
     unavailable: 'Your account is not available, so you cannot publish a letter right now.',
-    comingSoon: 'The letter composer will be ready in the next delivery. Meanwhile, explore the map.',
   },
   es: {
     back: 'Volver al mapa',
     script: 'Querido ATEEZ…',
     title: 'Escribe tu carta',
+    intro: 'Escribe tu carta y elige dónde aparecerá en el mapa.',
     unavailable: 'Tu cuenta no está disponible, así que no puedes publicar una carta ahora mismo.',
-    comingSoon: 'El compositor de cartas estará listo en la próxima entrega. Mientras tanto, explora el mapa.',
   },
 } as const
 
@@ -53,7 +54,8 @@ export default async function NewMessagePage({
       <div className="auth-panel">
         <p className="auth-script">{t.script}</p>
         <h1>{t.title}</h1>
-        <p className="profile-intro">{t.comingSoon}</p>
+        <p className="profile-intro">{t.intro}</p>
+        <CreateMessageForm lang={locale} />
       </div>
     </main>
   )
