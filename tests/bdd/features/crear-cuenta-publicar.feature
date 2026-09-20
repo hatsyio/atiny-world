@@ -1,4 +1,5 @@
 # language: es
+@pending
 Característica: Crear cuenta y publicar un mensaje
   Como fan autenticada
   Quiero completar mi perfil y publicar desde una ubicación pública

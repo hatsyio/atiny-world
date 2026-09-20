@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict'
 
-import { After, Before, Given, Then, When } from '@cucumber/cucumber'
+import { After, AfterAll, Before, Given, Then, When } from '@cucumber/cucumber'
 
 import { GET as features } from '../../../src/app/api/map/features/route'
 import { GET as messages } from '../../../src/app/api/map/messages/route'
 import { GET as detail } from '../../../src/app/api/messages/[publicId]/route'
 import { GET as users } from '../../../src/app/api/users/search/route'
+import { getDb } from '../../../src/server/db/client'
 import { createTestDb, insertMessage, insertProfile, truncateProductTables } from '../../support/database'
 import { AtinyWorld } from '../support/world'
 
@@ -26,6 +27,7 @@ async function seed(world: AtinyWorld) {
 
 Before(async function (this: AtinyWorld) { await seed(this) })
 After(async function () { await truncateProductTables(db) })
+AfterAll(async function () { await Promise.all([db.end(), getDb().end()]) })
 
 Given('el viewport oeste {int}, sur {int}, este {int}, norte {int} con zoom {int}', function (this: AtinyWorld, west: number, south: number, east: number, north: number, zoom: number) { this.viewport = { west, south, east, north, zoom } })
 Given('que existen mensajes públicos y ocultos cerca de una ciudad', function () {})
