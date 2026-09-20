@@ -89,6 +89,9 @@ jobs:
       - name: Run integration tests with coverage
         run: pnpm test:coverage
 
+      - name: Run API and action contract tests
+        run: pnpm test:contract
+
   docker:
     name: Docker build
     runs-on: ubuntu-latest
@@ -102,5 +105,13 @@ jobs:
       - name: Validate Compose
         run: docker compose config --quiet
 
-      - name: Build application image
-        run: docker compose build app
+      - name: Build application and database images
+        run: docker compose build app db
+
+      - name: Start database and apply migrations
+        run: |
+          docker compose up --detach --wait db
+          docker compose run --rm migrate
+
+      - name: Verify migrated database
+        run: docker compose exec -T db psql -U postgres -d postgres -Atqc 'select count(*) from app_private.settings where id = 1' | grep -qx 1

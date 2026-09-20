@@ -13,7 +13,7 @@ async function queryDatabase(query: string): Promise<readonly unknown[]> {
 export async function checkDatabaseHealth(
   query: DatabaseQuery = queryDatabase,
 ): Promise<DatabaseHealth> {
-  const rows = await query('select 1 as ok')
+  const rows = await query('select 1 as ok from app_private.settings where id = 1')
 
   if (rows.length === 0) {
     throw new Error('Database health probe returned no rows')
