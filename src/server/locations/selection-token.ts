@@ -30,14 +30,28 @@ export function verifyLocationSelection(
   secret: string,
   now = new Date(),
 ): LocationSelection | null {
+  const result = verifyLocationSelectionResult(token, secret, now)
+  return result.ok ? result.selection : null
+}
+
+export type LocationSelectionVerification =
+  | { ok: true; selection: LocationSelection }
+  | { ok: false; reason: 'INVALID' | 'EXPIRED' }
+
+export function verifyLocationSelectionResult(
+  token: string,
+  secret: string,
+  now = new Date(),
+): LocationSelectionVerification {
   const [encoded, received] = token.split('.')
-  if (!encoded || !received) return null
+  if (!encoded || !received) return { ok: false, reason: 'INVALID' }
   const expected = signature(encoded, secret)
-  if (received.length !== expected.length || !timingSafeEqual(Buffer.from(received), Buffer.from(expected))) return null
+  if (received.length !== expected.length || !timingSafeEqual(Buffer.from(received), Buffer.from(expected))) return { ok: false, reason: 'INVALID' }
   try {
     const value = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')) as { selection: LocationSelection; expiresAt: number }
-    return value.expiresAt > now.getTime() ? value.selection : null
+    if (value.expiresAt <= now.getTime()) return { ok: false, reason: 'EXPIRED' }
+    return { ok: true, selection: value.selection }
   } catch {
-    return null
+    return { ok: false, reason: 'INVALID' }
   }
 }
