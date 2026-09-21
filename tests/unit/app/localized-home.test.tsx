@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@clerk/nextjs', () => ({
   Show: ({ children }: { children: React.ReactNode }) => children,
@@ -16,6 +16,8 @@ vi.mock('../../../src/components/map/public-map-controller', () => ({
 
 import { PublicHome } from '../../../src/app/[lang]/page'
 
+afterEach(cleanup)
+
 describe('PublicHome', () => {
   it('places account header, introduction, map, publication entry point and footer in order', () => {
     render(<PublicHome lang="en" />)
@@ -25,5 +27,13 @@ describe('PublicHome', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Messages across the seas' })).toBeTruthy()
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
     expect(screen.getAllByRole('link', { name: /send a letter/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Example letter')).toHaveLength(4)
+  })
+
+  it('shows the pending publication beside the refreshed map without exposing a message link', () => {
+    render(<PublicHome lang="es" publicationPending />)
+    expect(screen.getByRole('status')).toHaveTextContent(/pendiente de moderación/i)
+    expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: /stable-id/i })).not.toBeInTheDocument()
   })
 })

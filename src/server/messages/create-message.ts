@@ -4,6 +4,7 @@ import type { Sql } from 'postgres'
 
 import { errorResult, okResult, type ActionResult, type Recipient } from '@/domain/contracts'
 import { validateMessageContent } from '@/domain/messages/content'
+import { isMessagePublic } from '@/domain/messages/visibility'
 import { approximatePublicPoint, validatePublicLocation, type PublicPoint } from '@/domain/location/public-point'
 
 export type CreateMessageInput = {
@@ -22,7 +23,7 @@ export type CreateMessageInput = {
 export async function createMessage(
   sql: Sql,
   input: CreateMessageInput,
-): Promise<ActionResult<{ publicId: string; status: 'pending' }>> {
+): Promise<ActionResult<{ publicId: string; status: 'pending'; publicVisible: boolean }>> {
   const content = validateMessageContent(input.content, { recipient: input.recipient })
   const location = validatePublicLocation({
     ...input.location.localityCenter,
@@ -43,7 +44,7 @@ export async function createMessage(
     if (profile.suspended_at) return errorResult('ACCOUNT_SUSPENDED', { messageKey: 'account.suspended' })
     if (profile.account_state !== 'active') return errorResult('PROFILE_INCOMPLETE', { messageKey: 'account.unavailable' })
 
-    const settings = (await tx<{ message_limit: number; cooldown_seconds: number }[]>`select message_limit, cooldown_seconds from app_private.settings where id = 1`)[0]
+    const settings = (await tx<{ message_limit: number; cooldown_seconds: number; premoderation_enabled: boolean }[]>`select message_limit, cooldown_seconds, premoderation_enabled from app_private.settings where id = 1`)[0]
     const count = (await tx<{ count: string }[]>`select count(*)::text as count from app_private.messages where author_id = ${profile.id}`)[0]
     if (Number(count.count) >= settings.message_limit) return errorResult('MESSAGE_LIMIT_REACHED', { messageKey: 'message.limitReached' })
     const latest = (await tx<{ created_at: string | null; now: string }[]>`
@@ -63,6 +64,15 @@ export async function createMessage(
       values (${publicId}, ${profile.id}, ${input.content}, ${input.recipient}, 'pending', ${input.location.precision}, ${input.location.precision === 'approximate' ? 1 : null}, ST_SetSRID(ST_MakePoint(${point.longitude}, ${point.latitude}), 4326)::geography, null, ${input.location.country}, ${input.location.countryCode})
     `
     await tx`update app_private.profiles set last_message_created_at = clock_timestamp(), updated_at = now() where id = ${profile.id}`
-    return okResult({ publicId, status: 'pending' as const })
+    return okResult({
+      publicId,
+      status: 'pending' as const,
+      publicVisible: isMessagePublic({
+        messageStatus: 'pending',
+        premoderationEnabled: settings.premoderation_enabled,
+        accountState: 'active',
+        suspendedAt: null,
+      }),
+    })
   })
 }

@@ -84,7 +84,7 @@ describe('createMessage server action', () => {
 
     expect(result).toMatchObject({
       ok: true,
-      data: { publicId: expect.any(String), version: 1, status: 'pending' },
+      data: { publicId: expect.any(String), version: 1, status: 'pending', publicVisible: true },
     })
     const message = await storedMessage(profile.id)
     expect(message).toMatchObject({
@@ -131,6 +131,24 @@ describe('createMessage server action', () => {
     expect(message.longitude).toBeCloseTo(confirmedPublicPoint.longitude, 10)
     expect(Object.keys(message)).not.toContain('selection_token')
     expect(Object.keys(message)).not.toContain('address')
+  })
+
+  it('keeps the new pending message private when premoderation is enabled', async () => {
+    await insertProfile(db, 'action-premoderated')
+    await db`update app_private.settings set premoderation_enabled = true where id = 1`
+    try {
+      const result = await createMessageForSession(db, {
+        content: 'Aún privada',
+        recipient: null,
+        location: { selectionId: validSelectionId(), precision: 'approximate' },
+      }, deps('action-premoderated'))
+      expect(result).toMatchObject({
+        ok: true,
+        data: { status: 'pending', publicVisible: false },
+      })
+    } finally {
+      await db`update app_private.settings set premoderation_enabled = false where id = 1`
+    }
   })
 
   it('rejects a suspended account', async () => {

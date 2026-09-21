@@ -79,6 +79,12 @@ export function PublicMapController({
   const hasBasemap = Boolean(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY)
 
   useEffect(() => {
+    const refreshViewport = () => setRetry((current) => current + 1)
+    window.addEventListener('atiny:message-published', refreshViewport)
+    return () => window.removeEventListener('atiny:message-published', refreshViewport)
+  }, [])
+
+  useEffect(() => {
     if (!hasBasemap) return
     const controller = new AbortController()
 

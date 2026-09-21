@@ -77,6 +77,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .letters-note { text-align: center; font-style: italic; margin: .7rem 0 1.5rem; }
 .letter-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.7rem, 1.8vw, 1.7rem); }
 .letter-card { min-height: 250px; padding: 1.35rem 1.25rem 1.1rem; position: relative; background: radial-gradient(circle at 50% 38%, #f8e4bc, #d6a46a 130%); box-shadow: inset 0 0 18px #86552f6e, 1px 3px 6px #6740228c; border: 1px solid #a2713d; clip-path: polygon(0 2%, 4% 0, 96% 1%, 100% 4%, 99% 96%, 96% 100%, 3% 99%, 0 96%); font-size: .94rem; line-height: 1.36; }
+.letter-example-label { margin: 0 0 .35rem; color: #674022; font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .letter-place { display: flex; align-items: center; gap: .6rem; min-height: 2rem; border-bottom: 1px solid #b88d59; font-size: .83rem; }
 .letter-place span:first-child { font-size: 1.5rem; }
 .letter-greeting { margin: .85rem 0 .2rem; }

@@ -11,6 +11,7 @@ const copy = {
     lettersTitle: 'Letters from ATINY', lettersNote: 'A preview of the stories this space will hold.', example: 'Example letter',
     bannerTitle: 'Send your letter', bannerText: 'Share your message, mark your location, and be part of this journey.', bannerAction: 'Write your letter',
     footer: 'An independent fan project by ATINY, for ATEEZ. Not affiliated with or endorsed by KQ Entertainment.',
+    publicationPending: 'Your letter was sent. It is pending moderation and will appear on the map once approved.',
   },
   es: {
     home: 'Inicio', send: 'Envía una carta', explore: 'Explora el mapa', letters: 'Cartas', about: 'Sobre el proyecto', signIn: 'Entrar', join: 'Únete',
@@ -19,6 +20,7 @@ const copy = {
     lettersTitle: 'Cartas de ATINY', lettersNote: 'Un adelanto de las historias que reunirá este espacio.', example: 'Carta de ejemplo',
     bannerTitle: 'Envía tu carta', bannerText: 'Comparte tu mensaje, marca tu lugar y forma parte de este viaje.', bannerAction: 'Escribe tu carta',
     footer: 'Un proyecto independiente de fans, de ATINY para ATEEZ. Sin afiliación ni respaldo de KQ Entertainment.',
+    publicationPending: 'Tu carta se ha enviado. Está pendiente de moderación y aparecerá en el mapa en cuanto sea aprobada.',
   },
 } as const
 
@@ -29,7 +31,7 @@ const sampleLetters = [
   { flag: '🇯🇵', place: 'Tokyo, Japan', message: 'Your songs cross every border and bring ATINY together. Thank you for being you. Always.', name: 'Haru' },
 ] as const
 
-export function PublicHome({ lang }: { lang: 'en' | 'es' }) {
+export function PublicHome({ lang, publicationPending = false }: { lang: 'en' | 'es'; publicationPending?: boolean }) {
   const t = copy[lang]
   const writeUrl = `/${lang}/messages/new`
 
@@ -78,6 +80,7 @@ export function PublicHome({ lang }: { lang: 'en' | 'es' }) {
 
           <section className="map-section" id="map" aria-labelledby="map-title">
             <div className="map-heading"><h2 id="map-title">{t.mapTitle}</h2><p>{t.mapNote}</p></div>
+            {publicationPending && <p className="profile-note" role="status">{t.publicationPending}</p>}
             <p className="map-hint">{t.mapHint}</p>
             <div className="live-map-frame"><PublicMapController lang={lang} /></div>
           </section>
@@ -88,6 +91,7 @@ export function PublicHome({ lang }: { lang: 'en' | 'es' }) {
             <div className="letter-grid">
               {sampleLetters.map((letter) => (
                 <article className="letter-card" key={letter.place} aria-label={`${t.example}: ${letter.place}`}>
+                  <p className="letter-example-label">{t.example}</p>
                   <div className="letter-place"><span aria-hidden="true">{letter.flag}</span><span>{letter.place}</span></div>
                   <p className="letter-greeting">Dear ATEEZ,</p>
                   <p className="letter-body">{letter.message} <span aria-hidden="true">♡</span></p>
@@ -106,7 +110,11 @@ export function PublicHome({ lang }: { lang: 'en' | 'es' }) {
   )
 }
 
-export default async function Page({ params }: { params: Promise<{ lang: string }> }) {
+export default async function Page({ params, searchParams }: {
+  params: Promise<{ lang: string }>
+  searchParams: Promise<{ publication?: string }>
+}) {
   const { lang } = await params
-  return <PublicHome lang={lang === 'es' ? 'es' : 'en'} />
+  const { publication } = await searchParams
+  return <PublicHome lang={lang === 'es' ? 'es' : 'en'} publicationPending={publication === 'pending'} />
 }
