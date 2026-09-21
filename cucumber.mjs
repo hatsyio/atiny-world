@@ -3,6 +3,7 @@ const config = {
   requireModule: ['tsx/cjs'],
   require: [
     'tests/support/test-env.ts',
+    'tests/bdd/server-only.ts',
     'tests/bdd/support/**/*.ts',
     'tests/bdd/step_definitions/**/*.ts',
   ],

@@ -116,7 +116,7 @@ description: "Dependency-ordered implementation tasks for ATINY World MVP"
 - [X] T050 [P] [US2] Implement debounced/cancellable address search, selection invalidation after text changes, approximate-by-default mode, draggable precise preview and explicit public-point warning in `src/components/map/location-picker.tsx`
 - [X] T051 [US2] Implement the accessible publication form, 500-grapheme counter, recipient choice, actionable cooldown and link to «Mis mensajes» at the limit in `src/components/messages/create-message-form.tsx`
 - [X] T052 [US2] Refresh the current viewport after successful publication and open the stable link only when the canonical visibility rule permits it in `src/components/messages/create-message-flow.tsx`
-- [ ] T053 [US2] Bind the US2 Gherkin steps to the real Clerk test boundary, Geoapify contract double and local PostgreSQL, then make all US2 suites pass in `tests/bdd/step_definitions/crear-cuenta-publicar.steps.ts`
+- [X] T053 [US2] Bind the US2 Gherkin steps to the real Clerk test boundary, Geoapify contract double and local PostgreSQL, then make all US2 suites pass in `tests/bdd/step_definitions/crear-cuenta-publicar.steps.ts`
 
 **Checkpoint**: US2 can be demonstrated independently from registration through first publication and both invariant failures.
 

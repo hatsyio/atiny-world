@@ -1,5 +1,5 @@
 # language: es
-@pending
+@us2
 Característica: Crear cuenta y publicar un mensaje
   Como fan autenticada
   Quiero completar mi perfil y publicar desde una ubicación pública
@@ -27,3 +27,13 @@ Característica: Crear cuenta y publicar un mensaje
     Dado una fan activa que acaba de publicar
     Cuando intenta publicar antes del cooldown configurado
     Entonces recibe el error "MESSAGE_COOLDOWN_ACTIVE" con segundos restantes
+
+  Escenario: La carta pendiente aparece en el mapa cuando no hay moderación previa
+    Dado una fan activa con perfil completo
+    Cuando publico "Nos vemos en el mapa" para "atiny" desde una ubicación aproximada
+    Entonces el mensaje pendiente aparece en el mapa y abre su enlace estable
+
+  Escenario: La moderación previa oculta la carta pendiente
+    Dado una fan activa con perfil completo y moderación previa activada
+    Cuando publico "Esperando revisión" para "ateez" desde una ubicación aproximada
+    Entonces el mensaje pendiente conserva su enlace estable pero no aparece públicamente

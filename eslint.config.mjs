@@ -13,6 +13,7 @@ export default defineConfig([
   },
   globalIgnores([
     '.next/**',
+    '.worktrees/**',
     'node_modules/**',
     'dist/**',
     'build/**',
