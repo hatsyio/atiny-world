@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
-import { CreateMessageForm } from '@/components/messages/create-message-form'
+import { CreateMessageFlow } from '@/components/messages/create-message-flow'
 import { resolveAccountGate, writeLetterRedirect } from '@/server/auth/account-gate'
 import { getDb } from '@/server/db/client'
 
@@ -55,7 +55,7 @@ export default async function NewMessagePage({
         <p className="auth-script">{t.script}</p>
         <h1>{t.title}</h1>
         <p className="profile-intro">{t.intro}</p>
-        <CreateMessageForm lang={locale} />
+        <CreateMessageFlow lang={locale} />
       </div>
     </main>
   )

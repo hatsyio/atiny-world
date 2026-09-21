@@ -45,6 +45,7 @@ export type CreateMessageForSessionSuccess = {
   publicId: string
   version: 1
   status: 'pending'
+  publicVisible: boolean
 }
 
 export type SelectionVerifier = (
@@ -53,7 +54,7 @@ export type SelectionVerifier = (
 
 export type MessagePublisher = (
   input: CreateMessageInput,
-) => Promise<ActionResult<{ publicId: string; status: 'pending' }>>
+) => Promise<ActionResult<{ publicId: string; status: 'pending'; publicVisible: boolean }>>
 
 export type CreateMessageForSessionDependencies = {
   readAuth?: () => Promise<SessionIdentity | null>
@@ -183,5 +184,5 @@ export async function createMessageForSession(
   })
   if (!created.ok) return created
 
-  return okResult({ publicId: created.data.publicId, version: 1, status: created.data.status })
+  return okResult({ publicId: created.data.publicId, version: 1, status: created.data.status, publicVisible: created.data.publicVisible })
 }

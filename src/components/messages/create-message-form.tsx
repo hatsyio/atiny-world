@@ -34,6 +34,7 @@ const copy = {
     myMessages: 'My messages',
     publishedTitle: 'Letter sent!',
     publishedText: 'It is pending moderation and will appear on the map once approved.',
+    publishedVisibleText: 'Your letter is now visible on the map.',
     accountUnavailable: 'Your account is not available right now, so the letter could not be published.',
     genericError: 'We could not publish your letter. Try again soon.',
   },
@@ -59,6 +60,7 @@ const copy = {
     myMessages: 'Mis mensajes',
     publishedTitle: '¡Carta enviada!',
     publishedText: 'Está pendiente de moderación y aparecerá en el mapa en cuanto sea aprobada.',
+    publishedVisibleText: 'Tu carta ya es visible en el mapa.',
     accountUnavailable: 'Tu cuenta no está disponible ahora mismo, así que la carta no se pudo publicar.',
     genericError: 'No pudimos publicar tu carta. Inténtalo pronto de nuevo.',
   },
@@ -76,7 +78,7 @@ export type FormFieldErrors = {
 
 export interface CreateMessageFormProps {
   lang?: 'en' | 'es'
-  onPublished?: (publicId: string) => void
+  onPublished?: (publicId: string, publicVisible: boolean) => void
   submitMessage?: CreateMessageSubmit
 }
 
@@ -94,6 +96,7 @@ export function CreateMessageForm({
   const [pickerResetKey, setPickerResetKey] = useState(0)
   const [sending, setSending] = useState(false)
   const [publishedPublicId, setPublishedPublicId] = useState<string | null>(null)
+  const [publishedPublicVisible, setPublishedPublicVisible] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({})
   const [cooldownRemaining, setCooldownRemaining] = useState(0)
   const [limitBlocked, setLimitBlocked] = useState(false)
@@ -185,8 +188,9 @@ export function CreateMessageForm({
     try {
       const result = await submitMessage({ content, recipient, location })
       if (result.ok) {
-        onPublished?.(result.data.publicId)
+        onPublished?.(result.data.publicId, result.data.publicVisible)
         setPublishedPublicId(result.data.publicId)
+        setPublishedPublicVisible(result.data.publicVisible)
         setContent('')
         setRecipient(null)
         setLocation(null)
@@ -222,7 +226,7 @@ export function CreateMessageForm({
     >
       {publishedPublicId !== null && (
         <p className="profile-note" role="status">
-          <strong>{t.publishedTitle}</strong> {t.publishedText}
+          <strong>{t.publishedTitle}</strong> {publishedPublicVisible ? t.publishedVisibleText : t.publishedText}
         </p>
       )}
 

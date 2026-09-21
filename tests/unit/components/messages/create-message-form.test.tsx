@@ -36,7 +36,7 @@ vi.mock('next/navigation', () => ({
 afterEach(cleanup)
 
 function okResult(publicId: string): CreateMessageActionResult {
-  return { ok: true, data: { publicId, version: 1, status: 'pending' } }
+  return { ok: true, data: { publicId, version: 1, status: 'pending', publicVisible: false } }
 }
 
 function failResult(
@@ -238,7 +238,7 @@ describe('CreateMessageForm', () => {
     })
     await flushEffects()
 
-    expect(onPublished).toHaveBeenCalledWith('message-9')
+    expect(onPublished).toHaveBeenCalledWith('message-9', false)
     expect(screen.getByText(/letter sent/i)).toBeVisible()
   })
 

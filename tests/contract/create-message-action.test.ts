@@ -192,7 +192,7 @@ describe('createMessage server action contract', () => {
   })
 
   it('forwards the approximate selection center to the publish transaction', async () => {
-    const spy = vi.fn<MessagePublisher>(async () => okResult({ publicId: 'message-1', status: 'pending' }))
+    const spy = vi.fn<MessagePublisher>(async () => okResult({ publicId: 'message-1', status: 'pending', publicVisible: true }))
     const result = await createMessageForSession(stubSql, approximateInput, deps({ publish: spy }))
 
     expect(spy).toHaveBeenCalledWith({
@@ -206,11 +206,11 @@ describe('createMessage server action contract', () => {
         countryCode: 'es',
       },
     })
-    expect(result).toEqual({ ok: true, data: { publicId: 'message-1', version: 1, status: 'pending' } })
+    expect(result).toEqual({ ok: true, data: { publicId: 'message-1', version: 1, status: 'pending', publicVisible: true } })
   })
 
   it('forwards the confirmed precise point and explicit confirmation to the publish transaction', async () => {
-    const spy = vi.fn<MessagePublisher>(async () => okResult({ publicId: 'message-1', status: 'pending' }))
+    const spy = vi.fn<MessagePublisher>(async () => okResult({ publicId: 'message-1', status: 'pending', publicVisible: false }))
     const result = await createMessageForSession(stubSql, preciseInput, deps({ publish: spy }))
 
     expect(spy).toHaveBeenCalledWith({
@@ -225,7 +225,7 @@ describe('createMessage server action contract', () => {
         countryCode: 'es',
       },
     })
-    expect(result).toEqual({ ok: true, data: { publicId: 'message-1', version: 1, status: 'pending' } })
+    expect(result).toEqual({ ok: true, data: { publicId: 'message-1', version: 1, status: 'pending', publicVisible: false } })
   })
 
   it('passes through stable business errors and never exposes the token or address', async () => {
