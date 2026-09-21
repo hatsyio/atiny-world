@@ -127,6 +127,11 @@ pnpm test:coverage
 pnpm test
 ```
 
+Los comandos `test:bdd`, `test:integration`, `test:contract` y `test:coverage`
+usan la misma base local y adquieren un bloqueo de PostgreSQL antes de empezar.
+Si se invocan a la vez, las suites esperan su turno para no limpiar datos de
+otra ejecución.
+
 Para cada comportamiento nuevo se añade primero un escenario o prueba que falle
 por la ausencia del comportamiento, se implementa el mínimo y se vuelve a
 ejecutar hasta obtener verde. `pnpm test` ejecuta unidades y aceptación; las

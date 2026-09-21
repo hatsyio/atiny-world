@@ -11,6 +11,7 @@ import type {
 import type { AccountGate } from '../../../src/server/auth/account-gate'
 import type { ClerkUserReader } from '../../../src/server/actions/complete-profile'
 import type { ActionResult } from '../../../src/domain/contracts'
+import type { CreateMessageForSessionSuccess } from '../../../src/server/actions/create-message'
 
 export type BddResponse = { status: number; body: Record<string, unknown> }
 
@@ -27,6 +28,9 @@ export class AtinyWorld extends World {
   clerkUser?: Awaited<ReturnType<ClerkUserReader>>
   profileActionResult?: ActionResult<{ profilePublicId: string }>
   accountGate?: AccountGate
+  messageActionResult?: ActionResult<CreateMessageForSessionSuccess>
+  locationSelectionId?: string
+  selectedAddress?: string
 
   constructor(options: IWorldOptions) {
     super(options)
