@@ -7,11 +7,7 @@ import {
   type ActionResult,
   type Recipient,
 } from '@/domain/contracts'
-import {
-  validatePublicLocation,
-  type PublicPoint,
-} from '@/domain/location/public-point'
-import { countGraphemes, MAX_GRAPHEMES } from '@/domain/messages/content'
+import type { PublicPoint } from '@/domain/location/public-point'
 import { authorizeProfile } from '@/server/auth/authorize'
 import {
   getSessionIdentity,
@@ -20,11 +16,15 @@ import {
   type SessionIdentity,
 } from '@/server/auth/session'
 import { getLocationSelectionSecret } from '@/server/env'
-import {
-  verifyLocationSelectionResult,
-  type LocationSelectionVerification,
-} from '@/server/locations/selection-token'
+import { verifyLocationSelectionResult } from '@/server/locations/selection-token'
 import { createMessage, type CreateMessageInput } from '@/server/messages/create-message'
+import { validateActionContent } from './content'
+import {
+  resolveLocationSelection,
+  type SelectionVerifier,
+} from './location-input'
+
+export type { SelectionVerifier } from './location-input'
 
 export type CreateMessageLocationInput =
   | { selectionId: string; precision: 'approximate' }
@@ -48,10 +48,6 @@ export type CreateMessageForSessionSuccess = {
   publicVisible: boolean
 }
 
-export type SelectionVerifier = (
-  token: string,
-) => LocationSelectionVerification
-
 export type MessagePublisher = (
   input: CreateMessageInput,
 ) => Promise<ActionResult<{ publicId: string; status: 'pending'; publicVisible: boolean }>>
@@ -61,84 +57,6 @@ export type CreateMessageForSessionDependencies = {
   readProfile?: ProfileReader
   verifySelection?: SelectionVerifier
   publish?: MessagePublisher
-}
-
-const MAX_SELECTION_TOKEN_LENGTH = 4096
-
-const SELECTION_REQUIRED = 'LOCATION_SELECTION_REQUIRED' as const
-const SELECTION_INVALID = 'LOCATION_SELECTION_INVALID' as const
-const SELECTION_EXPIRED = 'LOCATION_SELECTION_EXPIRED' as const
-
-function validateContent(
-  content: unknown,
-): { ok: true; value: string } | { ok: false; fieldErrors: Record<string, string> } {
-  if (typeof content !== 'string' || content.length === 0) {
-    return { ok: false, fieldErrors: { content: 'message.content.required' } }
-  }
-  if (countGraphemes(content) > MAX_GRAPHEMES) {
-    return { ok: false, fieldErrors: { content: 'message.content.limitReached' } }
-  }
-  return { ok: true, value: content }
-}
-
-function resolvePublishLocation(
-  input: CreateMessageActionInput,
-  verifySelection: SelectionVerifier,
-): ActionResult<CreateMessageInput['location']> {
-  const rawLocation = input?.location
-  if (rawLocation === null || typeof rawLocation !== 'object') {
-    return errorResult(SELECTION_REQUIRED, { messageKey: 'location.selection_required' })
-  }
-  const location = rawLocation as Record<string, unknown>
-  const selectionId = location.selectionId
-  if (typeof selectionId !== 'string' || selectionId.length === 0) {
-    return errorResult(SELECTION_REQUIRED, { messageKey: 'location.selection_required' })
-  }
-  if (selectionId.length > MAX_SELECTION_TOKEN_LENGTH) {
-    return errorResult(SELECTION_INVALID, { messageKey: 'location.selection_invalid' })
-  }
-
-  const verified = verifySelection(selectionId)
-  if (!verified.ok) {
-    return verified.reason === 'EXPIRED'
-      ? errorResult(SELECTION_EXPIRED, { messageKey: 'location.selection_expired' })
-      : errorResult(SELECTION_INVALID, { messageKey: 'location.selection_invalid' })
-  }
-
-  if (location.precision === 'approximate') {
-    return okResult({
-      precision: 'approximate',
-      localityCenter: verified.selection.point,
-      country: verified.selection.country,
-      countryCode: verified.selection.countryCode,
-    })
-  }
-  if (location.precision !== 'precise') {
-    return errorResult(SELECTION_INVALID, { messageKey: 'location.selection_invalid' })
-  }
-  if (location.preciseLocationConfirmed !== true) {
-    return errorResult(SELECTION_REQUIRED, { messageKey: 'location.selection_required' })
-  }
-
-  const point = validatePublicLocation({
-    ...(location.confirmedPublicPoint as PublicPoint),
-    precision: 'precise',
-    confirmed: true,
-  })
-  if (!point.ok) {
-    return errorResult('VALIDATION_ERROR', {
-      messageKey: 'validation.invalidFields',
-      fieldErrors: { location: 'location.invalidPublicPoint' },
-    })
-  }
-
-  return okResult({
-    precision: 'precise',
-    localityCenter: { latitude: point.data.latitude, longitude: point.data.longitude },
-    confirmed: true,
-    country: verified.selection.country,
-    countryCode: verified.selection.countryCode,
-  })
 }
 
 export async function createMessageForSession(
@@ -165,7 +83,7 @@ export async function createMessageForSession(
     })
   }
 
-  const content = validateContent(input?.content)
+  const content = validateActionContent(input?.content)
   if (!content.ok) {
     return errorResult('VALIDATION_ERROR', {
       messageKey: 'validation.invalidFields',
@@ -173,7 +91,7 @@ export async function createMessageForSession(
     })
   }
 
-  const location = resolvePublishLocation(input, verifySelection)
+  const location = resolveLocationSelection(input?.location, verifySelection)
   if (!location.ok) return location
 
   const created = await publish({
