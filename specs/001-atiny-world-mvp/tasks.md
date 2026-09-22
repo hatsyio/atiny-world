@@ -344,7 +344,7 @@ T041 content domain | T042 location domain | T045 provider adapter | T046 select
 
 ```text
 T054 acceptance scenarios | T055 ownership/version integration | T056 component states
-T060 own-message list | T061 edit form
+T057 own-message repository | T058 updateMessage | T059 deleteMessage | T060 own-message list | T061 edit form
 ```
 
 ### User Story 4
