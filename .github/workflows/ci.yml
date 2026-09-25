@@ -100,18 +100,18 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Provide non-secret local environment
-        run: cp .env.example .env.local
+        run: cp .env.example .env
 
       - name: Validate Compose
-        run: docker compose config --quiet
+        run: docker compose --profile local config --quiet
 
       - name: Build application and database images
-        run: docker compose build app db
+        run: docker compose --profile local build app-local db
 
       - name: Start database and apply migrations
         run: |
-          docker compose up --detach --wait db
-          docker compose run --rm migrate
+          docker compose --profile local up --detach --wait db
+          docker compose --profile local run --rm migrate
 
       - name: Verify migrated database
-        run: docker compose exec -T db psql -U postgres -d postgres -Atqc 'select count(*) from app_private.settings where id = 1' | grep -qx 1
+        run: docker compose --profile local exec -T db psql -U postgres -d postgres -Atqc 'select count(*) from app_private.settings where id = 1' | grep -qx 1

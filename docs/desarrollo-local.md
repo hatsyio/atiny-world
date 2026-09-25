@@ -21,9 +21,12 @@ por el propietario). Instancia nano, estado `ACTIVE_HEALTHY`. PostgreSQL 17.6
 verificado mediante una consulta SQL de solo lectura el 13 de septiembre de 2026.
 
 [Panel del proyecto](https://supabase.com/dashboard/project/ngwsobelmdwiqsdmuonw).
-La contraseña generada se guarda únicamente en `.env.production.local`, con
+La contraseña generada se guarda únicamente en `.env.pro`, con
 permisos de archivo `600` y excluido de Git. Es una credencial de administración;
-no es la futura credencial de la aplicación ni debe usarse para previews.
+no es la futura credencial de la aplicación ni debe usarse para previews. Compose
+no transmite `SUPABASE_DB_PASSWORD` al contenedor de la aplicación. El modo
+local oculta ese archivo dentro del contenedor y el modo `pro` no monta el
+checkout del host.
 La vinculación de la CLI se guarda en `supabase/.temp/`, también excluido de Git.
 
 Para vincular otro checkout: `supabase link --project-ref ngwsobelmdwiqsdmuonw`.
@@ -35,20 +38,21 @@ Usar siempre `--local` en las consultas de desarrollo; `--linked` apunta a produ
 Requisitos: Node.js 24.16, pnpm 12.3, Docker en ejecución y Supabase CLI
 2.109.1. Las versiones de Node.js y pnpm están fijadas en `.node-version` y
 `package.json`.
-Desde la raíz del repositorio:
+Desde la raíz del repositorio, para ejecutar también la aplicación local:
 
 ```sh
 pnpm install
-supabase start
-supabase db query --local 'select 1 as ok;'
-pnpm test:integration
-pnpm dev
+cp .env.example .env  # solo en un checkout nuevo; completar claves y secretos
+pnpm docker:up
 ```
 
 La aplicación queda disponible en `http://localhost:3000` y su comprobación de
-PostgreSQL en `http://localhost:3000/api/health`. El desarrollo utiliza la URL
-local no sensible guardada en `.env.development.local`; Clerk se descarga desde
-Vercel a `.env.local`. Ninguno de esos archivos se versiona.
+PostgreSQL en `http://localhost:3000/api/health`. `.env` contiene la URL
+del PostgreSQL de Compose para procesos ejecutados en el host (`127.0.0.1:54332`);
+Compose la sustituye dentro del contenedor por `db:5432`. Las pruebas que usan
+Supabase CLI local siguen usando `127.0.0.1:54322` mediante `TEST_DATABASE_URL`
+o su valor predeterminado. `.env` y `.env.pro` quedan excluidos de Git;
+`.env.example` documenta su contenido sin secretos reales.
 
 En producción, el servidor comprueba al iniciarse `DATABASE_URL`, las claves de
 Clerk, Geoapify y CARTO, `LOCATION_SELECTION_SECRET` y `CURSOR_SECRET`. Este
@@ -57,15 +61,33 @@ cursores de paginación sigan siendo válidos.
 
 ## Docker Compose
 
-El modo Docker levanta Next.js y PostgreSQL 17 con PostGIS con un solo comando. Antes del
-primer arranque, `.env.local` debe contener las variables de Clerk; pueden
-descargarse sin imprimir sus valores:
+Un único `compose.yaml` ofrece dos perfiles. `local` levanta Next.js y
+PostgreSQL 17 con PostGIS, y aplica las migraciones antes de iniciar la app:
 
 ```sh
-vercel env pull .env.local --yes
-chmod 600 .env.local
-docker compose up --build
+pnpm docker:up
 ```
+
+`pro` levanta solo la aplicación y añade `.env.pro` sobre
+`.env` para sustituir `DATABASE_URL` por la URL de una cuenta remota de
+aplicación con permisos limitados. Ambos perfiles usan las claves de Clerk de
+desarrollo de `.env`, ya que se ejecutan en `localhost`. El perfil `pro`
+no usa la contraseña administrativa de Supabase ni aplica migraciones remotas:
+
+`.env.example` incluye al final las dos líneas que debe contener `.env.pro`.
+No copies el ejemplo completo a `.env.pro`, ya que sus claves de Clerk vacías
+anularían las de `.env`.
+
+```sh
+pnpm docker:up:pro
+```
+
+La base remota debe estar activa y migrada antes de usar ese perfil. Los usuarios
+de Clerk de desarrollo pueden crear datos en la base remota cuando esta permita
+escrituras; hay que usar el perfil `pro` solo para pruebas deliberadas. Ambos modos
+publican la app en `127.0.0.1:3000`, por lo que debe detenerse uno antes de
+iniciar el otro. El perfil `pro` requiere reconstruir la imagen para incorporar
+cambios de código; no usa recarga en caliente.
 
 El servicio `migrate` aplica las migraciones pendientes de `supabase/migrations`
 antes de iniciar Next.js. Las migraciones aplicadas se registran en
@@ -82,6 +104,8 @@ pnpm docker:up
 pnpm docker:logs
 pnpm docker:down
 ```
+
+Para consultar los logs del otro perfil: `pnpm docker:logs:pro`.
 
 `docker compose down` detiene los servicios y conserva los volúmenes
 `postgres_data`, `node_modules` y `next_cache`. Para borrar también los datos
