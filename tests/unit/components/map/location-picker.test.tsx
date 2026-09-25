@@ -28,11 +28,13 @@ vi.mock('leaflet', () => {
     remove: () => {},
   }
   const tileLayer = () => ({ addTo: () => {} })
+  const Icon = { Default: { imagePath: undefined as string | undefined } }
   return {
-    default: { map: () => map, marker: () => marker, tileLayer },
+    default: { map: () => map, marker: () => marker, tileLayer, Icon },
     map: () => map,
     marker: () => marker,
     tileLayer,
+    Icon,
   }
 })
 
