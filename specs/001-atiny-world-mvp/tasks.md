@@ -130,18 +130,18 @@ description: "Dependency-ordered implementation tasks for ATINY World MVP"
 
 ### Tests for User Story 3
 
-- [ ] T054 [P] [US3] Write failing Spanish Gherkin scenarios for own-message listing, reasons, locating, text/location edits, physical deletion and rejection of foreign rewrites in `tests/bdd/features/gestionar-mensajes-propios.feature`
-- [ ] T055 [P] [US3] Write failing PostgreSQL integration tests for owner-only access, `expectedVersion` conflicts, edit from any state to `pending` with version increment, point preservation/replacement, physical delete, released slot and unchanged cooldown timestamp in `tests/integration/manage-own-messages.test.ts`
-- [ ] T056 [P] [US3] Write failing component tests for hidden-state/reason presentation, destructive confirmation and suspended-account delete-only controls in `tests/unit/components/messages/my-messages.test.tsx`
+- [X] T054 [P] [US3] Write failing Spanish Gherkin scenarios for own-message listing, reasons, locating, text/location edits, physical deletion and rejection of foreign rewrites in `tests/bdd/features/gestionar-mensajes-propios.feature`
+- [X] T055 [P] [US3] Write failing PostgreSQL integration tests for owner-only access, `expectedVersion` conflicts, edit from any state to `pending` with version increment, point preservation/replacement, physical delete, released slot and unchanged cooldown timestamp in `tests/integration/manage-own-messages.test.ts`
+- [X] T056 [P] [US3] Write failing component tests for hidden-state/reason presentation, destructive confirmation and suspended-account delete-only controls in `tests/unit/components/messages/my-messages.test.tsx`
 
 ### Implementation for User Story 3
 
-- [ ] T057 [US3] Implement paginated owner-only queries that include all four states and moderation reason without exposing them through public DTOs in `src/server/messages/own-message-repository.ts`
-- [ ] T058 [US3] Implement `updateMessage` to lock profile/message, require active unsuspended ownership, compare `expectedVersion`, replace content, optionally replace location, increment version, set `pending`, clear current moderation reason and retain no general history in `src/server/messages/update-message.ts` and `src/app/[lang]/my-messages/actions.ts`
-- [ ] T059 [US3] Implement confirmed `deleteMessage` for the owner—including suspended accounts—locking profile first, physically deleting, nulling retained-evidence references and leaving `last_message_created_at` unchanged in `src/server/messages/delete-message.ts` and `src/app/[lang]/my-messages/delete-action.ts`
-- [ ] T060 [P] [US3] Implement «Mis mensajes» with stable cursor, state/reason, locate/edit/delete controls and unavailable-link behavior in `src/app/[lang]/my-messages/page.tsx` and `src/components/messages/my-message-list.tsx`
-- [ ] T061 [P] [US3] Implement the edit form that preserves the existing point unless location is explicitly changed and never allows an administrator to edit another author’s text in `src/components/messages/edit-message-form.tsx`
-- [ ] T062 [US3] Bind the US3 Gherkin steps and make its acceptance, integration and component suites pass in `tests/bdd/step_definitions/gestionar-mensajes-propios.steps.ts`
+- [X] T057 [US3] Implement paginated owner-only queries that include all four states and moderation reason without exposing them through public DTOs in `src/server/messages/own-message-repository.ts`
+- [X] T058 [US3] Implement `updateMessage` to lock profile/message, require active unsuspended ownership, compare `expectedVersion`, replace content, optionally replace location, increment version, set `pending`, clear current moderation reason and retain no general history in `src/server/messages/update-message.ts` and `src/app/[lang]/my-messages/actions.ts`
+- [X] T059 [US3] Implement confirmed `deleteMessage` for the owner—including suspended accounts—locking profile first, physically deleting, nulling retained-evidence references and leaving `last_message_created_at` unchanged in `src/server/messages/delete-message.ts` and `src/app/[lang]/my-messages/delete-action.ts`
+- [X] T060 [P] [US3] Implement «Mis mensajes» with stable cursor, state/reason, locate/edit/delete controls and unavailable-link behavior in `src/app/[lang]/my-messages/page.tsx` and `src/components/messages/my-message-list.tsx`
+- [X] T061 [P] [US3] Implement the edit form that preserves the existing point unless location is explicitly changed and never allows an administrator to edit another author’s text in `src/components/messages/edit-message-form.tsx`
+- [X] T062 [US3] Bind the US3 Gherkin steps and make its acceptance, integration and component suites pass in `tests/bdd/step_definitions/gestionar-mensajes-propios.steps.ts`
 
 **Checkpoint**: US3 is independently verifiable with owned, foreign, hidden and deleted messages.
 
@@ -344,7 +344,7 @@ T041 content domain | T042 location domain | T045 provider adapter | T046 select
 
 ```text
 T054 acceptance scenarios | T055 ownership/version integration | T056 component states
-T060 own-message list | T061 edit form
+T057 own-message repository | T058 updateMessage | T059 deleteMessage | T060 own-message list | T061 edit form
 ```
 
 ### User Story 4
