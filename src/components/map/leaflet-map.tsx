@@ -24,13 +24,25 @@ export function cartoTileUrl(apiKey: string): string {
   return `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(apiKey)}`
 }
 
+export function configureMarkerIcons(leaflet: typeof import('leaflet')): void {
+  leaflet.Icon.Default.imagePath = '/images/leaflet/'
+}
+
 export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, groupRequestUrl, selectedPublicId }: Props) {
   const element = useRef<HTMLDivElement>(null)
   const map = useRef<import('leaflet').Map | null>(null)
+  const onSelectRef = useRef(onSelect)
+  const onViewportChangeRef = useRef(onViewportChange)
+  const [instance, setInstance] = useState<import('leaflet').Map | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isClusterListOpen, setIsClusterListOpen] = useState(false)
   const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY
+
+  useEffect(() => {
+    onSelectRef.current = onSelect
+    onViewportChangeRef.current = onViewportChange
+  }, [onSelect, onViewportChange])
 
   useEffect(() => {
     const apiKey = cartoApiKey
@@ -47,6 +59,7 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
         if (disposed || !element.current) return
 
         const leaflet = (leafletModule as { default?: LeafletModule }).default ?? leafletModule
+        configureMarkerIcons(leaflet)
         const instance = leaflet.map(element.current, {
           attributionControl: true,
           zoomControl: true,
@@ -57,24 +70,9 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
           maxZoom: 19,
         }).addTo(instance)
 
-        const markers = leaflet.markerClusterGroup()
-        for (const feature of features) {
-          const marker = leaflet.marker([
-            feature.point.latitude,
-            feature.point.longitude,
-          ])
-          marker.bindPopup(feature.author.displayName)
-          marker.on('click', () => onSelect(feature.publicId))
-          markers.addLayer(marker)
-          if (feature.publicId === selectedPublicId) {
-            instance.setView([feature.point.latitude, feature.point.longitude], 8)
-            marker.openPopup()
-          }
-        }
-        instance.addLayer(markers)
         const reportViewport = () => {
           const bounds = instance.getBounds()
-          onViewportChange?.({
+          onViewportChangeRef.current?.({
             west: bounds.getWest(),
             south: bounds.getSouth(),
             east: bounds.getEast(),
@@ -84,6 +82,7 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
         instance.on('moveend', reportViewport)
         reportViewport()
         map.current = instance
+        setInstance(instance)
       } catch {
         if (!disposed) setError('No se pudo cargar el mapa. Inténtalo de nuevo.')
       }
@@ -96,7 +95,44 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
       map.current?.remove()
       map.current = null
     }
-  }, [cartoApiKey, features, onSelect, onViewportChange, selectedPublicId])
+  }, [cartoApiKey])
+
+  useEffect(() => {
+    if (!instance) return
+    const currentInstance = instance
+    let active = true
+    let markers: import('leaflet').MarkerClusterGroup | null = null
+
+    async function updateMarkers() {
+      const leafletModule = await import('leaflet')
+      if (!active) return
+      const leaflet = (leafletModule as { default?: typeof import('leaflet') }).default ?? leafletModule
+      markers = leaflet.markerClusterGroup()
+      for (const feature of features) {
+        const marker = leaflet.marker([feature.point.latitude, feature.point.longitude])
+        marker.bindPopup(feature.author.displayName)
+        marker.on('click', () => onSelectRef.current(feature.publicId))
+        markers.addLayer(marker)
+        if (feature.publicId === selectedPublicId) {
+          currentInstance.setView([feature.point.latitude, feature.point.longitude], 8)
+          marker.openPopup()
+        }
+      }
+      currentInstance.addLayer(markers)
+    }
+
+    void updateMarkers()
+    return () => {
+      active = false
+      if (markers) currentInstance.removeLayer(markers)
+    }
+  }, [instance, features, selectedPublicId])
+
+  useEffect(() => {
+    if (!instance) return
+    const timer = window.setTimeout(() => instance.invalidateSize(), 0)
+    return () => window.clearTimeout(timer)
+  }, [instance, isFullscreen])
 
   if (!cartoApiKey) {
     return (

@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PublicPoint } from '@/domain/location/public-point'
 import type { LocationPrecision } from '@/domain/contracts'
 
-import { CARTO_ATTRIBUTION, cartoTileUrl } from './leaflet-map'
+import { CARTO_ATTRIBUTION, cartoTileUrl, configureMarkerIcons } from './leaflet-map'
 
 const MIN_QUERY_LENGTH = 2
 const DEBOUNCE_MS = 400
@@ -123,6 +123,7 @@ function PreciseMap({
         const leafletModule = await import('leaflet')
         if (disposed || !element.current) return
         const leaflet = (leafletModule as { default?: LeafletModule }).default ?? leafletModule
+        configureMarkerIcons(leaflet)
         instance = leaflet
           .map(element.current, { attributionControl: true, zoomControl: true })
           .setView([point.latitude, point.longitude], 14)
