@@ -123,6 +123,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .profile-submit { background: #6b3e20; color: #f4dbad; border: 1px solid #4a2a13; }
 .profile-submit:disabled, .profile-cancel:disabled { opacity: .55; cursor: default; }
 .profile-cancel { background: transparent; color: #4a2a13; border: 1px solid #6b3e20; }
+.my-messages-panel { width: min(100%, 900px); }
+.my-messages { width: 100%; text-align: left; }
+.my-message-list { display: grid; gap: 1rem; padding: 0; margin: 1rem 0; list-style: none; }
+.my-message-item { padding: 1rem; background: #f2d9aa; border: 1px solid #9a6139; box-shadow: inset 0 0 18px #9c6b3b38; }
+.my-message-content { margin-top: 0; white-space: pre-wrap; }
+.my-message-item p { line-height: 1.45; }
+.my-message-links, .my-message-actions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+.my-message-links a, .my-message-actions button { padding: .45rem .7rem; border: 1px solid #6b3e20; color: #4a2a13; background: transparent; cursor: pointer; }
+.my-message-links a:hover, .my-message-actions button:hover { background: #e4c18e; }
+.my-message-actions [role='group'] { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+.my-message-actions [role='group'] p { flex-basis: 100%; margin: 0; }
 
 @media (max-width: 1100px) {
   .site-header { flex-wrap: wrap; justify-content: center; }
