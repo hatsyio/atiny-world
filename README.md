@@ -72,15 +72,20 @@ contratos, cobertura, build de Next.js, migraciones de Compose y build de Docker
 crea una preview para cada pull request y publica producción al integrar en
 `main`.
 
-También puede levantarse la aplicación y PostgreSQL con Docker:
+También puede levantarse la aplicación con Docker Compose usando uno de dos perfiles:
 
 ```sh
-docker compose up --build
+cp .env.example .env  # solo la primera vez; completa las claves locales
+pnpm docker:up       # app y PostgreSQL local
+pnpm docker:up:pro   # app conectada al PostgreSQL remoto
 ```
 
-Este modo usa `.env.local` para Clerk, publica Next.js en el puerto `3000` y
-PostgreSQL con PostGIS en el `54332` para no colisionar con Supabase CLI. Antes
-de arrancar la aplicación aplica las migraciones SQL pendientes de `supabase/migrations`.
+Un único `compose.yaml` usa `.env` para Clerk de desarrollo en ambos
+perfiles. El perfil `pro` añade `.env.pro` para sustituir solo la
+URL de PostgreSQL. El modo local publica PostgreSQL con PostGIS en el puerto `54332` y
+aplica las migraciones pendientes antes de arrancar la aplicación. El modo
+`pro` no levanta ni migra una base de datos; requiere `DATABASE_URL` de una
+cuenta de aplicación en `.env.pro`. `.env.example` documenta las variables.
 
 ## Iniciativa de fans
 

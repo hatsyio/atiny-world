@@ -18,9 +18,11 @@
     "test:integration": "node scripts/run-db-suite.mjs vitest run tests/integration",
     "test:contract": "node scripts/run-db-suite.mjs vitest run tests/contract",
     "test:coverage": "node scripts/run-db-suite.mjs vitest run tests/unit tests/integration --coverage",
-    "docker:up": "docker compose up --build",
-    "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs --follow app"
+    "docker:up": "docker compose --profile local up --build",
+    "docker:up:pro": "docker compose --profile pro up --build",
+    "docker:down": "docker compose --profile local --profile pro down",
+    "docker:logs": "docker compose --profile local logs --follow app-local",
+    "docker:logs:pro": "docker compose --profile pro logs --follow app-pro"
   },
   "dependencies": {
     "@clerk/nextjs": "7.9.2",
