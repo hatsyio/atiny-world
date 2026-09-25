@@ -17,14 +17,16 @@ pasan contra el esquema reconstruido.
 
 Proyecto remoto creado y vinculado: `atiny-world`, región París (`eu-west-3`),
 referencia `ngwsobelmdwiqsdmuonw`, organización «Josep Test» (plan Free confirmado
-por el propietario). Instancia nano, estado `ACTIVE_HEALTHY`. PostgreSQL 17.6
-verificado mediante una consulta SQL de solo lectura el 13 de septiembre de 2026.
+por el propietario). Instancia nano, reactivada el 25 de septiembre de 2026 y
+en estado `ACTIVE_HEALTHY`. Las cinco migraciones del repositorio están aplicadas
+en remoto. La cuenta `atiny_app_login` hereda los permisos de
+`atiny_app_runtime` y su URL de conexión está en `.env.pro`.
 
 [Panel del proyecto](https://supabase.com/dashboard/project/ngwsobelmdwiqsdmuonw).
-La contraseña generada se guarda únicamente en `.env.pro`, con
-permisos de archivo `600` y excluido de Git. Es una credencial de administración;
-no es la futura credencial de la aplicación ni debe usarse para previews. Compose
-no transmite `SUPABASE_DB_PASSWORD` al contenedor de la aplicación. El modo
+La contraseña administrativa y la URL de la cuenta de aplicación se guardan
+únicamente en `.env.pro`, con permisos de archivo `600` y excluido de Git.
+La credencial administrativa no debe usarse para previews. Compose no transmite
+`SUPABASE_DB_PASSWORD` al contenedor de la aplicación. El modo
 local oculta ese archivo dentro del contenedor y el modo `pro` no monta el
 checkout del host.
 La vinculación de la CLI se guarda en `supabase/.temp/`, también excluido de Git.
@@ -82,7 +84,8 @@ anularían las de `.env`.
 pnpm docker:up:pro
 ```
 
-La base remota debe estar activa y migrada antes de usar ese perfil. Los usuarios
+La base remota debe estar activa y migrada antes de usar ese perfil; ambas
+condiciones se verificaron el 25 de septiembre de 2026. Los usuarios
 de Clerk de desarrollo pueden crear datos en la base remota cuando esta permita
 escrituras; hay que usar el perfil `pro` solo para pruebas deliberadas. Ambos modos
 publican la app en `127.0.0.1:3000`, por lo que debe detenerse uno antes de
@@ -181,9 +184,9 @@ despliegues.
 
 Clerk Hobby está provisionado mediante Vercel Marketplace y conectado a
 development, preview y production. Supabase continúa siendo el proyecto remoto
-existente, sin crear un recurso duplicado en Marketplace. La credencial de
-aplicación remota y el rol de solo lectura para previews siguen pendientes del
-esquema de datos; no se reutilizará la contraseña administrativa.
+existente, sin crear un recurso duplicado en Marketplace. La cuenta de aplicación
+remota ya está creada; la credencial de solo lectura para previews sigue
+pendiente. No se reutiliza la contraseña administrativa para la aplicación.
 
 ## Migraciones y previews
 

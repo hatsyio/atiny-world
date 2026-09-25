@@ -23,6 +23,7 @@ export function getDb(): Sql {
       max: 1,
       prepare: false,
       ssl: isLocalDatabase(databaseUrl) ? false : 'require',
+      connection: { options: '-c search_path=extensions,public' },
     })
   }
 
