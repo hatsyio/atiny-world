@@ -67,6 +67,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map--fullscreen .map__canvas { height: calc(100vh - 100px); }
 .map button { cursor: pointer; background: var(--navy); color: #f4dab0; border: 1px solid var(--gold); padding: .4rem .7rem; margin: .4rem; }
 .map p[role='status'] { padding: .3rem 1rem; margin: 0; text-align: center; font-style: italic; }
+.leaflet-popup-content .map-message-popup { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .letters-section { max-width: 1400px; margin: 0 auto; scroll-margin-top: 1rem; }
 .section-heading { display: flex; align-items: center; gap: 1rem; }

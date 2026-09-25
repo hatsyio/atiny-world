@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { act } from 'react'
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -18,14 +19,23 @@ const leaflet = vi.hoisted(() => {
     invalidateSize: vi.fn(),
     remove: vi.fn(),
   }
-  const cluster = { addLayer: vi.fn(), clearLayers: vi.fn() }
+  const cluster = { addLayer: vi.fn(), removeLayer: vi.fn(), clearLayers: vi.fn() }
+  const markerHandlers = new Map<string, () => void>()
+  const markerInstance = {
+    bindPopup: vi.fn(),
+    setPopupContent: vi.fn(),
+    on: vi.fn((event: string, handler: () => void) => { markerHandlers.set(event, handler) }),
+    openPopup: vi.fn(),
+  }
   return {
     instance,
     cluster,
+    markerHandlers,
+    markerInstance,
     map: vi.fn(() => instance),
     tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
     markerClusterGroup: vi.fn(() => cluster),
-    marker: vi.fn(() => ({ bindPopup: vi.fn(), on: vi.fn(), openPopup: vi.fn() })),
+    marker: vi.fn(() => markerInstance),
     Icon: { Default: { imagePath: undefined as string | undefined } },
   }
 })
@@ -48,6 +58,7 @@ afterEach(() => {
   cleanup()
   vi.unstubAllEnvs()
   vi.clearAllMocks()
+  leaflet.markerHandlers.clear()
 })
 
 describe('LeafletMap lifecycle', () => {
@@ -83,5 +94,34 @@ describe('LeafletMap lifecycle', () => {
     await waitFor(() => expect(leaflet.marker).toHaveBeenCalledTimes(1))
 
     expect(leaflet.Icon.Default.imagePath).toBe('/images/leaflet/')
+  })
+
+  it('shows the letter in a persistent popup without navigating', async () => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+    const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(JSON.stringify({
+      ...feature,
+      content: 'Gracias por estar aquí\nSiempre contigo <script>alert(1)</script>',
+    })))
+    vi.stubGlobal('fetch', fetch)
+    const onSelect = vi.fn()
+    const { rerender } = render(<LeafletMap features={[feature]} onSelect={onSelect} lang="es" />)
+    await waitFor(() => expect(leaflet.markerHandlers.has('click')).toBe(true))
+
+    act(() => leaflet.markerHandlers.get('click')?.())
+    await waitFor(() => expect(leaflet.markerInstance.setPopupContent).toHaveBeenCalled())
+
+    expect(fetch).toHaveBeenCalledWith(`/api/messages/${feature.publicId}`, expect.objectContaining({ cache: 'no-store' }))
+    expect(onSelect).not.toHaveBeenCalled()
+    const popup = leaflet.markerInstance.setPopupContent.mock.calls.at(-1)?.[0] as HTMLElement
+    expect(popup.textContent).toBe('Gracias por estar aquí\nSiempre contigo <script>alert(1)</script>')
+    expect(popup.querySelector('script')).toBeNull()
+    expect(leaflet.markerInstance.bindPopup).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ autoClose: false, closeOnClick: false }),
+    )
+
+    rerender(<LeafletMap features={[{ ...feature }]} onSelect={onSelect} lang="es" />)
+    await waitFor(() => expect(leaflet.marker).toHaveBeenCalledTimes(1))
+    expect(leaflet.cluster.removeLayer).not.toHaveBeenCalled()
   })
 })
