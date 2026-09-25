@@ -140,7 +140,7 @@ description: "Dependency-ordered implementation tasks for ATINY World MVP"
 - [X] T058 [US3] Implement `updateMessage` to lock profile/message, require active unsuspended ownership, compare `expectedVersion`, replace content, optionally replace location, increment version, set `pending`, clear current moderation reason and retain no general history in `src/server/messages/update-message.ts` and `src/app/[lang]/my-messages/actions.ts`
 - [X] T059 [US3] Implement confirmed `deleteMessage` for the owner—including suspended accounts—locking profile first, physically deleting, nulling retained-evidence references and leaving `last_message_created_at` unchanged in `src/server/messages/delete-message.ts` and `src/app/[lang]/my-messages/delete-action.ts`
 - [X] T060 [P] [US3] Implement «Mis mensajes» with stable cursor, state/reason, locate/edit/delete controls and unavailable-link behavior in `src/app/[lang]/my-messages/page.tsx` and `src/components/messages/my-message-list.tsx`
-- [ ] T061 [P] [US3] Implement the edit form that preserves the existing point unless location is explicitly changed and never allows an administrator to edit another author’s text in `src/components/messages/edit-message-form.tsx`
+- [X] T061 [P] [US3] Implement the edit form that preserves the existing point unless location is explicitly changed and never allows an administrator to edit another author’s text in `src/components/messages/edit-message-form.tsx`
 - [ ] T062 [US3] Bind the US3 Gherkin steps and make its acceptance, integration and component suites pass in `tests/bdd/step_definitions/gestionar-mensajes-propios.steps.ts`
 
 **Checkpoint**: US3 is independently verifiable with owned, foreign, hidden and deleted messages.
