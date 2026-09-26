@@ -1,4 +1,4 @@
-import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
+import { Show, UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 
 import { PublicMapController } from '@/components/map/public-map-controller'
@@ -45,12 +45,12 @@ export function PublicHome({ lang, publicationPending = false }: { lang: 'en' | 
           <Link href="#letters">{t.letters}</Link>
           <Link href="#about">{t.about}</Link>
         </nav>
-        <Link className="nav-brand" href={`/${lang}`} aria-label="ATINY World, home">
+        <Link className="nav-brand" href={`/${lang}`} aria-label="atiny world, home">
           <span className="nav-compass" aria-hidden="true">✧</span>
           <span>ATINY <i>•</i> FOR ATEEZ <i>•</i> ACROSS EVERY SEA</span>
         </Link>
         <nav className="account-actions" aria-label="Account">
-          <Show when="signed-out"><SignInButton><button type="button">{t.signIn}</button></SignInButton><SignUpButton><button type="button">{t.join}</button></SignUpButton></Show>
+          <Show when="signed-out"><Link href={`/${lang}/sign-in`}>{t.signIn}</Link><Link href={`/${lang}/sign-up`}>{t.join}</Link></Show>
           <Show when="signed-in"><UserButton /></Show>
         </nav>
       </header>

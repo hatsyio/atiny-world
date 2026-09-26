@@ -22,20 +22,17 @@ Los mensajes se traducen en la UI mediante `messageKey`. Logs y errores no conti
 
 ## Profile actions
 
-### `completeProfile`
+### `completeProfileForSession`
 
 ```ts
-completeProfile(input: {
-  username: string;
-  displayName: string;
-}): Promise<ActionResult<{ profilePublicId: string }>>
+completeProfileForSession(): Promise<ActionResult<{ profilePublicId: string }>>
 ```
 
-- Requiere sesión Clerk y correo verificado.
-- Normaliza `username` en servidor y garantiza unicidad atómica.
-- `displayName` puede coincidir con `username` y repetirse en otras cuentas; nunca se usa para autenticar ni autorizar.
-- No acepta correo, credenciales ni rol.
-- Es idempotente para un perfil ya completado con los mismos datos.
+- Requiere sesión Clerk e identidad verificada.
+- Lee `publicName` de Clerk y lo valida en servidor (1–50 caracteres Unicode tras quitar espacios exteriores).
+- Crea el perfil por `clerk_user_id`; conserva el UUID público, nombre, rol y cartas en reintentos.
+- El nombre público puede repetirse entre cuentas y no se usa para autenticar ni autorizar.
+- No acepta correo, credenciales, nombre ni rol directamente del cliente en esta acción.
 
 ### `requestAccountDeletion`
 

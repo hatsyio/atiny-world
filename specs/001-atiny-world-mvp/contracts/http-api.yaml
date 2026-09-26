@@ -286,10 +286,9 @@ components:
     PublicUser:
       type: object
       additionalProperties: false
-      required: [publicId, username, displayName]
+      required: [publicId, displayName]
       properties:
         publicId: { type: string, format: uuid }
-        username: { type: string }
         displayName: { type: string }
     MapFeature:
       type: object

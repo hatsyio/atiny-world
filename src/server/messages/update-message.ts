@@ -60,14 +60,14 @@ export async function updateMessage(
   }
 
   return sql.begin(async (tx) => {
-    const profiles = await tx<{ id: string; account_state: string; suspended_at: string | null; username: string; display_name: string }[]>`
-      select id, account_state, suspended_at, username, display_name
+    const profiles = await tx<{ id: string; account_state: string; suspended_at: string | null; display_name: string }[]>`
+      select id, account_state, suspended_at, display_name
         from app_private.profiles
        where clerk_user_id = ${input.clerkUserId}
        for update
     `
     const profile = profiles[0]
-    if (!profile || !profile.username.trim() || !profile.display_name.trim()) return errorResult('PROFILE_INCOMPLETE', { messageKey: 'profile.incomplete' })
+    if (!profile || !profile.display_name.trim()) return errorResult('PROFILE_INCOMPLETE', { messageKey: 'profile.incomplete' })
     if (profile.suspended_at) return errorResult('ACCOUNT_SUSPENDED', { messageKey: 'account.suspended' })
     if (profile.account_state !== 'active') return errorResult('PROFILE_INCOMPLETE', { messageKey: 'account.unavailable' })
 

@@ -4,6 +4,6 @@ import { getPublicAppIdentity } from '../../../src/app-identity'
 
 describe('getPublicAppIdentity', () => {
   it('returns the public application name', () => {
-    expect(getPublicAppIdentity()).toEqual({ name: 'ATINY World' })
+    expect(getPublicAppIdentity()).toEqual({ name: 'atiny world' })
   })
 })

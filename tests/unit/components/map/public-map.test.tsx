@@ -27,7 +27,7 @@ const baseFeature: MapFeature = {
   country: 'España',
   recipient: 'atiny',
   publishedAt: '2026-09-15T10:00:00.000Z',
-  author: { publicId: '22222222-2222-4222-8222-222222222222', username: 'atiny', displayName: 'ATINY' },
+  author: { publicId: '22222222-2222-4222-8222-222222222222', displayName: 'ATINY' },
 }
 
 describe('MessageClusterList', () => {
