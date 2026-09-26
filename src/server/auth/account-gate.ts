@@ -1,6 +1,7 @@
 import type { Sql } from 'postgres'
 
 import { auth } from '@clerk/nextjs/server'
+import { completeProfileForSession } from '@/server/actions/complete-profile'
 
 import {
   getSessionIdentity,
@@ -35,12 +36,17 @@ export async function resolveAccountGate(
   sql: Sql,
   readAuth: ClerkAuthReader = auth,
   readProfile: ProfileReader = readProfileByClerkUserId,
+  ensureProfile: (sql: Sql, identity: { clerkUserId: string }) => Promise<boolean> = async (db, identity) =>
+    (await completeProfileForSession(db, async () => identity)).ok,
 ): Promise<AccountGate> {
   const identity = await getSessionIdentity(readAuth)
 
   if (!identity) return { kind: 'anonymous' }
 
-  const row = await readProfile(sql, identity.clerkUserId)
+  let row = await readProfile(sql, identity.clerkUserId)
+  if (!row) {
+    if (await ensureProfile(sql, identity)) row = await readProfile(sql, identity.clerkUserId)
+  }
   const resolved = resolveProfileState(row)
 
   if (!resolved.ok) {

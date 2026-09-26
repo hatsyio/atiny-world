@@ -91,6 +91,8 @@ AfterAll(async function () {
 Given('una identidad Clerk con correo verificado y perfil incompleto', async function (this: AtinyWorld) {
   await resetScenario(this)
   this.clerkUser = {
+    id: clerkUserId,
+    unsafeMetadata: {},
     primaryEmailAddressId: 'bdd-email',
     emailAddresses: [{ id: 'bdd-email', verification: { status: 'verified' } }],
   }

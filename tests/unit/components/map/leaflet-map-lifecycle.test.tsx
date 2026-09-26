@@ -51,7 +51,7 @@ const feature: PublicMapFeature = {
   country: 'España',
   recipient: 'ateez',
   publishedAt: '2026-09-25T10:00:00Z',
-  author: { publicId: '22222222-2222-4222-8222-222222222222', username: 'fan', displayName: 'Fan' },
+  author: { publicId: '22222222-2222-4222-8222-222222222222', displayName: 'Fan' },
 }
 
 afterEach(() => {

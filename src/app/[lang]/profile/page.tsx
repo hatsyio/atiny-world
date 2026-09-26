@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
-import { ProfileCompletionForm } from '@/components/account/profile-completion-form'
 import { resolveAccountGate } from '@/server/auth/account-gate'
 import { getDb } from '@/server/db/client'
 
@@ -9,15 +8,15 @@ const copy = {
   en: {
     back: 'Back to the map',
     script: 'Dear, ATEEZ…',
-    title: 'Complete your profile',
-    intro: 'Choose a unique username and the public name that will appear on your letters.',
+    title: 'Finishing your account',
+    intro: 'We could not create your profile yet. Try again in a moment.',
     unavailable: 'Your account is not available right now.',
   },
   es: {
     back: 'Volver al mapa',
     script: 'Querido ATEEZ…',
-    title: 'Completa tu perfil',
-    intro: 'Elige un usuario único y el nombre público que mostrarán tus cartas.',
+    title: 'Terminando tu cuenta',
+    intro: 'Todavía no hemos podido crear tu perfil. Vuelve a intentarlo en un momento.',
     unavailable: 'Tu cuenta no está disponible en este momento.',
   },
 } as const
@@ -55,7 +54,7 @@ export default async function ProfilePage({
         <p className="auth-script">{t.script}</p>
         <h1>{t.title}</h1>
         <p className="profile-intro">{t.intro}</p>
-        <ProfileCompletionForm lang={locale} />
+        <Link className="profile-submit" href={`/${locale}/auth/continue`}>{locale === 'es' ? 'Reintentar' : 'Try again'}</Link>
       </div>
     </main>
   )

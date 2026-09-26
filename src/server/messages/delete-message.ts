@@ -20,14 +20,14 @@ export async function deleteMessage(
   if (!publicId.ok) return errorResult('VALIDATION_ERROR', { messageKey: 'validation.invalidFields' })
 
   return sql.begin(async (tx) => {
-    const profiles = await tx<{ id: string; account_state: string; username: string; display_name: string }[]>`
-      select id, account_state, username, display_name
+    const profiles = await tx<{ id: string; account_state: string; display_name: string }[]>`
+      select id, account_state, display_name
         from app_private.profiles
        where clerk_user_id = ${input.clerkUserId}
        for update
     `
     const profile = profiles[0]
-    if (!profile || !profile.username.trim() || !profile.display_name.trim()) return errorResult('PROFILE_INCOMPLETE', { messageKey: 'profile.incomplete' })
+    if (!profile || !profile.display_name.trim()) return errorResult('PROFILE_INCOMPLETE', { messageKey: 'profile.incomplete' })
     if (profile.account_state !== 'active') return errorResult('PROFILE_INCOMPLETE', { messageKey: 'account.unavailable' })
 
     const messages = await tx<{ id: string; public_id: string; version: number }[]>`
