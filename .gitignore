@@ -20,3 +20,4 @@ supabase/.branches/
 .codex/
 .agents/
 .worktrees/
+ddclient
