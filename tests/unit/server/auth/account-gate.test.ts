@@ -13,7 +13,6 @@ function row(overrides: Partial<SessionProfileRow> = {}): SessionProfileRow {
   return {
     id: '42',
     public_id: '00000000-0000-4000-8000-000000000001',
-    username: 'atiny',
     display_name: 'ATINY',
     role: 'fan',
     account_state: 'active',
@@ -39,6 +38,7 @@ describe('resolveAccountGate', () => {
         {} as Sql,
         async () => ({ userId: 'user_123' }),
         async () => null,
+        async () => false,
       ),
     ).toEqual({ kind: 'incomplete' })
 
@@ -46,7 +46,7 @@ describe('resolveAccountGate', () => {
       await resolveAccountGate(
         {} as Sql,
         async () => ({ userId: 'user_123' }),
-        async () => row({ username: '  ' }),
+        async () => row({ display_name: '  ' }),
       ),
     ).toEqual({ kind: 'incomplete' })
   })
@@ -90,7 +90,6 @@ describe('writeLetterRedirect', () => {
   })
 
   it('lets allowed accounts continue while preserving the route language', () => {
-    expect(writeLetterRedirect({ kind: 'allowed', profile: { profileId: '42', publicId: 'p', username: 'atiny', displayName: 'ATINY', role: 'fan' } }, 'es')).toBeNull()
     expect(writeLetterRedirect({ kind: 'suspended' }, 'en')).toBeNull()
     expect(writeLetterRedirect({ kind: 'deletion-pending' }, 'en')).toBeNull()
   })

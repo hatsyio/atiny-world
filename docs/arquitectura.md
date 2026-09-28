@@ -74,7 +74,7 @@ Roles y suspensiones residen en Supabase y se verifican en el backend en cada op
 
 Las entidades auxiliares de implementación siguientes concretan la persistencia de esas responsabilidades, sin añadir funciones de producto.
 
-- `profiles`: identificador local, identidad Clerk, usuario único, nombre público, rol, suspensión y fechas. No almacena contraseñas.
+- `profiles`: identificador local, identidad Clerk, nombre público no único, rol, suspensión y fechas. Los nombres de usuario antiguos se conservan solo como dato histórico. No almacena contraseñas.
 - `messages`: identificador público estable, autora, versión actual, texto, destinatario opcional, estado, precisión, coordenadas públicas persistidas, localidad, país y fechas.
 - `review_requests`: solicitante, referencia nullable al mensaje, número de versión, copia privada del texto sujeto a revisión, motivo, estado del caso, cierre y vencimiento de conservación.
 - `moderation_actions`: decisión, motivo traducible y nota opcional.
@@ -82,7 +82,7 @@ Las entidades auxiliares de implementación siguientes concretan la persistencia
 - `admin_audit`: actor, acción, objeto, fecha y metadatos pertinentes, sin duplicar innecesariamente texto privado.
 - `account_deletion_jobs`: seguimiento de la eliminación entre la aplicación y Clerk para poder reintentar fallos sin restaurar el acceso público.
 
-Los identificadores públicos serán opacos. El rol de propietario se asigna mediante un procedimiento administrativo explícito, nunca al primer visitante. El usuario único se normaliza para evitar duplicados por mayúsculas; el nombre público conserva la escritura original.
+Los identificadores públicos serán opacos. El rol de propietario se asigna mediante un procedimiento administrativo explícito, nunca al primer visitante. La identidad interna es `clerk_user_id`; el nombre público conserva la escritura original y puede repetirse.
 
 ## Mensajes, versiones y concurrencia
 

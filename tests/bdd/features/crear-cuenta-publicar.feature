@@ -7,7 +7,7 @@ Característica: Crear cuenta y publicar un mensaje
 
   Escenario: Una cuenta verificada completa un perfil y publica aproximadamente
     Dado una identidad Clerk con correo verificado y perfil incompleto
-    Cuando completo el usuario "atiny-seoul" y el nombre público "ATINY Seoul"
+    Cuando Clerk entrega el nombre público "ATINY Seoul"
     Y publico "Siempre contigo" para "ateez" desde una ubicación aproximada
     Entonces recibo un mensaje pendiente con enlace estable
 

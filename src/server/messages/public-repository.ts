@@ -43,7 +43,6 @@ type FeatureRow = {
   recipient: string | null
   published_at: string
   author_public_id: string
-  username: string
   display_name: string
   content: string | null
 }
@@ -114,13 +113,13 @@ function featureColumnsWithContent(sql: Sql, includeContent: boolean): Fragment 
     return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
       st_x(m.public_point::geometry) as longitude, m.location_precision,
       m.locality, m.country, m.recipient, m.published_at,
-      p.public_id as author_public_id, p.username, p.display_name,
+      p.public_id as author_public_id, p.display_name,
       m.content`
   }
   return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
     st_x(m.public_point::geometry) as longitude, m.location_precision,
     m.locality, m.country, m.recipient, m.published_at,
-    p.public_id as author_public_id, p.username, p.display_name,
+    p.public_id as author_public_id, p.display_name,
     null as content`
 }
 
@@ -230,12 +229,12 @@ export async function searchPublicUsers(
     ? sql`p.id > ${bound.id}::bigint`
     : sql`true`
 
-  const rows = await sql<{ id: string; public_id: string; username: string; display_name: string }[]>`
-    select p.id, p.public_id, p.username, p.display_name
+  const rows = await sql<{ id: string; public_id: string; display_name: string }[]>`
+    select p.id, p.public_id, p.display_name
       from app_private.profiles p
      where p.account_state = 'active'
        and p.suspended_at is null
-       and (p.username_normalized ilike ${pattern} or p.display_name ilike ${pattern})
+       and p.display_name ilike ${pattern}
        and ${cursorCondition}
      order by p.id asc
      limit ${limit + 1}
@@ -248,7 +247,6 @@ export async function searchPublicUsers(
   return {
     items: page.map((row) => ({
       publicId: row.public_id,
-      username: row.username,
       displayName: row.display_name,
     })),
     nextCursor: hasMore && last ? signCursor({ id: last.id }) : null,

@@ -10,7 +10,6 @@ export type PublicPoint = {
 
 export type PublicAuthor = {
   publicId: string
-  username: string
   displayName: string
 }
 
@@ -31,7 +30,6 @@ export interface PublicMessageDetail extends PublicMapFeature {
 
 export type PublicUser = {
   publicId: string
-  username: string
   displayName: string
 }
 
@@ -52,7 +50,6 @@ export function projectPublicFeature(row: {
   recipient: string | null
   published_at: string
   author_public_id: string
-  username: string
   display_name: string
 }): PublicMapFeature {
   return {
@@ -65,7 +62,6 @@ export function projectPublicFeature(row: {
     publishedAt: row.published_at,
     author: {
       publicId: row.author_public_id,
-      username: row.username,
       displayName: row.display_name,
     },
   }

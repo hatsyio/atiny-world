@@ -36,11 +36,11 @@ El footer incluirá un correo de contacto administrativo y una nota que identifi
 
 ## Cuentas y acceso
 
-- Registro con nombre de usuario, correo obligatorio verificado y contraseña.
+- Registro con un solo nombre público, correo obligatorio verificado y contraseña.
 - Recuperación de acceso mediante correo.
 - Acceso con Google.
-- Nombre de usuario único y nombre público separados. El nombre público admite coreano, espacios y emojis.
-- Quienes accedan con Google completarán los datos necesarios del perfil.
+- El nombre público admite coreano, espacios y emojis y puede repetirse entre cuentas.
+- Quienes accedan con Google eligen el nombre público durante el registro.
 - Google y contraseña podrán vincularse a una misma cuenta tras verificar su titularidad, conservando perfil y mensajes.
 - El correo es privado. Los mensajes muestran el nombre público.
 - Leer el mapa y abrir enlaces de mensajes no requiere cuenta.
@@ -78,7 +78,7 @@ El footer incluirá un correo de contacto administrativo y una nota que identifi
 - Acceso a «Mis mensajes» para cuentas autenticadas.
 - Filtro por destinatario: todos por defecto, ATEEZ, un miembro, ATINY en general o sin destinatario específico.
 - Filtro por usuario para ver en el mapa los mensajes de una fan, con acceso directo a los propios mensajes para cuentas autenticadas.
-- Búsqueda de fans tanto por nombre público como por nombre de usuario único. Los resultados muestran ambos para distinguir cuentas con el mismo nombre público.
+- Búsqueda de fans por nombre público. El UUID público distingue cuentas que comparten nombre.
 - Los filtros respetan las reglas de visibilidad: buscar una cuenta no revela sus mensajes ocultos.
 - Pulsar un marcador abre una ficha con texto completo, nombre público, ubicación elegida y fecha de publicación.
 - Los grupos permiten acercarse y recorrer los mensajes individualmente.

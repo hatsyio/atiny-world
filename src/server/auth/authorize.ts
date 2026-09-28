@@ -21,7 +21,6 @@ import { auth } from '@clerk/nextjs/server'
 export type AuthorizedProfile = {
   profileId: string
   publicId: string
-  username: string
   displayName: string
   role: ProfileRole
 }
@@ -36,7 +35,7 @@ export type AuthorizeProfileError = {
 }
 
 export function isProfileComplete(row: SessionProfileRow): boolean {
-  return row.username.trim().length > 0 && row.display_name.trim().length > 0
+  return row.display_name.trim().length > 0
 }
 
 export function resolveProfileState(
@@ -60,7 +59,6 @@ export function resolveProfileState(
     profile: {
       profileId: row.id,
       publicId: row.public_id,
-      username: row.username,
       displayName: row.display_name,
       role: row.role,
     },

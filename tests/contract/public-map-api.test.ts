@@ -319,7 +319,7 @@ describe('GET /api/users/search', () => {
 
   it('returns only public identity fields', async () => {
     const response = await searchUsers(
-      new Request(apiUrl('/api/users/search', { q: 'cartapublic' })),
+      new Request(apiUrl('/api/users/search', { q: 'Contrato' })),
     )
 
     expect(response.status).toBe(200)
@@ -332,7 +332,6 @@ describe('GET /api/users/search', () => {
       expect(Object.keys(item).sort()).toEqual([
         'displayName',
         'publicId',
-        'username',
       ])
     }
   })

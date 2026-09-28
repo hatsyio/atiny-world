@@ -152,7 +152,7 @@ describe('public message reads share one visibility rule', () => {
 
   it('finds fans only by public identity fields', async () => {
     const result = await searchPublicUsers(db, {
-      query: 'reads-attiny',
+      query: 'ATINY',
       limit: 10,
     })
 
@@ -161,7 +161,6 @@ describe('public message reads share one visibility rule', () => {
       expect(Object.keys(item).sort()).toEqual([
         'displayName',
         'publicId',
-        'username',
       ])
     }
   })

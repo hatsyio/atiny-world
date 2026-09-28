@@ -209,7 +209,7 @@ describe('foreign keys and core indexes', () => {
     for (const name of [
       'profiles_public_id_key',
       'profiles_clerk_user_id_key',
-      'profiles_username_normalized_key',
+      'profiles_display_name_search_idx',
       'profiles_suspended_by_idx',
       'messages_public_id_key',
       'messages_author_created_idx',

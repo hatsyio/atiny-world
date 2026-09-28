@@ -15,7 +15,7 @@ const interfaceFont = Manrope({
 })
 
 export const metadata: Metadata = {
-  title: 'ATINY World',
+  title: 'atiny world',
   description: 'A world of good wishes for ATEEZ.',
 }
 

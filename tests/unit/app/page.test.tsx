@@ -30,15 +30,15 @@ describe('Home', () => {
         name: 'Messages across the seas',
       }),
     ).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'ATINY World, home' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'atiny world, home' })).toBeTruthy()
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
   })
 
   it('declares the account actions for both session states', () => {
     render(<Home />)
 
-    expect(screen.getByRole('button', { name: 'Sign in' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Join' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/en/sign-in')
+    expect(screen.getByRole('link', { name: 'Join' })).toHaveAttribute('href', '/en/sign-up')
     expect(screen.getByRole('button', { name: 'User account' })).toBeTruthy()
   })
 })

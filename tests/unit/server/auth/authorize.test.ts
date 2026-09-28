@@ -17,7 +17,6 @@ function row(overrides: Partial<SessionProfileRow> = {}): SessionProfileRow {
   return {
     id: '42',
     public_id: '00000000-0000-4000-8000-000000000001',
-    username: 'atiny',
     display_name: 'ATINY',
     role: 'fan',
     account_state: 'active',
@@ -27,9 +26,8 @@ function row(overrides: Partial<SessionProfileRow> = {}): SessionProfileRow {
 }
 
 describe('isProfileComplete', () => {
-  it('requires a non-blank username and display name', () => {
+  it('requires a non-blank display name', () => {
     expect(isProfileComplete(row())).toBe(true)
-    expect(isProfileComplete(row({ username: '  ' }))).toBe(false)
     expect(isProfileComplete(row({ display_name: '' }))).toBe(false)
   })
 })
@@ -43,7 +41,6 @@ describe('resolveProfileState', () => {
       profile: {
         profileId: '42',
         publicId: '00000000-0000-4000-8000-000000000001',
-        username: 'atiny',
         displayName: 'ATINY',
         role: 'admin',
       },
@@ -52,7 +49,7 @@ describe('resolveProfileState', () => {
 
   it('rejects null, incomplete and unknown-role profiles as incomplete', () => {
     expect(resolveProfileState(null).ok).toBe(false)
-    expect(resolveProfileState(row({ username: '' })).ok).toBe(false)
+    expect(resolveProfileState(row({ display_name: '' })).ok).toBe(false)
     expect(resolveProfileState(row({ role: 'superuser' })).ok).toBe(false)
   })
 
@@ -71,7 +68,6 @@ describe('toAuthorizeActionResult', () => {
     const profile: AuthorizedProfile = {
       profileId: '42',
       publicId: '00000000-0000-4000-8000-000000000001',
-      username: 'atiny',
       displayName: 'ATINY',
       role: 'fan',
     }
@@ -128,7 +124,7 @@ describe('authorizeSession', () => {
     const result = await authorizeSession(
       {} as Sql,
       async () => ({ userId: 'user_123' }),
-      async () => row({ username: 'atiny' }),
+      async () => row(),
     )
 
     expect(result).toMatchObject({
@@ -142,7 +138,6 @@ describe('requireRole', () => {
   const fan: AuthorizedProfile = {
     profileId: '42',
     publicId: '00000000-0000-4000-8000-000000000001',
-    username: 'atiny',
     displayName: 'ATINY',
     role: 'fan',
   }
