@@ -7,7 +7,7 @@ import { isLocalizedPath, isApiPath } from '@/server/http/locale'
 export default clerkMiddleware((_auth, request: NextRequest) => {
   const { pathname, search } = request.nextUrl
 
-  if (isApiPath(pathname)) {
+  if (isApiPath(pathname) || pathname === '/favicon.ico') {
     return NextResponse.next()
   }
 
