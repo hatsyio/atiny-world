@@ -45,7 +45,7 @@ export default async function ProfilePage({
   const gate = await resolveAccountGate(getDb())
 
   if (gate.kind === 'anonymous') redirect(`/${locale}/sign-in`)
-  if (gate.kind === 'allowed') redirect(`/${locale}/messages/new`)
+  if (gate.kind === 'allowed') redirect(`/${locale}`)
 
   const back = <Link className="auth-back" href={`/${locale}`}>← {t.back}</Link>
 
