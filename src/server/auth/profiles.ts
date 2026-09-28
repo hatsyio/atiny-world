@@ -13,7 +13,7 @@ export async function completeProfile(
   input: CompleteProfileInput,
 ): Promise<ActionResult<{ publicId: string; displayName: string }>> {
   const displayName = input.displayName.trim()
-  if (!input.emailVerified || displayName.length === 0 || Array.from(displayName).length > 50) {
+  if (!input.emailVerified || displayName.length === 0 || Array.from(displayName).length > 64) {
     return errorResult('PROFILE_INCOMPLETE', { messageKey: 'profile.incomplete' })
   }
 

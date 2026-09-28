@@ -92,6 +92,7 @@ Given('una identidad Clerk con correo verificado y perfil incompleto', async fun
   await resetScenario(this)
   this.clerkUser = {
     id: clerkUserId,
+    username: null,
     unsafeMetadata: {},
     primaryEmailAddressId: 'bdd-email',
     emailAddresses: [{ id: 'bdd-email', verification: { status: 'verified' } }],

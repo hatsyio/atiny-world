@@ -1,12 +1,12 @@
 # language: es
 Característica: Crear el perfil tras verificar el registro
   Como fan recién registrada
-  Quiero elegir un solo nombre público durante el alta
+  Quiero elegir un username en Clerk durante el alta
   Para participar sin un formulario de perfil posterior
 
-  Escenario: Una identidad verificada obtiene un perfil con nombre Unicode
+  Escenario: Una identidad verificada obtiene un perfil con su username
     Dado que Clerk identifica a la fan "user_pending" con correo verificado y perfil incompleto
-    Cuando Clerk entrega el nombre público "ATINY 서울 🌙"
+    Cuando Clerk entrega el username "atiny_fan"
     Entonces el perfil queda completo con rol fan
     Y la fan puede acceder a la publicación sin volver a estar bloqueada
 
@@ -20,18 +20,12 @@ Característica: Crear el perfil tras verificar el registro
     Cuando intenta escribir una carta
     Entonces puede continuar hacia la publicación
 
-  Escenario: Dos cuentas pueden elegir el mismo nombre público
+  Escenario: Un username vacío se rechaza en servidor
     Dado que Clerk identifica a la fan "user_pending" con correo verificado y perfil incompleto
-    Y otra cuenta ya usa el nombre público "ATINY 🌙"
-    Cuando Clerk entrega el nombre público "ATINY 🌙"
-    Entonces el perfil queda completo con rol fan
-
-  Escenario: Un nombre vacío se rechaza en servidor
-    Dado que Clerk identifica a la fan "user_pending" con correo verificado y perfil incompleto
-    Cuando Clerk entrega el nombre público "   "
-    Entonces recibo un error para el nombre público
+    Cuando Clerk entrega el username "   "
+    Entonces recibo un error para el username
 
   Escenario: Sin sesión no se puede crear el perfil
     Dado que Clerk no identifica a la visitante
-    Cuando Clerk entrega el nombre público "Visitante"
+    Cuando Clerk entrega el username "visitante"
     Entonces recibo una salida clara de sesión ausente
