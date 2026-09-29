@@ -24,6 +24,22 @@ export interface PublicMessagePage {
   nextCursor: string | null
 }
 
+export interface PublicMessageStats {
+  letters: number
+  countries: number
+}
+
+export async function getPublicMessageStats(sql: Sql): Promise<PublicMessageStats> {
+  const rows = await sql<Array<{ letters: number; countries: number }>>`
+    select count(*)::int as letters, count(distinct m.country_code)::int as countries
+      from app_private.messages m
+      join app_private.profiles p on p.id = m.author_id
+     where ${visibilityCondition(sql)}
+  `
+
+  return rows[0] ?? { letters: 0, countries: 0 }
+}
+
 export async function listLatestPublicMessages(
   sql: Sql,
   limit = 4,

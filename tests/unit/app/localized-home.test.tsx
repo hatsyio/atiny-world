@@ -61,4 +61,31 @@ describe('PublicHome', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent(/todavía no hay cartas públicas/i)
   })
+
+  it('shows the localized homepage statistics and the fixed number of pirates', () => {
+    render(<PublicHome lang="en" homepageStats={{ letters: 12, countries: 5 }} />)
+
+    expect(screen.getByText('12')).toBeInTheDocument()
+    expect(screen.getByText('Letters', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText('5')).toBeInTheDocument()
+    expect(screen.getByText('Countries', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText('8')).toBeInTheDocument()
+    expect(screen.getByText('Pirates', { selector: 'span' })).toBeInTheDocument()
+  })
+
+  it('uses singular labels when a statistic is exactly one', () => {
+    render(<PublicHome lang="en" homepageStats={{ letters: 1, countries: 1 }} />)
+
+    expect(screen.getByText('Letter', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText('Country', { selector: 'span' })).toBeInTheDocument()
+  })
+
+  it('shows zero for letter and country statistics when the public collection is empty', () => {
+    render(<PublicHome lang="es" homepageStats={{ letters: 0, countries: 0 }} />)
+
+    expect(screen.getAllByText('0')).toHaveLength(2)
+    expect(screen.getByText('Cartas', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText('Países', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText('Piratas', { selector: 'span' })).toBeInTheDocument()
+  })
 })

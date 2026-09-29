@@ -26,6 +26,11 @@ vi.mock('../../../src/server/messages/public-repository', () => ({
   listLatestPublicMessages: vi.fn(async () => []),
 }))
 
+vi.mock('../../../src/server/messages/latest-public-messages', () => ({
+  listLatestHomepageMessages: vi.fn(async () => []),
+  getHomepageStats: vi.fn(async () => ({ letters: 0, countries: 0 })),
+}))
+
 import Home from '../../../src/app/page'
 
 describe('Home', () => {
