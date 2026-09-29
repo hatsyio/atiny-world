@@ -159,6 +159,7 @@ describe('owner message details never reach public reads', () => {
         'author',
         'content',
         'country',
+        'countryCode',
         'locality',
         'point',
         'precision',

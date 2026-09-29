@@ -207,6 +207,7 @@ describe('updateMessage server action contract', () => {
       location: {
         precision: 'approximate',
         localityCenter: SELECTION.point,
+        locality: 'Madrid',
         country: 'España',
         countryCode: 'es',
       },
@@ -219,6 +220,7 @@ describe('updateMessage server action contract', () => {
         precision: 'precise',
         localityCenter: { latitude: 40.42, longitude: -3.69 },
         confirmed: true,
+        locality: 'Madrid',
         country: 'España',
         countryCode: 'es',
       },

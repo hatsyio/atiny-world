@@ -13,6 +13,7 @@ export type CreateMessageInput = {
   location: {
     precision: 'approximate' | 'precise'
     localityCenter: PublicPoint
+    locality: string
     country: string
     countryCode: string
     confirmed?: boolean
@@ -60,7 +61,7 @@ export async function createMessage(
       : location.data
     await tx`
       insert into app_private.messages (public_id, author_id, content, status, location_precision, location_algorithm_version, public_point, locality, country, country_code)
-      values (${publicId}, ${profile.id}, ${input.content}, 'pending', ${input.location.precision}, ${input.location.precision === 'approximate' ? 1 : null}, ST_SetSRID(ST_MakePoint(${point.longitude}, ${point.latitude}), 4326)::geography, null, ${input.location.country}, ${input.location.countryCode})
+      values (${publicId}, ${profile.id}, ${input.content}, 'pending', ${input.location.precision}, ${input.location.precision === 'approximate' ? 1 : null}, ST_SetSRID(ST_MakePoint(${point.longitude}, ${point.latitude}), 4326)::geography, ${input.location.locality}, ${input.location.country}, ${input.location.countryCode})
     `
     await tx`update app_private.profiles set last_message_created_at = clock_timestamp(), updated_at = now() where id = ${profile.id}`
     return okResult({

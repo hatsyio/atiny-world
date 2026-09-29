@@ -25,6 +25,7 @@ const baseFeature: MapFeature = {
   precision: 'approximate',
   locality: 'Madrid',
   country: 'España',
+  countryCode: 'es',
   publishedAt: '2026-09-15T10:00:00.000Z',
   author: { publicId: '22222222-2222-4222-8222-222222222222', displayName: 'ATINY' },
 }

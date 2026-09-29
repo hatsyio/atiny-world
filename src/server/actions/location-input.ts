@@ -5,6 +5,7 @@ import type { LocationSelectionVerification } from '@/server/locations/selection
 export type ResolvedPublicLocation = {
   precision: 'approximate' | 'precise'
   localityCenter: PublicPoint
+  locality: string
   country: string
   countryCode: string
   confirmed?: boolean
@@ -45,6 +46,7 @@ export function resolveLocationSelection(
     return okResult({
       precision: 'approximate',
       localityCenter: verified.selection.point,
+      locality: verified.selection.locality,
       country: verified.selection.country,
       countryCode: verified.selection.countryCode,
     })
@@ -72,6 +74,7 @@ export function resolveLocationSelection(
     precision: 'precise',
     localityCenter: { latitude: point.data.latitude, longitude: point.data.longitude },
     confirmed: true,
+    locality: verified.selection.locality,
     country: verified.selection.country,
     countryCode: verified.selection.countryCode,
   })

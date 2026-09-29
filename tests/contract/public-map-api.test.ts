@@ -101,6 +101,7 @@ describe('GET /api/map/features', () => {
       expect(feature).toHaveProperty('precision')
       expect(feature).toHaveProperty('locality')
       expect(feature).toHaveProperty('country')
+      expect(feature).toHaveProperty('countryCode')
       expect(feature).not.toHaveProperty('recipient')
       expect(feature).toHaveProperty('publishedAt')
       expect(feature).toHaveProperty('author')

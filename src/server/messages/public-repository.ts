@@ -51,6 +51,7 @@ type FeatureRow = {
   location_precision: string
   locality: string | null
   country: string
+  country_code: string
   published_at: string
   author_public_id: string
   display_name: string
@@ -110,13 +111,13 @@ function featureColumnsWithContent(sql: Sql, includeContent: boolean): Fragment 
   if (includeContent) {
     return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
       st_x(m.public_point::geometry) as longitude, m.location_precision,
-      m.locality, m.country, m.published_at,
+      m.locality, m.country, m.country_code, m.published_at,
       p.public_id as author_public_id, p.display_name,
       m.content`
   }
   return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
     st_x(m.public_point::geometry) as longitude, m.location_precision,
-    m.locality, m.country, m.published_at,
+    m.locality, m.country, m.country_code, m.published_at,
     p.public_id as author_public_id, p.display_name,
     null as content`
 }

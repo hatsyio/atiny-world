@@ -16,6 +16,7 @@ export interface PublicMapFeature {
   precision: LocationPrecision
   locality: string | null
   country: string
+  countryCode: string
   publishedAt: string
   author: PublicAuthor
 }
@@ -43,6 +44,7 @@ export function projectPublicFeature(row: {
   location_precision: string
   locality: string | null
   country: string
+  country_code: string
   published_at: string
   author_public_id: string
   display_name: string
@@ -53,6 +55,7 @@ export function projectPublicFeature(row: {
     precision: row.location_precision as LocationPrecision,
     locality: row.locality,
     country: row.country,
+    countryCode: row.country_code,
     publishedAt: row.published_at,
     author: {
       publicId: row.author_public_id,

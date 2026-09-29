@@ -22,6 +22,7 @@ const letter = {
   precision: 'approximate' as const,
   locality: 'Madrid',
   country: 'España',
+  countryCode: 'es',
   publishedAt: '2026-09-29T10:00:00.000Z',
   author: { publicId: 'author-1', displayName: 'ATINY Madrid' },
   content: 'Gracias por vuestra música.',
@@ -39,6 +40,10 @@ describe('PublicHome', () => {
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
     expect(screen.getAllByRole('link', { name: /send a letter/i }).length).toBeGreaterThan(0)
     expect(screen.getByText('Gracias por vuestra música.')).toBeInTheDocument()
+    expect(screen.getByText('🇪🇸')).toBeInTheDocument()
+    expect(screen.getByText('Madrid, España')).toBeInTheDocument()
+    expect(screen.queryByText('Dear ATEEZ,')).not.toBeInTheDocument()
+    expect(screen.queryByText('♡')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Madrid, España/i })).toHaveAttribute('href', '/en/messages/letter-1')
   })
 

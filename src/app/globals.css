@@ -82,8 +82,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .letter-example-label { margin: 0 0 .35rem; color: #674022; font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .letter-place { display: flex; align-items: center; gap: .6rem; min-height: 2rem; border-bottom: 1px solid #b88d59; font-size: .83rem; }
 .letter-place span:first-child { font-size: 1.5rem; }
-.letter-greeting { margin: .85rem 0 .2rem; }
-.letter-body { margin: 0; }
+.letter-body { margin: .85rem 0 0; }
 .letter-signature { margin: .8rem 0 0; font-style: italic; }
 .letter-seal { position: absolute; right: .8rem; bottom: .2rem; font-size: 2.4rem; color: #79512e; }
 .send-banner { min-height: 165px; padding: 2rem clamp(1.5rem, 6vw, 6rem); display: flex; align-items: center; justify-content: center; gap: clamp(2rem, 8vw, 8rem); position: relative; background: repeating-linear-gradient(5deg, #31404b16 0 2px, transparent 2px 9px), #171a20; color: #f0d6ae; border-block: 4px double #ab7945; }

@@ -149,6 +149,7 @@ describe('public message reads share one visibility rule', () => {
 
     expect(latest.map((item) => item.publicId)).toEqual([pendingId, approvedId])
     expect(latest[0]?.content).toBe('Un mensaje de prueba')
+    expect(latest[0]?.countryCode).toBe('es')
   })
 
   it('resolves only the visible detail and hides rejected or absent rows', async () => {

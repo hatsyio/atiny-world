@@ -44,6 +44,7 @@ type StoredMessage = {
   status: string
   location_precision: string
   location_algorithm_version: number | null
+  locality: string | null
   country: string
   country_code: string
   latitude: number
@@ -53,7 +54,7 @@ type StoredMessage = {
 async function storedMessage(authorId: string): Promise<StoredMessage> {
   const rows = await db<StoredMessage[]>`
     select public_id, version, content, status, location_precision,
-           location_algorithm_version, country, country_code,
+           location_algorithm_version, locality, country, country_code,
            ST_Y(public_point::geometry) as latitude,
            ST_X(public_point::geometry) as longitude
       from app_private.messages
@@ -92,6 +93,7 @@ describe('createMessage server action', () => {
       status: 'pending',
       location_precision: 'approximate',
       location_algorithm_version: 1,
+      locality: 'Seoul',
       country: 'South Korea',
       country_code: 'kr',
     })
