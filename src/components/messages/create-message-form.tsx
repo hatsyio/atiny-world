@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 
 import { createMessageAction, type CreateMessageActionResult } from '@/app/[lang]/actions/create-message'
 import { LocationPicker, type LocationPickerSelection } from '@/components/map/location-picker'
-import { RECIPIENTS, type Recipient } from '@/domain/contracts'
 import { MAX_GRAPHEMES, countGraphemes } from '@/domain/messages/content'
 import type { CreateMessageActionInput } from '@/server/actions/create-message'
 
@@ -18,9 +17,6 @@ const copy = {
     counterLabel: 'characters',
     contentRequired: 'Write your letter before publishing.',
     contentTooLong: 'This letter is too long. Shorten it before publishing.',
-    recipientLabel: 'Recipient',
-    recipientNone: '—',
-    recipientInvalid: 'This recipient is not allowed. Choose one from the list.',
     locationRequired: 'Choose a place to publish your letter.',
     locationMissing: 'Search for and confirm a place before publishing.',
     locationExpired: 'That place selection expired. Search again and choose a place.',
@@ -44,9 +40,6 @@ const copy = {
     counterLabel: 'caracteres',
     contentRequired: 'Escribe tu carta antes de publicar.',
     contentTooLong: 'Esta carta es demasiado larga. Acórtala antes de publicar.',
-    recipientLabel: 'Destinatario',
-    recipientNone: '—',
-    recipientInvalid: 'Este destinatario no está permitido. Elige uno de la lista.',
     locationRequired: 'Elige un lugar para publicar tu carta.',
     locationMissing: 'Busca y confirma un lugar antes de publicar.',
     locationExpired: 'Esa selección de lugar ha caducado. Busca de nuevo y elige un lugar.',
@@ -72,7 +65,6 @@ export type CreateMessageSubmit = (
 
 export type FormFieldErrors = {
   content?: 'required' | 'tooLong'
-  recipient?: 'invalid'
   location?: 'required' | 'expired' | 'invalid'
 }
 
@@ -91,7 +83,6 @@ export function CreateMessageForm({
   const router = useRouter()
 
   const [content, setContent] = useState('')
-  const [recipient, setRecipient] = useState<Recipient>(null)
   const [location, setLocation] = useState<LocationPickerSelection | null>(null)
   const [pickerResetKey, setPickerResetKey] = useState(0)
   const [sending, setSending] = useState(false)
@@ -124,12 +115,6 @@ export function CreateMessageForm({
     return () => clearTimeout(timer)
   }, [cooldownRemaining])
 
-  function handleRecipientChange(value: string) {
-    const next = (RECIPIENTS as readonly string[]).includes(value) ? (value as Recipient) : null
-    setRecipient(next)
-    setFieldErrors((errors) => (errors.recipient === undefined ? errors : { ...errors, recipient: undefined }))
-  }
-
   function handleLocationChange(next: LocationPickerSelection | null) {
     setLocation(next)
     setFieldErrors((errors) => (errors.location === undefined ? errors : { ...errors, location: undefined }))
@@ -154,7 +139,6 @@ export function CreateMessageForm({
               : fields.content === 'message.content.limitReached'
                 ? 'tooLong'
                 : undefined,
-          recipient: fields.recipient === 'message.recipient.invalid' ? 'invalid' : undefined,
           location: fields.location === 'location.invalidPublicPoint' ? 'invalid' : undefined,
         })
         break
@@ -186,13 +170,12 @@ export function CreateMessageForm({
     setAccountError(false)
     setGenericError(false)
     try {
-      const result = await submitMessage({ content, recipient, location })
+      const result = await submitMessage({ content, location })
       if (result.ok) {
         onPublished?.(result.data.publicId, result.data.publicVisible)
         setPublishedPublicId(result.data.publicId)
         setPublishedPublicVisible(result.data.publicVisible)
         setContent('')
-        setRecipient(null)
         setLocation(null)
         setPickerResetKey((key) => key + 1)
       } else {
@@ -251,29 +234,6 @@ export function CreateMessageForm({
         {contentAlert !== null && (
           <p id="message-content-error" className="profile-error" role="alert">
             {contentAlert}
-          </p>
-        )}
-      </div>
-
-      <div className="profile-field">
-        <label htmlFor="message-recipient">{t.recipientLabel}</label>
-        <select
-          id="message-recipient"
-          name="recipient"
-          value={recipient ?? ''}
-          aria-invalid={fieldErrors.recipient !== undefined}
-          onChange={(event) => handleRecipientChange(event.target.value)}
-        >
-          <option value="">{t.recipientNone}</option>
-          {RECIPIENTS.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-        {fieldErrors.recipient === 'invalid' && (
-          <p className="profile-error" role="alert">
-            {t.recipientInvalid}
           </p>
         )}
       </div>

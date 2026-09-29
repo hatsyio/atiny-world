@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 
 import type { Sql } from 'postgres'
 
-import { errorResult, okResult, type ActionResult, type Recipient } from '@/domain/contracts'
+import { errorResult, okResult, type ActionResult } from '@/domain/contracts'
 import { validateMessageContent } from '@/domain/messages/content'
 import { isMessagePublic } from '@/domain/messages/visibility'
 import { approximatePublicPoint, validatePublicLocation, type PublicPoint } from '@/domain/location/public-point'
@@ -10,7 +10,6 @@ import { approximatePublicPoint, validatePublicLocation, type PublicPoint } from
 export type CreateMessageInput = {
   clerkUserId: string
   content: string
-  recipient: Recipient
   location: {
     precision: 'approximate' | 'precise'
     localityCenter: PublicPoint
@@ -24,7 +23,7 @@ export async function createMessage(
   sql: Sql,
   input: CreateMessageInput,
 ): Promise<ActionResult<{ publicId: string; status: 'pending'; publicVisible: boolean }>> {
-  const content = validateMessageContent(input.content, { recipient: input.recipient })
+  const content = validateMessageContent(input.content)
   const location = validatePublicLocation({
     ...input.location.localityCenter,
     precision: input.location.precision,
@@ -60,8 +59,8 @@ export async function createMessage(
       ? approximatePublicPoint(location.data, publicId)
       : location.data
     await tx`
-      insert into app_private.messages (public_id, author_id, content, recipient, status, location_precision, location_algorithm_version, public_point, locality, country, country_code)
-      values (${publicId}, ${profile.id}, ${input.content}, ${input.recipient}, 'pending', ${input.location.precision}, ${input.location.precision === 'approximate' ? 1 : null}, ST_SetSRID(ST_MakePoint(${point.longitude}, ${point.latitude}), 4326)::geography, null, ${input.location.country}, ${input.location.countryCode})
+      insert into app_private.messages (public_id, author_id, content, status, location_precision, location_algorithm_version, public_point, locality, country, country_code)
+      values (${publicId}, ${profile.id}, ${input.content}, 'pending', ${input.location.precision}, ${input.location.precision === 'approximate' ? 1 : null}, ST_SetSRID(ST_MakePoint(${point.longitude}, ${point.latitude}), 4326)::geography, null, ${input.location.country}, ${input.location.countryCode})
     `
     await tx`update app_private.profiles set last_message_created_at = clock_timestamp(), updated_at = now() where id = ${profile.id}`
     return okResult({

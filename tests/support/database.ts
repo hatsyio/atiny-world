@@ -31,7 +31,6 @@ type ProfileOverrides = Partial<{
 type MessageOverrides = Partial<{
   version: number
   content: string
-  recipient: string | null
   status: string
   moderation_reason_code: string | null
   moderation_note: string | null
@@ -110,13 +109,13 @@ export async function insertMessage(
 ): Promise<TestMessage> {
   const rows = await sql<TestMessage[]>`
     insert into app_private.messages (
-      author_id, version, content, recipient, status,
+      author_id, version, content, status,
       moderation_reason_code, moderation_note, location_precision,
       location_algorithm_version,
       public_point, locality, country, country_code, published_at
     ) values (
       ${authorId}, ${overrides.version ?? 1}, ${overrides.content ?? 'Un mensaje de prueba'},
-      ${overrides.recipient ?? null}, ${overrides.status ?? 'pending'},
+      ${overrides.status ?? 'pending'},
       ${overrides.moderation_reason_code ?? null}, ${overrides.moderation_note ?? null},
       ${overrides.location_precision ?? 'approximate'},
       ${overrides.location_algorithm_version ?? 1},

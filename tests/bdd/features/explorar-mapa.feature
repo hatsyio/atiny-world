@@ -16,10 +16,8 @@ Característica: Explorar mensajes en el mapa
     Entonces el grupo empieza por el mensaje público más reciente
     Y los mensajes ocultos no aparecen en el grupo
 
-  Escenario: Los filtros de destinatario y fan acotan la lectura
-    Dado que existen mensajes públicos para ATEEZ y para ATINY
-    Cuando filtro por destinatario "ateez"
-    Entonces solo recibo mensajes públicos dirigidos a ATEEZ
+  Escenario: El filtro por fan acota la lectura
+    Dado que existen mensajes públicos en distintas ubicaciones
     Cuando filtro por fan con un identificador público
     Entonces solo recibo mensajes públicos de esa fan
 

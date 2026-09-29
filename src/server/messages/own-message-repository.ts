@@ -21,7 +21,6 @@ type OwnMessageRow = {
   moderation_reason_code: string | null
   moderation_note: string | null
   content: string
-  recipient: string | null
   latitude: number
   longitude: number
   location_precision: string
@@ -49,7 +48,7 @@ export async function pageOwnMessages(
 
   const rows = await sql<OwnMessageRow[]>`
     select m.id, m.public_id, m.version, m.status, m.moderation_reason_code,
-           m.moderation_note, m.content, m.recipient,
+           m.moderation_note, m.content,
            st_y(m.public_point::geometry) as latitude,
            st_x(m.public_point::geometry) as longitude,
            m.location_precision, m.locality, m.country,

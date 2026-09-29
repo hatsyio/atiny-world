@@ -41,7 +41,6 @@ type StoredMessage = {
   public_id: string
   version: number
   content: string
-  recipient: string | null
   status: string
   location_precision: string
   location_algorithm_version: number | null
@@ -53,7 +52,7 @@ type StoredMessage = {
 
 async function storedMessage(authorId: string): Promise<StoredMessage> {
   const rows = await db<StoredMessage[]>`
-    select public_id, version, content, recipient, status, location_precision,
+    select public_id, version, content, status, location_precision,
            location_algorithm_version, country, country_code,
            ST_Y(public_point::geometry) as latitude,
            ST_X(public_point::geometry) as longitude
@@ -78,7 +77,6 @@ describe('createMessage server action', () => {
     const profile = await insertProfile(db, 'action-approximate')
     const result = await createMessageForSession(db, {
       content: 'Siempre contigo',
-      recipient: 'ateez',
       location: { selectionId: validSelectionId(), precision: 'approximate' },
     }, deps('action-approximate'))
 
@@ -91,7 +89,6 @@ describe('createMessage server action', () => {
       public_id: result.ok ? result.data.publicId : '',
       version: 1,
       content: 'Siempre contigo',
-      recipient: 'ateez',
       status: 'pending',
       location_precision: 'approximate',
       location_algorithm_version: 1,
@@ -107,7 +104,6 @@ describe('createMessage server action', () => {
     const confirmedPublicPoint = { latitude: 37.57, longitude: 126.99 }
     const result = await createMessageForSession(db, {
       content: 'Estoy aquí',
-      recipient: null,
       location: {
         selectionId: validSelectionId(),
         precision: 'precise',
@@ -120,7 +116,6 @@ describe('createMessage server action', () => {
     const message = await storedMessage(profile.id)
     expect(message).toMatchObject({
       version: 1,
-      recipient: null,
       status: 'pending',
       location_precision: 'precise',
       location_algorithm_version: null,
@@ -139,7 +134,6 @@ describe('createMessage server action', () => {
     try {
       const result = await createMessageForSession(db, {
         content: 'Aún privada',
-        recipient: null,
         location: { selectionId: validSelectionId(), precision: 'approximate' },
       }, deps('action-premoderated'))
       expect(result).toMatchObject({
@@ -158,7 +152,6 @@ describe('createMessage server action', () => {
     })
     const result = await createMessageForSession(db, {
       content: 'Sin permiso',
-      recipient: null,
       location: { selectionId: validSelectionId(), precision: 'approximate' },
     }, deps('action-suspended'))
 
@@ -177,7 +170,6 @@ describe('createMessage server action', () => {
 
     const result = await createMessageForSession(db, {
       content: 'El undécimo mensaje',
-      recipient: 'atiny',
       location: { selectionId: validSelectionId(), precision: 'approximate' },
     }, deps('action-limit'))
 
@@ -193,7 +185,6 @@ describe('createMessage server action', () => {
 
     const result = await createMessageForSession(db, {
       content: 'Demasiado pronto',
-      recipient: null,
       location: { selectionId: validSelectionId(), precision: 'approximate' },
     }, deps('action-cooldown'))
 

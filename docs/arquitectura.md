@@ -75,7 +75,7 @@ Roles y suspensiones residen en Supabase y se verifican en el backend en cada op
 Las entidades auxiliares de implementación siguientes concretan la persistencia de esas responsabilidades, sin añadir funciones de producto.
 
 - `profiles`: identificador local, identidad Clerk, nombre público no único, rol, suspensión y fechas. Los nombres de usuario antiguos se conservan solo como dato histórico. No almacena contraseñas.
-- `messages`: identificador público estable, autora, versión actual, texto, destinatario opcional, estado, precisión, coordenadas públicas persistidas, localidad, país y fechas.
+- `messages`: identificador público estable, autora, versión actual, texto, estado, precisión, coordenadas públicas persistidas, localidad, país y fechas.
 - `review_requests`: solicitante, referencia nullable al mensaje, número de versión, copia privada del texto sujeto a revisión, motivo, estado del caso, cierre y vencimiento de conservación.
 - `moderation_actions`: decisión, motivo traducible y nota opcional.
 - `settings`: moderación inicialmente desactivada, límite de 10 mensajes y cooldown de 10 segundos.

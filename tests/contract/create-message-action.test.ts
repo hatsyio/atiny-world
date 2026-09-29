@@ -55,13 +55,11 @@ function deps(
 
 const approximateInput: CreateMessageActionInput = {
   content: 'Siempre contigo',
-  recipient: 'ateez',
   location: { selectionId: validSelectionId(), precision: 'approximate' },
 }
 
 const preciseInput: CreateMessageActionInput = {
   content: 'Estoy aquí',
-  recipient: null,
   location: {
     selectionId: validSelectionId(),
     precision: 'precise',
@@ -162,7 +160,7 @@ describe('createMessage server action contract', () => {
     })
   })
 
-  it('rejects empty or oversized content and unknown recipients with field errors', async () => {
+  it('rejects empty or oversized content with field errors', async () => {
     const empty = await createMessageForSession(stubSql, {
       ...approximateInput,
       content: '',
@@ -181,14 +179,6 @@ describe('createMessage server action contract', () => {
       error: { code: 'VALIDATION_ERROR', fieldErrors: { content: 'message.content.limitReached' } },
     })
 
-    const recipient = await createMessageForSession(stubSql, {
-      ...approximateInput,
-      recipient: 'ateez2',
-    } as unknown as CreateMessageActionInput, deps())
-    expect(recipient).toMatchObject({
-      ok: false,
-      error: { code: 'VALIDATION_ERROR', fieldErrors: { recipient: 'message.recipient.invalid' } },
-    })
   })
 
   it('forwards the approximate selection center to the publish transaction', async () => {
@@ -198,7 +188,6 @@ describe('createMessage server action contract', () => {
     expect(spy).toHaveBeenCalledWith({
       clerkUserId: 'action-fan',
       content: 'Siempre contigo',
-      recipient: 'ateez',
       location: {
         precision: 'approximate',
         localityCenter: SELECTION.point,
@@ -216,7 +205,6 @@ describe('createMessage server action contract', () => {
     expect(spy).toHaveBeenCalledWith({
       clerkUserId: 'action-fan',
       content: 'Estoy aquí',
-      recipient: null,
       location: {
         precision: 'precise',
         localityCenter: { latitude: 40.42, longitude: -3.69 },

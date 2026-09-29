@@ -16,7 +16,6 @@ export type MapFeature = PublicMapFeature
 
 export interface MapFeatureOptions {
   limit?: number
-  recipient?: string | null
   fan?: string | null
   city?: string | null
   country?: string | null
@@ -40,7 +39,6 @@ type FeatureRow = {
   location_precision: string
   locality: string | null
   country: string
-  recipient: string | null
   published_at: string
   author_public_id: string
   display_name: string
@@ -78,14 +76,6 @@ function bboxCondition(sql: Sql, bounds: MapBounds): Fragment {
 function extraConditions(sql: Sql, options: MapFeatureOptions): Fragment[] {
   const conditions: Fragment[] = []
 
-  if (options.recipient !== undefined && options.recipient !== null) {
-    if (options.recipient === 'null') {
-      conditions.push(sql`m.recipient is null`)
-    } else {
-      conditions.push(sql`m.recipient = ${options.recipient}`)
-    }
-  }
-
   if (options.fan !== undefined && options.fan !== null) {
     conditions.push(sql`p.public_id = ${options.fan}`)
   }
@@ -112,13 +102,13 @@ function featureColumnsWithContent(sql: Sql, includeContent: boolean): Fragment 
   if (includeContent) {
     return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
       st_x(m.public_point::geometry) as longitude, m.location_precision,
-      m.locality, m.country, m.recipient, m.published_at,
+      m.locality, m.country, m.published_at,
       p.public_id as author_public_id, p.display_name,
       m.content`
   }
   return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
     st_x(m.public_point::geometry) as longitude, m.location_precision,
-    m.locality, m.country, m.recipient, m.published_at,
+    m.locality, m.country, m.published_at,
     p.public_id as author_public_id, p.display_name,
     null as content`
 }
@@ -149,7 +139,6 @@ export async function pagePublicMessages(
     bounds: MapBounds
     cursor?: string
     limit?: number
-    recipient?: string | null
     fan?: string | null
     city?: string | null
     country?: string | null
@@ -158,10 +147,9 @@ export async function pagePublicMessages(
   const bound = args.cursor ? verifyCursor(args.cursor) : null
   const limit = args.limit ?? 20
   const extra = extraConditions(sql, {
-    recipient: args.recipient,
-      fan: args.fan,
-      city: args.city,
-      country: args.country,
+    fan: args.fan,
+    city: args.city,
+    country: args.country,
   })
 
   const cursorCondition: Fragment = bound

@@ -12,7 +12,7 @@ import {
   type CreateMessageSubmit,
 } from '@/components/messages/create-message-form'
 import type { LocationPickerSelection } from '@/components/map/location-picker'
-import { RECIPIENTS, type ProblemCode } from '@/domain/contracts'
+import { type ProblemCode } from '@/domain/contracts'
 
 const picker = vi.hoisted(() => ({
   onChange: null as ((value: unknown) => void) | null,
@@ -122,11 +122,9 @@ describe('CreateMessageForm', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('ofrece un selector de destinatario con la lista permitida y el valor opcional', () => {
+  it('no muestra un selector de destinatario', () => {
     renderForm()
-    const selector = screen.getByRole('combobox', { name: /recipient/i })
-    const options = Array.from(selector.querySelectorAll('option')).map((option) => option.value)
-    expect(options).toEqual([...[''], ...RECIPIENTS])
+    expect(screen.queryByRole('combobox', { name: /recipient/i })).not.toBeInTheDocument()
   })
 
   it('mantiene la publicación deshabilitada hasta confirmar una ubicación', async () => {
@@ -147,13 +145,11 @@ describe('CreateMessageForm', () => {
     expect(submit).toHaveBeenCalledTimes(1)
   })
 
-  it('envía contenido, destinatario opcional y ubicación seleccionada a la acción de T049', async () => {
+  it('envía contenido y ubicación seleccionada a la acción', async () => {
     const submit = vi.fn<CreateMessageSubmit>(async () => okResult('message-1'))
     renderForm({ submitMessage: submit })
 
     typeContent('Siempre contigo')
-    const selector = screen.getByRole('combobox', { name: /recipient/i })
-    fireEvent.change(selector, { target: { value: 'hongjoong' } })
     selectLocation()
 
     await fireEvent.click(screen.getByRole('button', { name: /publish letter/i }))
@@ -162,7 +158,6 @@ describe('CreateMessageForm', () => {
     const payload = submit.mock.calls[0][0] as CreateMessageActionInput
     expect(payload).toEqual({
       content: 'Siempre contigo',
-      recipient: 'hongjoong',
       location: approximateSelection,
     })
   })
@@ -178,7 +173,6 @@ describe('CreateMessageForm', () => {
 
     expect(submit).toHaveBeenCalledWith({
       content: 'Siempre contigo',
-      recipient: null,
       location: approximateSelection,
     })
   })
@@ -302,7 +296,6 @@ describe('CreateMessageForm', () => {
   it('acompaña cada control con una etiqueta accesible', () => {
     renderForm()
     expect(screen.getByLabelText(/your letter/i)).toBeTruthy()
-    expect(screen.getByRole('combobox', { name: /recipient/i })).toBeTruthy()
     expect(screen.getByTestId('location-picker')).toBeTruthy()
   })
 })

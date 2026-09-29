@@ -10,12 +10,12 @@ insert into app_private.profiles (
 on conflict (clerk_user_id) do nothing;
 
 insert into app_private.messages (
-  author_id, version, content, recipient, status, location_precision,
+  author_id, version, content, status, location_precision,
   location_algorithm_version,
   public_point, locality, country, country_code, published_at
 )
 select
-  p.id, 1, 'Un mensaje de demo para ATEEZ', 'ateez', 'approved',
+  p.id, 1, 'Un mensaje de demo para ATEEZ', 'approved',
   'approximate', 1,
   ST_SetSRID(ST_MakePoint(-3.7033, 40.4167), 4326)::geography,
   'Madrid', 'España', 'es',

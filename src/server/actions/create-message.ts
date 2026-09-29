@@ -2,10 +2,8 @@ import type { Sql } from 'postgres'
 
 import {
   errorResult,
-  isRecipient,
   okResult,
   type ActionResult,
-  type Recipient,
 } from '@/domain/contracts'
 import type { PublicPoint } from '@/domain/location/public-point'
 import { authorizeProfile } from '@/server/auth/authorize'
@@ -37,7 +35,6 @@ export type CreateMessageLocationInput =
 
 export type CreateMessageActionInput = {
   content: string
-  recipient: Recipient
   location: CreateMessageLocationInput
 }
 
@@ -76,13 +73,6 @@ export async function createMessageForSession(
   const auth = await authorizeProfile(sql, identity, readProfile)
   if (!auth.ok) return auth
 
-  if (!isRecipient(input?.recipient)) {
-    return errorResult('VALIDATION_ERROR', {
-      messageKey: 'validation.invalidFields',
-      fieldErrors: { recipient: 'message.recipient.invalid' },
-    })
-  }
-
   const content = validateActionContent(input?.content)
   if (!content.ok) {
     return errorResult('VALIDATION_ERROR', {
@@ -97,7 +87,6 @@ export async function createMessageForSession(
   const created = await publish({
     clerkUserId: identity.clerkUserId,
     content: content.value,
-    recipient: input.recipient,
     location: location.data,
   })
   if (!created.ok) return created

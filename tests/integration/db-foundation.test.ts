@@ -53,6 +53,21 @@ describe('app_private schema ownership', () => {
       columns.some((row) => /lik|reaction/.test(String(row.column_name))),
     ).toBe(false)
   })
+
+  it('removes recipient while preserving the message record columns', async () => {
+    const rows = await db<Row[]>`
+      select column_name
+        from information_schema.columns
+       where table_schema = 'app_private'
+         and table_name = 'messages'
+    `
+    const columns = new Set(rows.map((row) => String(row.column_name)))
+
+    expect(columns.has('recipient')).toBe(false)
+    for (const column of ['public_id', 'author_id', 'content', 'status', 'public_point']) {
+      expect(columns.has(column), `missing preserved column ${column}`).toBe(true)
+    }
+  })
 })
 
 describe('Data API and default role denial', () => {

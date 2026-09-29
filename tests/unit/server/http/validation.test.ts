@@ -9,7 +9,6 @@ import { runAction } from '../../../../src/server/actions/result'
 
 const payloadSchema = z.strictObject({
   content: z.string().min(1).max(500),
-  recipient: z.enum(['ateez', 'atiny']).nullable(),
 })
 
 describe('parseJsonBody', () => {
@@ -20,7 +19,7 @@ describe('parseJsonBody', () => {
 
   it('accepts a valid payload and rejects unknown fields', async () => {
     const result = await parseJsonBody(
-      request(JSON.stringify({ content: 'a', recipient: 'atiny', sneaky: true })),
+      request(JSON.stringify({ content: 'a', sneaky: true })),
       payloadSchema,
     )
 
@@ -30,13 +29,13 @@ describe('parseJsonBody', () => {
 
   it('applies the schema strictly with only allowed fields', async () => {
     const result = await parseJsonBody(
-      request(JSON.stringify({ content: 'hola', recipient: 'ateez' })),
+      request(JSON.stringify({ content: 'hola' })),
       payloadSchema,
     )
 
     expect(result).toEqual({
       ok: true,
-      data: { content: 'hola', recipient: 'ateez' },
+      data: { content: 'hola' },
     })
   })
 
@@ -47,7 +46,7 @@ describe('parseJsonBody', () => {
   })
 
   it('rejects bodies larger than the configured limit', async () => {
-    const big = JSON.stringify({ content: 'x'.repeat(2000), recipient: null })
+    const big = JSON.stringify({ content: 'x'.repeat(2000) })
     const result = await parseJsonBody(
       request(big),
       payloadSchema,
@@ -67,7 +66,6 @@ describe('zodFieldErrors', () => {
       const fieldErrors = zodFieldErrors(error)
 
       expect(fieldErrors.content).toBeDefined()
-      expect(fieldErrors.recipient).toBeDefined()
     }
   })
 })

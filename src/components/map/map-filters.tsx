@@ -1,11 +1,8 @@
 'use client'
 
-import { RECIPIENTS } from '@/domain/contracts'
-
 export interface MapFilterValues {
   city?: string
   country?: string
-  recipient: string
   fan: string
 }
 
@@ -26,10 +23,6 @@ function normalizeTextFilter(value: string): string {
 function normalizeCountry(value: string): string {
   const country = value.trim().toLowerCase()
   return ISO_ALPHA_2_COUNTRIES.includes(country) ? country : ''
-}
-
-function normalizeRecipient(value: string): string {
-  return RECIPIENTS.includes(value as (typeof RECIPIENTS)[number]) ? value : ''
 }
 
 export function MapFilters({ value, onChange }: Props) {
@@ -62,25 +55,6 @@ export function MapFilters({ value, onChange }: Props) {
         {ISO_ALPHA_2_COUNTRIES.map((country) => (
           <option key={country} value={country}>
             {country.toUpperCase()}
-          </option>
-        ))}
-      </select>
-
-      <label htmlFor="recipient-filter">Destinatario</label>
-      <select
-        id="recipient-filter"
-        name="recipient"
-        role="combobox"
-        aria-label="Destinatario"
-        value={normalizeRecipient(value.recipient)}
-        onChange={(event) =>
-          onChange({ ...value, recipient: normalizeRecipient(event.target.value) })
-        }
-      >
-        <option value="">Todos</option>
-        {RECIPIENTS.map((recipient) => (
-          <option key={recipient} value={recipient}>
-            {recipient}
           </option>
         ))}
       </select>

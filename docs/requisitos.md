@@ -51,8 +51,6 @@ El footer incluirá un correo de contacto administrativo y una nota que identifi
 
 - Texto y emojis, sin archivos adjuntos ni enlaces clicables.
 - Hasta 500 caracteres visibles; un emoji completo cuenta como una unidad.
-- Destinatario opcional y único. Sin selección significa «para todo el mundo».
-- Destinatarios seleccionables: ATEEZ, cada uno de sus ocho miembros y ATINY en general.
 - Máximo inicial de 10 mensajes por cuenta, configurable por el administrador.
 - Los pendientes, aprobados, rechazados y retirados cuentan para el límite mientras no se eliminen.
 - Cooldown inicial de 10 segundos entre nuevos mensajes de una cuenta, configurable por el administrador. El formulario mostrará el tiempo de espera.
@@ -76,7 +74,6 @@ El footer incluirá un correo de contacto administrativo y una nota que identifi
 - Vista mundial inicial con agrupación de mensajes cercanos y contador.
 - Búsqueda por ciudad o país.
 - Acceso a «Mis mensajes» para cuentas autenticadas.
-- Filtro por destinatario: todos por defecto, ATEEZ, un miembro, ATINY en general o sin destinatario específico.
 - Filtro por usuario para ver en el mapa los mensajes de una fan, con acceso directo a los propios mensajes para cuentas autenticadas.
 - Búsqueda de fans por nombre público. El UUID público distingue cuentas que comparten nombre.
 - Los filtros respetan las reglas de visibilidad: buscar una cuenta no revela sus mensajes ocultos.
@@ -168,7 +165,7 @@ Estos puntos no han sido elegidos durante la entrevista y no deben tratarse como
 ## Flujos esenciales que verificar antes de publicar
 
 - Registro, verificación, recuperación y acceso con contraseña o Google; vinculación sin duplicar la cuenta.
-- Publicación internacional con emojis, destinatario opcional y ambas precisiones de ubicación.
+- Publicación internacional con emojis y ambas precisiones de ubicación.
 - Posición aproximada estable, agrupación, exploración y expansión del mapa.
 - Límite por cuenta, cooldown configurable y liberación de espacio al eliminar.
 - Edición que conserva enlace y punto cuando corresponde y sustituye el contenido.

@@ -32,7 +32,7 @@ Como visitante, quiero explorar un mapa mundial de mensajes de buenos deseos par
 
 1. **Given** que existen mensajes visibles en distintas ubicaciones, **When** una visitante abre la página, **Then** ve el mapa mundial con marcadores o agrupaciones y sus contadores.
 2. **Given** una agrupación con varios mensajes, **When** la visitante la abre, **Then** puede recorrer los mensajes en orden estable del más reciente al más antiguo.
-3. **Given** varios mensajes visibles, **When** la visitante filtra por ciudad, país, destinatario o fan, **Then** solo aparecen los mensajes públicos que cumplen el filtro.
+3. **Given** varios mensajes visibles, **When** la visitante filtra por ciudad, país o fan, **Then** solo aparecen los mensajes públicos que cumplen el filtro.
 4. **Given** un mensaje visible, **When** la visitante abre su ficha, **Then** ve el texto completo, el nombre público de la autora, la ubicación mostrable y la fecha de publicación.
 5. **Given** un enlace público a un mensaje oculto o eliminado, **When** alguien lo abre, **Then** recibe un aviso de indisponibilidad sin que se revele el contenido.
 
@@ -44,12 +44,12 @@ Como fan, quiero identificarme y publicar un mensaje asociado a una ubicación e
 
 **Why this priority**: Sin cuentas verificadas y publicación no puede crecer el contenido del mapa ni atribuirse cada mensaje a su autora.
 
-**Independent Test**: Se puede validar creando una cuenta, completando el perfil y publicando un mensaje con destinatario y ubicación, para comprobar después su estado y visibilidad.
+**Independent Test**: Se puede validar creando una cuenta, completando el perfil y publicando un mensaje con ubicación, para comprobar después su estado y visibilidad.
 
 **Acceptance Scenarios**:
 
 1. **Given** una persona sin cuenta, **When** se registra con un correo válido, lo verifica y completa su perfil, **Then** obtiene una cuenta con usuario único y nombre público.
-2. **Given** una fan autenticada y activa, **When** introduce un mensaje válido, elige destinatario y selecciona una ubicación aproximada, **Then** se crea un mensaje pendiente de revisión con un enlace público estable.
+2. **Given** una fan autenticada y activa, **When** introduce un mensaje válido y selecciona una ubicación aproximada, **Then** se crea un mensaje pendiente de revisión con un enlace público estable.
 3. **Given** que la fan elige una ubicación precisa, **When** confirma la advertencia y publica, **Then** el punto elegido puede mostrarse públicamente, pero no se muestra la dirección escrita.
 4. **Given** una cuenta con 10 mensajes no eliminados, **When** intenta publicar otro, **Then** se impide la publicación y se ofrece acceso a «Mis mensajes» para liberar espacio.
 5. **Given** una publicación reciente, **When** la misma cuenta intenta publicar antes de finalizar el intervalo configurado, **Then** se impide el envío y se muestra el tiempo de espera restante.
@@ -178,7 +178,6 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 - **FR-013**: Solo una cuenta autenticada y no suspendida MUST poder publicar, editar o pedir la revisión de un mensaje.
 - **FR-014**: Un mensaje MUST admitir solo texto y emojis, sin archivos adjuntos ni enlaces clicables.
 - **FR-015**: Un mensaje MUST aceptar como máximo 500 unidades visibles, contando cada emoji completo como una unidad.
-- **FR-016**: Cada mensaje MUST permitir un único destinatario opcional entre ATEEZ, cada uno de sus ocho miembros y ATINY en general; no seleccionar ninguno MUST significar «para todo el mundo».
 - **FR-017**: El máximo inicial MUST ser de 10 mensajes no eliminados por cuenta y MUST ser configurable por una administradora.
 - **FR-018**: Los mensajes pendientes, aprobados, rechazados y retirados MUST contar para el límite hasta que sean eliminados.
 - **FR-019**: El intervalo inicial entre nuevas publicaciones de una cuenta MUST ser de 10 segundos y MUST ser configurable por una administradora.
@@ -191,7 +190,7 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 - **FR-026**: Una ubicación aproximada MUST producir un punto estable derivado del mensaje alrededor de la ubicación general y MUST identificarse visualmente como aproximada.
 - **FR-027**: Editar solo el texto MUST conservar el punto; cambiar la ubicación MUST permitir establecer un nuevo punto.
 - **FR-028**: El mapa MUST abrir inicialmente con vista mundial, agrupar mensajes cercanos y mostrar el número de mensajes de cada agrupación.
-- **FR-029**: El mapa MUST permitir buscar por ciudad o país y filtrar por destinatario y por fan.
+- **FR-029**: El mapa MUST permitir buscar por ciudad o país y filtrar por fan.
 - **FR-030**: La búsqueda de fans MUST aceptar nombre público y usuario único, y MUST mostrar ambos en los resultados.
 - **FR-031**: Todos los filtros y búsquedas MUST aplicar las mismas reglas de visibilidad y MUST NOT revelar mensajes ocultos.
 - **FR-032**: La ficha de un mensaje visible MUST mostrar texto completo, nombre público, ubicación mostrable y fecha de publicación.
@@ -233,7 +232,7 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 ### Key Entities
 
 - **Cuenta de fan**: Identidad verificada con usuario único, nombre público, correo privado, rol, estado de suspensión y fechas relevantes; es autora de mensajes y puede pedir revisiones.
-- **Mensaje**: Aportación con identificador y enlace estables, autora, versión actual, texto, destinatario opcional, estado, tipo de precisión, punto público, localidad, país y fechas.
+- **Mensaje**: Aportación con identificador y enlace estables, autora, versión actual, texto, estado, tipo de precisión, punto público, localidad, país y fechas.
 - **Solicitud de revisión**: Petición privada vinculada a la versión de un mensaje, con solicitante, copia privada, motivo, estado, cierre y vencimiento de conservación.
 - **Decisión de moderación**: Aprobación, rechazo, retirada o suspensión aplicada por una persona autorizada a una versión concreta, con motivo y nota opcional cuando proceda.
 - **Configuración operativa**: Valores administrables para moderación previa, máximo de mensajes por cuenta e intervalo entre publicaciones.

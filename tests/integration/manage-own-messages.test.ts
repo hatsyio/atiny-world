@@ -17,7 +17,6 @@ type StoredMessage = {
   author_id: string
   version: number
   content: string
-  recipient: string | null
   status: string
   moderation_reason_code: string | null
   moderation_note: string | null
@@ -32,7 +31,7 @@ type StoredMessage = {
 
 async function storedMessage(publicId: string): Promise<StoredMessage | undefined> {
   const rows = await db<StoredMessage[]>`
-    select public_id, author_id, version, content, recipient, status,
+    select public_id, author_id, version, content, status,
            moderation_reason_code, moderation_note, location_precision,
            location_algorithm_version, locality, country, country_code,
            ST_Y(public_point::geometry) as latitude,
@@ -140,11 +139,10 @@ describe('updateMessage state transitions', () => {
 })
 
 describe('updateMessage point preservation and replacement', () => {
-  it('preserves the exact point, recipient and stable link on a text-only edit', async () => {
+  it('preserves the exact point and stable link on a text-only edit', async () => {
     const profile = await insertProfile(db, 'edit-text-owner')
     const message = await insertMessage(db, profile.id, {
       status: 'approved',
-      recipient: 'atiny',
       location_precision: 'precise',
       location_algorithm_version: null,
       latitude: 37.5665,
@@ -167,7 +165,6 @@ describe('updateMessage point preservation and replacement', () => {
     expect(stored).toMatchObject({
       public_id: message.public_id,
       content: 'Texto corregido',
-      recipient: 'atiny',
       status: 'pending',
       version: message.version + 1,
       location_precision: 'precise',
@@ -298,7 +295,6 @@ describe('deleteMessage ownership, released slot and cooldown timestamp', () => 
     const blocked = await createMessage(db, {
       clerkUserId: 'delete-slot',
       content: 'No cabe hasta eliminar',
-      recipient: 'ateez',
       location: {
         precision: 'approximate',
         localityCenter: { latitude: 40.4168, longitude: -3.7038 },
@@ -319,7 +315,6 @@ describe('deleteMessage ownership, released slot and cooldown timestamp', () => 
     const created = await createMessage(db, {
       clerkUserId: 'delete-slot',
       content: 'Ahora sí cabe',
-      recipient: 'ateez',
       location: {
         precision: 'approximate',
         localityCenter: { latitude: 40.4168, longitude: -3.7038 },

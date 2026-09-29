@@ -25,7 +25,6 @@ const baseFeature: MapFeature = {
   precision: 'approximate',
   locality: 'Madrid',
   country: 'España',
-  recipient: 'atiny',
   publishedAt: '2026-09-15T10:00:00.000Z',
   author: { publicId: '22222222-2222-4222-8222-222222222222', displayName: 'ATINY' },
 }
@@ -71,35 +70,21 @@ describe('MessageClusterList', () => {
 
 describe('MapFilters', () => {
   const defaults: MapFilterValues = {
-    recipient: '',
     fan: '',
   }
 
-  it('shows the recipient filter with an accessible label', () => {
+  it('does not show a recipient filter', () => {
     render(<MapFilters value={defaults} onChange={() => {}} />)
 
-    expect(
-      screen.getByRole('combobox', { name: /destinatario/i }),
-    ).toBeTruthy()
+    expect(screen.queryByRole('combobox', { name: /destinatario/i })).not.toBeInTheDocument()
   })
 
-  it('exposes accessible city and country filters alongside recipient and fan', () => {
+  it('exposes accessible city, country and fan filters', () => {
     render(<MapFilters value={defaults} onChange={() => {}} />)
 
     expect(screen.getByRole('textbox', { name: /ciudad/i })).toBeTruthy()
     expect(screen.getByRole('combobox', { name: /país/i })).toBeTruthy()
     expect(screen.getByRole('group', { name: /filtros/i })).toBeTruthy()
-  })
-
-  it('serializes a selected recipient back to the parent', async () => {
-    const user = userEvent.setup()
-    const onChange = vi.fn()
-
-    render(<MapFilters value={defaults} onChange={onChange} />)
-
-    await user.selectOptions(screen.getByRole('combobox', { name: /destinatario/i }), 'ateez')
-
-    expect(onChange).toHaveBeenCalledWith({ recipient: 'ateez', fan: '' })
   })
 
   it('keeps the fan filter empty by default and typed on change', async () => {

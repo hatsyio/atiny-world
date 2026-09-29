@@ -20,7 +20,7 @@ Cada fallo identifica el servicio afectado y ofrece reintento manual cuando sea 
 
 ## State preservation and publishing
 
-Un cambio de estado o reintento no remonta el formulario ni elimina filtros, texto, destinatario, consulta de ubicación, precisión o selección confirmada. La dirección permanece solo en memoria y nunca entra en URL, storage o telemetría. Cambiar la consulta tras seleccionar invalida la selección; cambiar de cuenta o cerrar sesión elimina borrador y token.
+Un cambio de estado o reintento no remonta el formulario ni elimina filtros, texto, consulta de ubicación, precisión o selección confirmada. La dirección permanece solo en memoria y nunca entra en URL, storage o telemetría. Cambiar la consulta tras seleccionar invalida la selección; cambiar de cuenta o cerrar sesión elimina borrador y token.
 
 Publicar está habilitado únicamente con una selección confirmada cuyo `selectionId` siga siendo válido. Si Geoapify falla después de confirmarla, la publicación continúa sin consultar al proveedor. Si falta, fue manipulada o caducó, la UI conserva el borrador, bloquea la publicación y muestra `location.selection_required` o `location.selection_expired`.
 

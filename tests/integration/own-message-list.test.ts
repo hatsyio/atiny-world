@@ -164,7 +164,6 @@ describe('owner message details never reach public reads', () => {
         'precision',
         'publicId',
         'publishedAt',
-        'recipient',
       ])
       expect('status' in item).toBe(false)
       expect('moderationReasonCode' in item).toBe(false)

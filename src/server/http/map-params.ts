@@ -8,7 +8,6 @@ export interface MapQueryParams {
   east: number
   north: number
   zoom?: number
-  recipient?: string | null
   fan?: string | null
   city?: string | null
   country?: string | null
@@ -31,24 +30,20 @@ export function parseMapQuery(
       east: coordinateSchema(-180, 180),
       north: coordinateSchema(-90, 90),
       zoom: coordinateSchema(0, 22).optional(),
-      recipient: z
-        .union([z.literal('atiny'), z.literal('ateez'), z.literal('hongjoong'), z.literal('seonghwa'), z.literal('yunho'), z.literal('yeosang'), z.literal('san'), z.literal('mingi'), z.literal('wooyoung'), z.literal('jongho'), z.literal('null')])
-        .optional()
-        .nullable()
-        .default(null),
       fan: z.string().uuid().optional().nullable().default(null),
       city: z.string().trim().min(1).max(100).optional().nullable().default(null),
       country: z.string().trim().toLowerCase().regex(/^[a-z]{2}$/).optional().nullable().default(null),
       cursor: z.string().max(500).optional(),
       limit: MAP_LIMIT_SCHEMA.optional(),
     })
+    .strict()
     .safeParse({
       west: searchParams.get('west') ?? undefined,
       south: searchParams.get('south') ?? undefined,
       east: searchParams.get('east') ?? undefined,
       north: searchParams.get('north') ?? undefined,
       zoom: searchParams.get('zoom') ?? undefined,
-      recipient: searchParams.get('recipient') ?? undefined,
+      ...(searchParams.has('recipient') ? { recipient: searchParams.get('recipient') } : {}),
       fan: searchParams.get('fan') ?? undefined,
       city: searchParams.get('city') ?? undefined,
       country: searchParams.get('country') ?? undefined,
@@ -68,7 +63,6 @@ export function parseMapQuery(
     east: parsed.data.east,
     north: parsed.data.north,
     zoom: parsed.data.zoom,
-    recipient: parsed.data.recipient,
     fan: parsed.data.fan,
     city: parsed.data.city,
     country: parsed.data.country,

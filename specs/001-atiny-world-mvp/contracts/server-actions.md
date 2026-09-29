@@ -54,7 +54,6 @@ requestAccountDeletion(input: {
 ```ts
 createMessage(input: {
   content: string;
-  recipient: Recipient | null;
   location:
     | { selectionId: string; precision: 'approximate' }
     | {

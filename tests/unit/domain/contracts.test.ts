@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  isRecipient,
   isMessageStatus,
   isAccountState,
   isProfileRole,
@@ -13,22 +12,6 @@ import {
   errorResult,
 } from '../../../src/domain/contracts'
 import { toHttpProblem } from '../../../src/server/http/problem'
-
-describe('recipient allowlist', () => {
-  it('accepts the nine recipients and ATINY', () => {
-    expect(
-      ['ateez', 'hongjoong', 'seonghwa', 'yunho', 'yeosang', 'san', 'mingi', 'wooyoung', 'jongho', 'atiny'].every(
-        isRecipient,
-      ),
-    ).toBe(true)
-    expect(isRecipient(null)).toBe(true)
-  })
-
-  it('rejects unknown recipients', () => {
-    expect(isRecipient('wooyoung2')).toBe(false)
-    expect(isRecipient('another')).toBe(false)
-  })
-})
 
 describe('message states and account states', () => {
   it('accepts the four message states', () => {
