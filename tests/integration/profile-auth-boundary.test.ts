@@ -5,7 +5,6 @@ import { completeProfile } from '../../src/server/auth/profiles'
 import { resolveAccountGate } from '../../src/server/auth/account-gate'
 import { authorizeProfile } from '../../src/server/auth/authorize'
 import { readProfileByClerkUserId } from '../../src/server/auth/session'
-import { searchPublicUsers } from '../../src/server/messages/public-repository'
 import { createTestDb, insertMessage, truncateProductTables } from '../support/database'
 
 const db = createTestDb()
@@ -58,8 +57,6 @@ describe('Clerk username signup boundary', () => {
     expect(first.data.profilePublicId).not.toBe(second.data.profilePublicId)
     const rows = await db<{ clerk_user_id: string; display_name: string }[]>`select clerk_user_id, display_name from app_private.profiles order by clerk_user_id`
     expect(rows).toEqual([{ clerk_user_id: 'fan-one', display_name: 'atiny_one' }, { clerk_user_id: 'fan-two', display_name: 'atiny_two' }])
-    const found = await searchPublicUsers(db, { query: 'atiny' })
-    expect(found.items.map((item) => item.publicId)).toEqual([first.data.profilePublicId, second.data.profilePublicId])
   })
 
   it('accepts a verified Google identity after OAuth signup', async () => {

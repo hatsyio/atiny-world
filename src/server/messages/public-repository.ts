@@ -4,7 +4,6 @@ import {
   type MapBounds,
   type PublicMapFeature,
   type PublicMessageDetail,
-  type PublicUser,
   projectPublicFeature,
 } from '@/domain/messages/public-message'
 
@@ -16,18 +15,12 @@ export type MapFeature = PublicMapFeature
 
 export interface MapFeatureOptions {
   limit?: number
-  fan?: string | null
   city?: string | null
   country?: string | null
 }
 
 export interface PublicMessagePage {
   items: PublicMessageDetail[]
-  nextCursor: string | null
-}
-
-export interface PublicUserPage {
-  items: PublicUser[]
   nextCursor: string | null
 }
 
@@ -75,10 +68,6 @@ function bboxCondition(sql: Sql, bounds: MapBounds): Fragment {
 
 function extraConditions(sql: Sql, options: MapFeatureOptions): Fragment[] {
   const conditions: Fragment[] = []
-
-  if (options.fan !== undefined && options.fan !== null) {
-    conditions.push(sql`p.public_id = ${options.fan}`)
-  }
 
   if (options.city !== undefined && options.city !== null) {
     conditions.push(sql`lower(m.locality) = lower(${options.city})`)
@@ -139,7 +128,6 @@ export async function pagePublicMessages(
     bounds: MapBounds
     cursor?: string
     limit?: number
-    fan?: string | null
     city?: string | null
     country?: string | null
   },
@@ -147,7 +135,6 @@ export async function pagePublicMessages(
   const bound = args.cursor ? verifyCursor(args.cursor) : null
   const limit = args.limit ?? 20
   const extra = extraConditions(sql, {
-    fan: args.fan,
     city: args.city,
     country: args.country,
   })
@@ -202,41 +189,5 @@ export async function getVisibleMessage(
   return {
     ...projectPublicFeature(row),
     content: row.content ?? '',
-  }
-}
-
-export async function searchPublicUsers(
-  sql: Sql,
-  args: { query: string; cursor?: string; limit?: number },
-): Promise<PublicUserPage> {
-  const bound = args.cursor ? verifyCursor(args.cursor) : null
-  const limit = args.limit ?? 20
-  const pattern = `%${args.query}%`
-
-  const cursorCondition = bound
-    ? sql`p.id > ${bound.id}::bigint`
-    : sql`true`
-
-  const rows = await sql<{ id: string; public_id: string; display_name: string }[]>`
-    select p.id, p.public_id, p.display_name
-      from app_private.profiles p
-     where p.account_state = 'active'
-       and p.suspended_at is null
-       and p.display_name ilike ${pattern}
-       and ${cursorCondition}
-     order by p.id asc
-     limit ${limit + 1}
-  `
-
-  const hasMore = rows.length > limit
-  const page = hasMore ? rows.slice(0, limit) : rows
-  const last = page[page.length - 1]
-
-  return {
-    items: page.map((row) => ({
-      publicId: row.public_id,
-      displayName: row.display_name,
-    })),
-    nextCursor: hasMore && last ? signCursor({ id: last.id }) : null,
   }
 }

@@ -3,7 +3,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { GET as getMessage } from '../../src/app/api/messages/[publicId]/route'
 import { createMapFeaturesGetHandler, GET as getFeatures } from '../../src/app/api/map/features/route'
 import { GET as getMessages } from '../../src/app/api/map/messages/route'
-import { GET as searchUsers } from '../../src/app/api/users/search/route'
 import { getDb } from '../../src/server/db/client'
 
 const db = getDb()
@@ -126,6 +125,18 @@ describe('GET /api/map/features', () => {
     expect((await response.json() as Json).code).toBe('VALIDATION_ERROR')
   })
 
+  it('rejects the removed author filter', async () => {
+    const response = await getFeatures(
+      new Request(apiUrl('/api/map/features', {
+        west: '-10', south: '35', east: '5', north: '45',
+        fan: '00000000-0000-4000-8000-000000000001',
+      })),
+    )
+
+    expect(response.status).toBe(400)
+    expect((await response.json() as Json).code).toBe('VALIDATION_ERROR')
+  })
+
   it('accepts an antimeridian-crossing bbox without failure', async () => {
     const response = await getFeatures(
       new Request(
@@ -198,6 +209,18 @@ describe('GET /api/map/messages', () => {
         east: '5',
         north: '45',
         recipient: 'ateez',
+      })),
+    )
+
+    expect(response.status).toBe(400)
+    expect((await response.json() as Json).code).toBe('VALIDATION_ERROR')
+  })
+
+  it('rejects the removed author filter', async () => {
+    const response = await getMessages(
+      new Request(apiUrl('/api/map/messages', {
+        west: '-10', south: '35', east: '5', north: '45',
+        fan: '00000000-0000-4000-8000-000000000001',
       })),
     )
 
@@ -332,37 +355,6 @@ describe('GET /api/messages/{publicId}', () => {
     expect(hidden.status).toBe(404)
     expect(absent.status).toBe(404)
     expect(await hidden.json()).toEqual(await absent.json())
-  })
-})
-
-describe('GET /api/users/search', () => {
-  it('rejects queries under 2 characters', async () => {
-    const response = await searchUsers(
-      new Request(apiUrl('/api/users/search', { q: 'a' })),
-    )
-
-    expect(response.status).toBe(400)
-    const body = (await response.json()) as Json
-    expect(body.code).toBe('VALIDATION_ERROR')
-  })
-
-  it('returns only public identity fields', async () => {
-    const response = await searchUsers(
-      new Request(apiUrl('/api/users/search', { q: 'Contrato' })),
-    )
-
-    expect(response.status).toBe(200)
-    const body = (await response.json()) as {
-      items: Array<Record<string, unknown>>
-      nextCursor: string | null
-    }
-    expect(Array.isArray(body.items)).toBe(true)
-    for (const item of body.items) {
-      expect(Object.keys(item).sort()).toEqual([
-        'displayName',
-        'publicId',
-      ])
-    }
   })
 })
 

@@ -3,7 +3,6 @@
 export interface MapFilterValues {
   city?: string
   country?: string
-  fan: string
 }
 
 interface Props {
@@ -59,19 +58,6 @@ export function MapFilters({ value, onChange }: Props) {
         ))}
       </select>
 
-      <label htmlFor="fan-filter">Fan</label>
-      <input
-        id="fan-filter"
-        type="text"
-        name="fan"
-        role="textbox"
-        aria-label="Fan"
-        value={value.fan}
-        maxLength={MAX_TEXT_FILTER_LENGTH}
-        onChange={(event) =>
-          onChange({ ...value, fan: normalizeTextFilter(event.target.value) })
-        }
-      />
     </div>
   )
 }

@@ -74,8 +74,8 @@ El footer incluirá un correo de contacto administrativo y una nota que identifi
 - Vista mundial inicial con agrupación de mensajes cercanos y contador.
 - Búsqueda por ciudad o país.
 - Acceso a «Mis mensajes» para cuentas autenticadas.
-- Filtro por usuario para ver en el mapa los mensajes de una fan, con acceso directo a los propios mensajes para cuentas autenticadas.
-- Búsqueda de fans por nombre público. El UUID público distingue cuentas que comparten nombre.
+- Filtros geográficos por ciudad o país para explorar mensajes públicos.
+- La autoría se muestra en cada carta pública, pero no existe búsqueda ni filtrado público por persona.
 - Los filtros respetan las reglas de visibilidad: buscar una cuenta no revela sus mensajes ocultos.
 - Pulsar un marcador abre una ficha con texto completo, nombre público, ubicación elegida y fecha de publicación.
 - Los grupos permiten acercarse y recorrer los mensajes individualmente.

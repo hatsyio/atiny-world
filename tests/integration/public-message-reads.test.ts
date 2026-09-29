@@ -4,7 +4,6 @@ import {
   listFeaturesInViewport,
   pagePublicMessages,
   getVisibleMessage,
-  searchPublicUsers,
   type MapBounds,
 } from '../../src/server/messages/public-repository'
 import {
@@ -150,18 +149,4 @@ describe('public message reads share one visibility rule', () => {
     ).toBeNull()
   })
 
-  it('finds fans only by public identity fields', async () => {
-    const result = await searchPublicUsers(db, {
-      query: 'ATINY',
-      limit: 10,
-    })
-
-    expect(result.items.length).toBeGreaterThan(0)
-    for (const item of result.items) {
-      expect(Object.keys(item).sort()).toEqual([
-        'displayName',
-        'publicId',
-      ])
-    }
-  })
 })

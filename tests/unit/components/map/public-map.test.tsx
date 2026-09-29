@@ -70,7 +70,8 @@ describe('MessageClusterList', () => {
 
 describe('MapFilters', () => {
   const defaults: MapFilterValues = {
-    fan: '',
+    city: '',
+    country: '',
   }
 
   it('does not show a recipient filter', () => {
@@ -79,26 +80,15 @@ describe('MapFilters', () => {
     expect(screen.queryByRole('combobox', { name: /destinatario/i })).not.toBeInTheDocument()
   })
 
-  it('exposes accessible city, country and fan filters', () => {
+  it('exposes accessible city and country filters without an author filter', () => {
     render(<MapFilters value={defaults} onChange={() => {}} />)
 
     expect(screen.getByRole('textbox', { name: /ciudad/i })).toBeTruthy()
     expect(screen.getByRole('combobox', { name: /país/i })).toBeTruthy()
+    expect(screen.queryByRole('textbox', { name: /fan|autor|usuario/i })).not.toBeInTheDocument()
     expect(screen.getByRole('group', { name: /filtros/i })).toBeTruthy()
   })
 
-  it('keeps the fan filter empty by default and typed on change', async () => {
-    const user = userEvent.setup()
-    const onChange = vi.fn()
-
-    render(<MapFilters value={defaults} onChange={onChange} />)
-    const input = screen.getByRole('textbox', { name: /fan/i })
-
-    expect((input as HTMLInputElement).value).toBe('')
-    await user.type(input, 'atiny')
-
-    expect(onChange).toHaveBeenCalled()
-  })
 })
 
 describe('PublicMapLoader', () => {

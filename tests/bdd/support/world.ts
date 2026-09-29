@@ -26,7 +26,6 @@ export class AtinyWorld extends World {
   responses: BddResponse[] = []
   publicId?: string
   hiddenId?: string
-  fanPublicId?: string
   clerkUserId?: string
   clerkUser?: Awaited<ReturnType<ClerkUserReader>>
   profileActionResult?: ActionResult<{ profilePublicId: string }>

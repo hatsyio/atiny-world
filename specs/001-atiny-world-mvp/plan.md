@@ -128,7 +128,7 @@ Las decisiones y alternativas están cerradas en [research.md](./research.md). A
 ### Phase 2 — Public exploration and publishing
 
 1. Implementar la regla canónica de visibilidad una sola vez en servidor y cubrir su matriz completa.
-2. Añadir endpoints de viewport, grupo paginado, ficha pública y búsqueda de fans, siempre con paginación por cursor y `Cache-Control: no-store`.
+2. Añadir endpoints de viewport, grupo paginado y ficha pública, siempre con paginación por cursor y `Cache-Control: no-store`; los filtros públicos serán únicamente geográficos.
 3. Integrar Leaflet como Client Component cargado sin SSR, CARTO directamente desde navegador y clustering de los puntos públicos recibidos para el viewport.
 4. Integrar Geoapify mediante `POST` backend con rate limit, debounce cliente, token de selección breve y descarte de dirección/response cruda.
 5. Publicar dentro de una transacción corta: bloquear perfil, comprobar cuenta y configuración, validar límite/cooldown, insertar pendiente y actualizar último envío.
