@@ -58,7 +58,7 @@ description: "Dependency-ordered implementation tasks for ATINY World MVP"
 
 **Goal**: Allow an anonymous visitor to explore only visible messages by viewport/filter, traverse clusters in stable order and open a stable public link without disclosure when hidden or deleted.
 
-**Independent Test**: Open the product without a session, exercise clusters and city/country/fan filters, open a visible message, then request hidden/deleted IDs and verify indistinguishable unavailable responses.
+**Independent Test**: Open the product without a session, exercise clusters and city/country filters, open a visible message, then request hidden/deleted IDs and verify indistinguishable unavailable responses.
 
 ### Tests for User Story 1
 
@@ -71,14 +71,13 @@ description: "Dependency-ordered implementation tasks for ATINY World MVP"
 ### Implementation for User Story 1
 
 - [X] T023 [US1] Implement the pure canonical visibility predicate and public DTO projection with no private state or moderation reason in `src/domain/messages/visibility.ts` and `src/domain/messages/public-message.ts`
-- [X] T024 [US1] Implement indexed viewport, stable `(published_at DESC, id DESC)` pagination, public detail and public fan-search queries using the canonical rule in `src/server/messages/public-repository.ts`
+- [X] T024 [US1] Implement indexed viewport, stable `(published_at DESC, id DESC)` pagination and public detail using the canonical rule in `src/server/messages/public-repository.ts`
 - [X] T025 [P] [US1] Implement validated `GET /api/map/features` with bbox/zoom/filter limits, antimeridian support, minimum public fields and `Cache-Control: no-store` in `src/app/api/map/features/route.ts`
 - [X] T026 [P] [US1] Implement validated `GET /api/map/messages` with signed cursor, maximum page size 50 and stable order in `src/app/api/map/messages/route.ts`
 - [X] T027 [P] [US1] Implement non-disclosing `GET /api/messages/{publicId}` that returns the current visible version or the same 404 for absent/hidden/deleted rows in `src/app/api/messages/[publicId]/route.ts`
-- [X] T028 [P] [US1] Implement rate-limited public fan search returning only `publicId`, `username` and `displayName` in `src/app/api/users/search/route.ts`
 - [X] T029 [US1] Implement Leaflet as a client-only dynamically loaded adapter with direct CARTO raster tiles, restricted-key configuration, visible `© OpenStreetMap contributors, © CARTO` attribution and no tile proxy/cache in `src/components/map/public-map-loader.tsx` and `src/components/map/leaflet-map.tsx`
 - [X] T030 [US1] Implement viewport refresh, bulk marker loading, `leaflet.markercluster` counts/spiderfy and paginated group traversal without downloading all message texts in `src/components/map/public-map-controller.tsx` and `src/components/map/message-cluster-list.tsx`
-- [X] T031 [P] [US1] Implement accessible city/country and fan filter controls that serialize only validated public filter values in `src/components/map/map-filters.tsx`
+- [X] T031 [P] [US1] Implement accessible city/country filter controls that serialize only validated public filter values in `src/components/map/map-filters.tsx`
 - [X] T032 [P] [US1] Implement public message detail showing only content, public author name, displayable locality/country and publication date in `src/components/messages/public-message-card.tsx`
 - [X] T033 [US1] Assemble the anonymous English homepage in required order—account header, title/introduction, map, publication entry point and disclaimer/contact footer—and add the stable message route that centers/opens the marker in `src/app/[lang]/page.tsx` and `src/app/[lang]/messages/[publicId]/page.tsx`
 - [X] T034 [US1] Bind the US1 Gherkin steps to real Route Handlers/components and make the BDD, unit, contract and integration suites pass in `tests/bdd/step_definitions/explorar-mapa.steps.ts`
@@ -330,7 +329,7 @@ US1 also feeds US2, US3 and US4 public visibility/link checks.
 
 ```text
 T018 acceptance scenarios | T019 visibility unit tests | T020 HTTP contracts | T021 DB privacy reads | T022 map components
-T025 features handler | T026 group pagination | T027 public detail | T028 fan search
+T025 features handler | T026 group pagination | T027 public detail
 ```
 
 ### User Story 2

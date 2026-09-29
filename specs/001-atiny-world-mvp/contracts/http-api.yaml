@@ -18,9 +18,6 @@ paths:
         - $ref: '#/components/parameters/East'
         - $ref: '#/components/parameters/North'
         - $ref: '#/components/parameters/Zoom'
-        - name: fan
-          in: query
-          schema: { type: string, format: uuid }
       responses:
         '200':
           description: Solo mensajes públicos en la lectura actual
@@ -52,9 +49,6 @@ paths:
         - $ref: '#/components/parameters/South'
         - $ref: '#/components/parameters/East'
         - $ref: '#/components/parameters/North'
-        - name: fan
-          in: query
-          schema: { type: string, format: uuid }
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
       responses:
@@ -91,32 +85,6 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Problem' }
-  /api/users/search:
-    get:
-      operationId: searchPublicUsers
-      summary: Busca fans por usuario o nombre público sin revelar datos privados
-      parameters:
-        - name: q
-          in: query
-          required: true
-          schema: { type: string, minLength: 2, maxLength: 80 }
-        - $ref: '#/components/parameters/Cursor'
-        - $ref: '#/components/parameters/Limit'
-      responses:
-        '200':
-          description: Resultados públicos mínimos
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [items, nextCursor]
-                properties:
-                  items:
-                    type: array
-                    items: { $ref: '#/components/schemas/PublicUser' }
-                  nextCursor: { type: [string, 'null'] }
-        '400': { $ref: '#/components/responses/ValidationError' }
-        '429': { $ref: '#/components/responses/RateLimited' }
   /api/locations/suggestions:
     post:
       operationId: suggestLocations

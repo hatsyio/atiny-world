@@ -16,10 +16,10 @@ Característica: Explorar mensajes en el mapa
     Entonces el grupo empieza por el mensaje público más reciente
     Y los mensajes ocultos no aparecen en el grupo
 
-  Escenario: El filtro por fan acota la lectura
+  Escenario: El filtro por ciudad conserva la exploración geográfica
     Dado que existen mensajes públicos en distintas ubicaciones
-    Cuando filtro por fan con un identificador público
-    Entonces solo recibo mensajes públicos de esa fan
+    Cuando filtro por ciudad Madrid
+    Entonces solo recibo mensajes públicos de esa ciudad
 
   Escenario: Una ficha pública muestra campos mínimos tras revalidar visibilidad
     Dado que existe un mensaje público enlazable
@@ -35,5 +35,5 @@ Característica: Explorar mensajes en el mapa
 
   Escenario: La lectura pública no depende de sesión
     Dado que Clerk no identifica a la visitante
-    Cuando solicito map features, ficha y búsqueda de fans
+    Cuando solicito map features y ficha
     Entonces las respuestas públicas son las mismas que para una fan identificada

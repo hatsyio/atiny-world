@@ -32,7 +32,7 @@ Como visitante, quiero explorar un mapa mundial de mensajes de buenos deseos par
 
 1. **Given** que existen mensajes visibles en distintas ubicaciones, **When** una visitante abre la página, **Then** ve el mapa mundial con marcadores o agrupaciones y sus contadores.
 2. **Given** una agrupación con varios mensajes, **When** la visitante la abre, **Then** puede recorrer los mensajes en orden estable del más reciente al más antiguo.
-3. **Given** varios mensajes visibles, **When** la visitante filtra por ciudad, país o fan, **Then** solo aparecen los mensajes públicos que cumplen el filtro.
+3. **Given** varios mensajes visibles, **When** la visitante filtra por ciudad o país, **Then** solo aparecen los mensajes públicos que cumplen el filtro.
 4. **Given** un mensaje visible, **When** la visitante abre su ficha, **Then** ve el texto completo, el nombre público de la autora, la ubicación mostrable y la fecha de publicación.
 5. **Given** un enlace público a un mensaje oculto o eliminado, **When** alguien lo abre, **Then** recibe un aviso de indisponibilidad sin que se revele el contenido.
 
@@ -190,9 +190,9 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 - **FR-026**: Una ubicación aproximada MUST producir un punto estable derivado del mensaje alrededor de la ubicación general y MUST identificarse visualmente como aproximada.
 - **FR-027**: Editar solo el texto MUST conservar el punto; cambiar la ubicación MUST permitir establecer un nuevo punto.
 - **FR-028**: El mapa MUST abrir inicialmente con vista mundial, agrupar mensajes cercanos y mostrar el número de mensajes de cada agrupación.
-- **FR-029**: El mapa MUST permitir buscar por ciudad o país y filtrar por fan.
-- **FR-030**: La búsqueda de fans MUST aceptar nombre público y usuario único, y MUST mostrar ambos en los resultados.
-- **FR-031**: Todos los filtros y búsquedas MUST aplicar las mismas reglas de visibilidad y MUST NOT revelar mensajes ocultos.
+- **FR-029**: El mapa MUST permitir buscar por ciudad o país y MUST NOT permitir buscar o filtrar mensajes por autora.
+- **FR-030**: La autoría pública MUST mostrarse en los puntos y fichas sin ofrecer una búsqueda o enumeración de las cartas de una persona.
+- **FR-031**: Todos los filtros geográficos MUST aplicar las mismas reglas de visibilidad y MUST NOT revelar mensajes ocultos.
 - **FR-032**: La ficha de un mensaje visible MUST mostrar texto completo, nombre público, ubicación mostrable y fecha de publicación.
 - **FR-033**: Los mensajes de una agrupación MUST poder recorrerse con orden estable del más reciente al más antiguo.
 - **FR-034**: El mapa MUST poder expandirse a toda la ventana en escritorio y móvil y MUST ofrecer un control visible para volver a la página.

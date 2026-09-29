@@ -33,8 +33,7 @@ type OwnMessageRow = {
 // Por unidad de cuenta el límite y el cooldown mantienen el volumen en el rango
 // de decenas, así que el orden por `id desc` (creación) consume una sola pasada
 // del índice y el cursor se limita a la clave exacta de persistencia sin
-// depender de la precisión de fechas. Reutiliza la mismísima forma de cursor
-// que `searchPublicUsers`/`pagePublicUsers`.
+// depender de la precisión de fechas.
 export async function pageOwnMessages(
   sql: Sql,
   args: { clerkUserId: string; cursor?: string; limit?: number },
