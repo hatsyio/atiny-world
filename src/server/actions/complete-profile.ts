@@ -11,17 +11,8 @@ export type ProfileSessionReader = () => Promise<SessionIdentity | null>
 export type ClerkUserReader = () => Promise<{
   id: string
   username: string | null
-  primaryEmailAddressId: string | null
-  emailAddresses: Array<{ id: string; verification: { status: string } | null }>
-  externalAccounts?: Array<{ provider: string }>
   unsafeMetadata: Record<string, unknown>
 } | null>
-
-function isIdentityVerified(user: NonNullable<Awaited<ReturnType<ClerkUserReader>>>): boolean {
-  const primary = user.emailAddresses.find((email) => email.id === user.primaryEmailAddressId)
-  return primary?.verification?.status === 'verified' ||
-    (user.externalAccounts ?? []).some((account) => account.provider === 'google')
-}
 
 export function validateDisplayName(value: unknown): string | null {
   if (typeof value !== 'string') return null
@@ -53,7 +44,6 @@ export async function completeProfileForSession(
 
   const completed = await completeProfile(sql, {
     clerkUserId: identity.clerkUserId,
-    emailVerified: isIdentityVerified(user),
     displayName,
   })
   return completed.ok ? okResult({ profilePublicId: completed.data.publicId }) : completed

@@ -17,13 +17,11 @@ Before(async () => { await truncateProductTables(db) })
 After(async () => { await truncateProductTables(db) })
 AfterAll(async () => { await db.end() })
 
-Given('que Clerk identifica a la fan {string} con correo verificado y perfil incompleto', function (this: AtinyWorld, id: string) {
+Given('que Clerk identifica a la fan {string} sin correo y con perfil incompleto', function (this: AtinyWorld, id: string) {
   this.clerkUserId = id
   this.clerkUser = {
     id,
     username: null,
-    primaryEmailAddressId: 'email_1',
-    emailAddresses: [{ id: 'email_1', verification: { status: 'verified' } }],
     unsafeMetadata: {},
   }
 })
