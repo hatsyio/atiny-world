@@ -4,7 +4,11 @@ import Link from 'next/link'
 import { PublicMapController } from '@/components/map/public-map-controller'
 import type { PublicMessageDetail } from '@/domain/messages/public-message'
 import { getDb } from '@/server/db/client'
-import { listLatestHomepageMessages } from '@/server/messages/latest-public-messages'
+import {
+  getHomepageStats,
+  listLatestHomepageMessages,
+  type PublicMessageStats,
+} from '@/server/messages/latest-public-messages'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +17,7 @@ const copy = {
     home: 'Home', send: 'Send a letter', explore: 'Explore the map', letters: 'Letters', about: 'About', signIn: 'Sign in', join: 'Join',
     heroScript: 'Dear, ATEEZ…', heroTitle: 'Messages across the seas', heroSub: 'From ATINY around the world, to ATEEZ.', heroText: 'Leave a message of love, encouragement, or appreciation and add your voice to our global map.',
     mapTitle: 'A global ocean of ATINY', mapNote: 'Different lands. Same love. Always ATEEZ.', mapHint: 'Explore the map and find letters from around the world.',
-    lettersTitle: 'Letters from ATINY', lettersNote: 'Recent messages shared publicly by ATINY around the world.', emptyLetters: 'No public letters yet. Be the first to share one.',
+    lettersTitle: 'Letters from ATINY', lettersNote: 'Recent messages shared publicly by ATINY around the world.', emptyLetters: 'No public letters yet. Be the first to share one.', lettersStat: 'Letters', countriesStat: 'Countries', piratesStat: 'Pirates',
     bannerTitle: 'Send your letter', bannerText: 'Share your message, mark your location, and be part of this journey.', bannerAction: 'Write your letter',
     footer: 'An independent fan project by ATINY, for ATEEZ. Not affiliated with or endorsed by KQ Entertainment.',
     publicationPending: 'Your letter was sent. It is pending moderation and will appear on the map once approved.',
@@ -22,7 +26,7 @@ const copy = {
     home: 'Inicio', send: 'Envía una carta', explore: 'Explora el mapa', letters: 'Cartas', about: 'Sobre el proyecto', signIn: 'Entrar', join: 'Únete',
     heroScript: 'Querido ATEEZ…', heroTitle: 'Mensajes a través de los mares', heroSub: 'De ATINY de todo el mundo, para ATEEZ.', heroText: 'Deja un mensaje de cariño, ánimo o agradecimiento y suma tu voz a nuestro mapa global.',
     mapTitle: 'Un océano global de ATINY', mapNote: 'Tierras distintas. El mismo cariño. Siempre ATEEZ.', mapHint: 'Explora el mapa y encuentra cartas de todo el mundo.',
-    lettersTitle: 'Cartas de ATINY', lettersNote: 'Mensajes públicos recientes compartidos por ATINY de todo el mundo.', emptyLetters: 'Todavía no hay cartas públicas. Sé la primera persona en compartir una.',
+    lettersTitle: 'Cartas de ATINY', lettersNote: 'Mensajes públicos recientes compartidos por ATINY de todo el mundo.', emptyLetters: 'Todavía no hay cartas públicas. Sé la primera persona en compartir una.', lettersStat: 'Cartas', countriesStat: 'Países', piratesStat: 'Piratas',
     bannerTitle: 'Envía tu carta', bannerText: 'Comparte tu mensaje, marca tu lugar y forma parte de este viaje.', bannerAction: 'Escribe tu carta',
     footer: 'Un proyecto independiente de fans, de ATINY para ATEEZ. Sin afiliación ni respaldo de KQ Entertainment.',
     publicationPending: 'Tu carta se ha enviado. Está pendiente de moderación y aparecerá en el mapa en cuanto sea aprobada.',
@@ -45,10 +49,12 @@ export function PublicHome({
   lang,
   publicationPending = false,
   latestLetters = [],
+  homepageStats = { letters: 0, countries: 0 },
 }: {
   lang: 'en' | 'es'
   publicationPending?: boolean
   latestLetters?: PublicMessageDetail[]
+  homepageStats?: PublicMessageStats
 }) {
   const t = copy[lang]
   const writeUrl = `/${lang}/messages/new`
@@ -91,9 +97,9 @@ export function PublicHome({
         <div className="paper-world">
           <div className="voyage-motto" aria-label="Different places, same sky, one ATEEZ"><span>Different places</span><span>Same sky</span><span>One ATEEZ</span></div>
           <section className="world-intro" aria-label="Our shared journey">
-            <div className="stat-plaque"><strong>One</strong><span>world</span></div>
-            <div className="stat-plaque"><strong>Many</strong><span>places</span></div>
-            <div className="stat-plaque"><strong>One</strong><span>ATEEZ</span></div>
+            <div className="stat-plaque"><strong>{homepageStats.letters}</strong><span>{t.lettersStat}</span></div>
+            <div className="stat-plaque"><strong>{homepageStats.countries}</strong><span>{t.countriesStat}</span></div>
+            <div className="stat-plaque"><strong>8</strong><span>{t.piratesStat}</span></div>
           </section>
 
           <section className="map-section" id="map" aria-labelledby="map-title">
@@ -133,6 +139,10 @@ export default async function Page({ params, searchParams }: {
   const { lang } = await params
   const { publication } = await searchParams
   const locale = lang === 'es' ? 'es' : 'en'
-  const latestLetters = await listLatestHomepageMessages(getDb())
-  return <PublicHome lang={locale} latestLetters={latestLetters} publicationPending={publication === 'pending'} />
+  const db = getDb()
+  const [latestLetters, homepageStats] = await Promise.all([
+    listLatestHomepageMessages(db),
+    getHomepageStats(db),
+  ])
+  return <PublicHome lang={locale} latestLetters={latestLetters} homepageStats={homepageStats} publicationPending={publication === 'pending'} />
 }
