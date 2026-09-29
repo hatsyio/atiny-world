@@ -24,6 +24,25 @@ export interface PublicMessagePage {
   nextCursor: string | null
 }
 
+export async function listLatestPublicMessages(
+  sql: Sql,
+  limit = 4,
+): Promise<PublicMessageDetail[]> {
+  const rows = await sql<FeatureRow[]>`
+    select ${featureColumnsWithContent(sql, true)}
+      from app_private.messages m
+      join app_private.profiles p on p.id = m.author_id
+     where ${visibilityCondition(sql)}
+     order by m.published_at desc, m.id desc
+     limit ${limit}
+  `
+
+  return rows.map((row) => ({
+    ...projectPublicFeature(row),
+    content: row.content ?? '',
+  }))
+}
+
 type FeatureRow = {
   id: string
   public_id: string

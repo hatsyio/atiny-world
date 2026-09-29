@@ -2,13 +2,18 @@ import { Show, UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 
 import { PublicMapController } from '@/components/map/public-map-controller'
+import type { PublicMessageDetail } from '@/domain/messages/public-message'
+import { getDb } from '@/server/db/client'
+import { listLatestPublicMessages } from '@/server/messages/public-repository'
+
+export const dynamic = 'force-dynamic'
 
 const copy = {
   en: {
     home: 'Home', send: 'Send a letter', explore: 'Explore the map', letters: 'Letters', about: 'About', signIn: 'Sign in', join: 'Join',
     heroScript: 'Dear, ATEEZ…', heroTitle: 'Messages across the seas', heroSub: 'From ATINY around the world, to ATEEZ.', heroText: 'Leave a message of love, encouragement, or appreciation and add your voice to our global map.',
     mapTitle: 'A global ocean of ATINY', mapNote: 'Different lands. Same love. Always ATEEZ.', mapHint: 'Explore the map and find letters from around the world.',
-    lettersTitle: 'Letters from ATINY', lettersNote: 'A preview of the stories this space will hold.', example: 'Example letter',
+    lettersTitle: 'Letters from ATINY', lettersNote: 'Recent messages shared publicly by ATINY around the world.', emptyLetters: 'No public letters yet. Be the first to share one.', greeting: 'Dear ATEEZ,',
     bannerTitle: 'Send your letter', bannerText: 'Share your message, mark your location, and be part of this journey.', bannerAction: 'Write your letter',
     footer: 'An independent fan project by ATINY, for ATEEZ. Not affiliated with or endorsed by KQ Entertainment.',
     publicationPending: 'Your letter was sent. It is pending moderation and will appear on the map once approved.',
@@ -17,21 +22,26 @@ const copy = {
     home: 'Inicio', send: 'Envía una carta', explore: 'Explora el mapa', letters: 'Cartas', about: 'Sobre el proyecto', signIn: 'Entrar', join: 'Únete',
     heroScript: 'Querido ATEEZ…', heroTitle: 'Mensajes a través de los mares', heroSub: 'De ATINY de todo el mundo, para ATEEZ.', heroText: 'Deja un mensaje de cariño, ánimo o agradecimiento y suma tu voz a nuestro mapa global.',
     mapTitle: 'Un océano global de ATINY', mapNote: 'Tierras distintas. El mismo cariño. Siempre ATEEZ.', mapHint: 'Explora el mapa y encuentra cartas de todo el mundo.',
-    lettersTitle: 'Cartas de ATINY', lettersNote: 'Un adelanto de las historias que reunirá este espacio.', example: 'Carta de ejemplo',
+    lettersTitle: 'Cartas de ATINY', lettersNote: 'Mensajes públicos recientes compartidos por ATINY de todo el mundo.', emptyLetters: 'Todavía no hay cartas públicas. Sé la primera persona en compartir una.', greeting: 'Querido ATEEZ,',
     bannerTitle: 'Envía tu carta', bannerText: 'Comparte tu mensaje, marca tu lugar y forma parte de este viaje.', bannerAction: 'Escribe tu carta',
     footer: 'Un proyecto independiente de fans, de ATINY para ATEEZ. Sin afiliación ni respaldo de KQ Entertainment.',
     publicationPending: 'Tu carta se ha enviado. Está pendiente de moderación y aparecerá en el mapa en cuanto sea aprobada.',
   },
 } as const
 
-const sampleLetters = [
-  { flag: '🇵🇷', place: 'San Juan, Puerto Rico', message: 'Thank you for always being a source of strength and happiness in my life. We will always be sailing with you.', name: 'Marie' },
-  { flag: '🇺🇸', place: 'Los Angeles, USA', message: 'Your music gives me courage to keep going. Thank you for inspiring ATINY around the world. You are our light.', name: 'Jules' },
-  { flag: '🇰🇷', place: 'Seoul, South Korea', message: 'Even though we’re close, I just wanted to say thank you for always working so hard. You make the world brighter.', name: 'YJ' },
-  { flag: '🇯🇵', place: 'Tokyo, Japan', message: 'Your songs cross every border and bring ATINY together. Thank you for being you. Always.', name: 'Haru' },
-] as const
+function locationLabel(message: PublicMessageDetail): string {
+  return [message.locality, message.country].filter(Boolean).join(', ')
+}
 
-export function PublicHome({ lang, publicationPending = false }: { lang: 'en' | 'es'; publicationPending?: boolean }) {
+export function PublicHome({
+  lang,
+  publicationPending = false,
+  latestLetters = [],
+}: {
+  lang: 'en' | 'es'
+  publicationPending?: boolean
+  latestLetters?: PublicMessageDetail[]
+}) {
   const t = copy[lang]
   const writeUrl = `/${lang}/messages/new`
 
@@ -89,15 +99,14 @@ export function PublicHome({ lang, publicationPending = false }: { lang: 'en' | 
             <div className="section-heading"><span className="section-rule" /><h2 id="letters-title">{t.lettersTitle}</h2><span className="section-rule" /></div>
             <p className="letters-note">{t.lettersNote}</p>
             <div className="letter-grid">
-              {sampleLetters.map((letter) => (
-                <article className="letter-card" key={letter.place} aria-label={`${t.example}: ${letter.place}`}>
-                  <p className="letter-example-label">{t.example}</p>
-                  <div className="letter-place"><span aria-hidden="true">{letter.flag}</span><span>{letter.place}</span></div>
-                  <p className="letter-greeting">Dear ATEEZ,</p>
-                  <p className="letter-body">{letter.message} <span aria-hidden="true">♡</span></p>
-                  <p className="letter-signature">— {letter.name}</p>
+              {latestLetters.length === 0 ? <p role="status">{t.emptyLetters}</p> : latestLetters.map((letter) => (
+                <Link className="letter-card" key={letter.publicId} href={`/${lang}/messages/${letter.publicId}`} aria-label={`${locationLabel(letter)} — ${letter.author.displayName}`}>
+                  <div className="letter-place"><span aria-hidden="true">✉</span><span>{locationLabel(letter)}</span></div>
+                  <p className="letter-greeting">{t.greeting}</p>
+                  <p className="letter-body">{letter.content} <span aria-hidden="true">♡</span></p>
+                  <p className="letter-signature">— {letter.author.displayName}</p>
                   <span className="letter-seal" aria-hidden="true">✧</span>
-                </article>
+                </Link>
               ))}
             </div>
           </section>
@@ -116,5 +125,7 @@ export default async function Page({ params, searchParams }: {
 }) {
   const { lang } = await params
   const { publication } = await searchParams
-  return <PublicHome lang={lang === 'es' ? 'es' : 'en'} publicationPending={publication === 'pending'} />
+  const locale = lang === 'es' ? 'es' : 'en'
+  const latestLetters = await listLatestPublicMessages(getDb())
+  return <PublicHome lang={locale} latestLetters={latestLetters} publicationPending={publication === 'pending'} />
 }
