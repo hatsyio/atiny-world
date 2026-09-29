@@ -30,13 +30,24 @@ async function finish(id: string, username: string | null, verified = true) {
 }
 
 describe('Clerk username signup boundary', () => {
-  it('requires a verified identity and accepts the full Clerk username length', async () => {
-    expect(await finish('unverified', 'atiny_fan', false)).toMatchObject({ ok: false, error: { code: 'PROFILE_INCOMPLETE' } })
+  it('accepts a Clerk account without a verified email and the full Clerk username length', async () => {
+    expect(await finish('unverified', 'atiny_fan', false)).toMatchObject({ ok: true })
     expect(await finish('missing', null)).toMatchObject({ ok: false, error: { fieldErrors: { username: 'profile.usernameRequired' } } })
     expect(await finish('long', 'a'.repeat(65))).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } })
     expect(await finish('verified', 'a'.repeat(64))).toMatchObject({ ok: true })
     const rows = await db<{ display_name: string }[]>`select display_name from app_private.profiles where clerk_user_id = 'verified'`
     expect(rows[0].display_name).toBe('a'.repeat(64))
+  })
+
+  it('creates a profile for username and password sign-up without an email address', async () => {
+    const result = await completeProfileForSession(db, session('password-fan'), async () => ({
+      id: 'password-fan',
+      username: 'password_atiny',
+      primaryEmailAddressId: null,
+      emailAddresses: [],
+      unsafeMetadata: {},
+    }))
+    expect(result).toMatchObject({ ok: true })
   })
 
   it('keeps Clerk IDs and public UUIDs distinct for different usernames', async () => {
@@ -86,7 +97,7 @@ describe('Clerk username signup boundary', () => {
   })
 
   it('keeps an existing account and public UUID after metadata or email changes', async () => {
-    const first = await completeProfile(db, { clerkUserId: 'existing', emailVerified: true, displayName: 'Existing' })
+    const first = await completeProfile(db, { clerkUserId: 'existing', displayName: 'Existing' })
     expect(first.ok).toBe(true)
     const second = await finish('existing', 'new_username')
     expect(second).toMatchObject({ ok: true })
