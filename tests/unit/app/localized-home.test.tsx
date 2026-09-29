@@ -3,10 +3,13 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+const clerkState = vi.hoisted(() => ({ signedIn: true }))
 vi.mock('server-only', () => ({}))
 
 vi.mock('@clerk/nextjs', () => ({
-  Show: ({ children }: { children: React.ReactNode }) => children,
+  Show: ({ children, when }: { children: React.ReactNode; when: string }) => (
+    clerkState.signedIn === (when === 'signed-in') ? children : null
+  ),
   SignInButton: ({ children }: { children: React.ReactNode }) => children,
   SignUpButton: ({ children }: { children: React.ReactNode }) => children,
   UserButton: () => <button aria-label="Cuenta" type="button" />,
@@ -17,6 +20,11 @@ vi.mock('../../../src/components/map/public-map-controller', () => ({
 }))
 
 import { PublicHome } from '../../../src/app/[lang]/page'
+
+afterEach(() => {
+  clerkState.signedIn = true
+  cleanup()
+})
 
 const letter = {
   publicId: 'letter-1',
@@ -29,8 +37,6 @@ const letter = {
   author: { publicId: 'author-1', displayName: 'ATINY Madrid' },
   content: 'Gracias por vuestra música.',
 }
-
-afterEach(cleanup)
 
 describe('PublicHome', () => {
   it('places account header, introduction, map, publication entry point and footer in order', () => {
@@ -47,6 +53,27 @@ describe('PublicHome', () => {
     expect(screen.queryByText('Dear ATEEZ,')).not.toBeInTheDocument()
     expect(screen.queryByText('♡')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Madrid, España/i })).toHaveAttribute('href', '/en/messages/letter-1')
+  })
+
+  it('shows the localized private letters link separately from the public letters section', () => {
+    render(<PublicHome lang="es" />)
+
+    expect(screen.getByRole('link', { name: 'Mis cartas' })).toHaveAttribute('href', '/es/my-messages')
+    expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('href', '#letters')
+  })
+
+  it('hides the private letters link for signed-out visitors', () => {
+    clerkState.signedIn = false
+
+    render(<PublicHome lang="en" />)
+
+    expect(screen.queryByRole('link', { name: 'My letters' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the private letters link in the active locale', () => {
+    render(<PublicHome lang="en" />)
+
+    expect(screen.getByRole('link', { name: 'My letters' })).toHaveAttribute('href', '/en/my-messages')
   })
 
   it('shows the pending publication beside the refreshed map without exposing a message link', () => {

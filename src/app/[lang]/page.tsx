@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'
 
 const copy = {
   en: {
-    home: 'Home', send: 'Send a letter', explore: 'Explore the map', letters: 'Letters', about: 'About', signIn: 'Sign in', join: 'Join',
+    home: 'Home', send: 'Send a letter', explore: 'Explore the map', letters: 'Letters', myLetters: 'My letters', about: 'About', signIn: 'Sign in', join: 'Join',
     heroScript: 'Dear, ATEEZ…', heroTitle: 'Messages across the seas', heroSub: 'From ATINY around the world, to ATEEZ.', heroText: 'Leave a message of love, encouragement, or appreciation and add your voice to our global map.',
     mapTitle: 'A global ocean of ATINY', mapNote: 'Different lands. Same love. Always ATEEZ.', mapHint: 'Explore the map and find letters from around the world.',
     lettersTitle: 'Letters from ATINY', lettersNote: 'Recent messages shared publicly by ATINY around the world.', emptyLetters: 'No public letters yet. Be the first to share one.', letterStat: { one: 'Letter', other: 'Letters' }, countryStat: { one: 'Country', other: 'Countries' }, piratesStat: 'Pirates',
@@ -23,7 +23,7 @@ const copy = {
     publicationPending: 'Your letter was sent. It is pending moderation and will appear on the map once approved.',
   },
   es: {
-    home: 'Inicio', send: 'Envía una carta', explore: 'Explora el mapa', letters: 'Cartas', about: 'Sobre el proyecto', signIn: 'Entrar', join: 'Únete',
+    home: 'Inicio', send: 'Envía una carta', explore: 'Explora el mapa', letters: 'Cartas', myLetters: 'Mis cartas', about: 'Sobre el proyecto', signIn: 'Entrar', join: 'Únete',
     heroScript: 'Querido ATEEZ…', heroTitle: 'Mensajes a través de los mares', heroSub: 'De ATINY de todo el mundo, para ATEEZ.', heroText: 'Deja un mensaje de cariño, ánimo o agradecimiento y suma tu voz a nuestro mapa global.',
     mapTitle: 'Un océano global de ATINY', mapNote: 'Tierras distintas. El mismo cariño. Siempre ATEEZ.', mapHint: 'Explora el mapa y encuentra cartas de todo el mundo.',
     lettersTitle: 'Cartas de ATINY', lettersNote: 'Mensajes públicos recientes compartidos por ATINY de todo el mundo.', emptyLetters: 'Todavía no hay cartas públicas. Sé la primera persona en compartir una.', letterStat: { one: 'Carta', other: 'Cartas' }, countryStat: { one: 'País', other: 'Países' }, piratesStat: 'Piratas',
@@ -75,7 +75,7 @@ export function PublicHome({
         </Link>
         <nav className="account-actions" aria-label="Account">
           <Show when="signed-out"><Link href={`/${lang}/sign-in`}>{t.signIn}</Link><Link href={`/${lang}/sign-up`}>{t.join}</Link></Show>
-          <Show when="signed-in"><UserButton /></Show>
+          <Show when="signed-in"><Link href={`/${lang}/my-messages`}>{t.myLetters}</Link><UserButton /></Show>
         </nav>
       </header>
 
