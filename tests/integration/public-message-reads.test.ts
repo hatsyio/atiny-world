@@ -2,6 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import {
   listFeaturesInViewport,
+  listLatestPublicMessages,
+  getPublicMessageStats,
   pagePublicMessages,
   getVisibleMessage,
   type MapBounds,
@@ -41,11 +43,13 @@ describe('public message reads share one visibility rule', () => {
       status: 'approved',
       longitude: -3.7,
       latitude: 40.4,
+      published_at: '2026-09-28T10:00:00.000Z',
     })).public_id
     pendingId = (await insertMessage(db, authorId, {
       status: 'pending',
       longitude: -3.71,
       latitude: 40.41,
+      published_at: '2026-09-29T10:00:00.000Z',
     })).public_id
     rejectedId = (await insertMessage(db, authorId, {
       status: 'rejected',
@@ -138,6 +142,34 @@ describe('public message reads share one visibility rule', () => {
 
     for (let index = 1; index < published.length; index += 1) {
       expect(published[index - 1] >= published[index]).toBe(true)
+    }
+  })
+
+  it('returns the latest global public messages independent of viewport', async () => {
+    const latest = await listLatestPublicMessages(db, 4)
+
+    expect(latest.map((item) => item.publicId)).toEqual([pendingId, approvedId])
+    expect(latest[0]?.content).toBe('Un mensaje de prueba')
+    expect(latest[0]?.countryCode).toBe('es')
+  })
+
+  it('counts only visible messages and deduplicates countries by country code', async () => {
+    await insertMessage(db, authorId, {
+      status: 'approved',
+      country: 'France',
+      country_code: 'fr',
+      longitude: -3.74,
+      latitude: 40.44,
+      published_at: '2026-09-27T10:00:00.000Z',
+    })
+
+    expect(await getPublicMessageStats(db)).toEqual({ letters: 3, countries: 2 })
+
+    await db`update app_private.settings set premoderation_enabled = true where id = 1`
+    try {
+      expect(await getPublicMessageStats(db)).toEqual({ letters: 2, countries: 2 })
+    } finally {
+      await db`update app_private.settings set premoderation_enabled = false where id = 1`
     }
   })
 

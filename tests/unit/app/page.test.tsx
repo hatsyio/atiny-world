@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 afterEach(cleanup)
 
+vi.mock('server-only', () => ({}))
+
 vi.mock('@clerk/nextjs', () => ({
   Show: ({ children, when }: PropsWithChildren<{ when: string }>) => (
     <div data-auth-state={when}>{children}</div>
@@ -19,11 +21,21 @@ vi.mock('../../../src/components/map/public-map-controller', () => ({
   PublicMapController: () => <div aria-label="Mapa de mensajes" />,
 }))
 
+vi.mock('../../../src/server/db/client', () => ({ getDb: vi.fn() }))
+vi.mock('../../../src/server/messages/public-repository', () => ({
+  listLatestPublicMessages: vi.fn(async () => []),
+}))
+
+vi.mock('../../../src/server/messages/latest-public-messages', () => ({
+  listLatestHomepageMessages: vi.fn(async () => []),
+  getHomepageStats: vi.fn(async () => ({ letters: 0, countries: 0 })),
+}))
+
 import Home from '../../../src/app/page'
 
 describe('Home', () => {
-  it('renders the public application shell', () => {
-    render(<Home />)
+  it('renders the public application shell', async () => {
+    render(await Home())
 
     expect(
       screen.getByRole('heading', {
@@ -34,8 +46,8 @@ describe('Home', () => {
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
   })
 
-  it('declares the account actions for both session states', () => {
-    render(<Home />)
+  it('declares the account actions for both session states', async () => {
+    render(await Home())
 
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/en/sign-in')
     expect(screen.getByRole('link', { name: 'Join' })).toHaveAttribute('href', '/en/sign-up')
