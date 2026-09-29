@@ -132,14 +132,24 @@
 
 - [ ] **Step 3: Crear la migración nueva sin editar migraciones anteriores**
 
-  Añade exactamente:
+  Añade una migración que primero elimine y después recree `preview_api.public_messages` sin `recipient`, y que elimine la columna:
 
   ```sql
-  alter table app_private.messages
-    drop column recipient;
+  drop view preview_api.public_messages;
+  alter table app_private.messages drop column recipient;
+  create view preview_api.public_messages with (security_invoker = false) as
+  select m.public_id, m.location_precision, m.locality, m.country,
+         m.country_code, m.published_at, p.public_id as author_public_id,
+         p.username, p.display_name
+    from app_private.messages m
+    join app_private.profiles p on p.id = m.author_id
+   where p.account_state = 'active' and p.suspended_at is null
+     and (m.status = 'approved' or (m.status = 'pending' and not exists (
+       select 1 from app_private.settings s where s.id = 1 and s.premoderation_enabled
+     )));
   ```
 
-  No uses `drop table`, no recrees mensajes y no modifiques `20260915000100_create_app_private_core.sql`.
+  No uses `drop table`, no recrees mensajes y no modifiques `20260915000100_create_app_private_core.sql`; conserva el `security_invoker`, los filtros de visibilidad y el grant para `atiny_preview_reader` al recrear la vista.
 
 - [ ] **Step 4: Actualizar seed y helper**
 

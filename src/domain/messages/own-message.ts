@@ -1,4 +1,4 @@
-import type { LocationPrecision, MessageStatus, Recipient } from '../contracts'
+import type { LocationPrecision, MessageStatus } from '../contracts'
 
 export interface OwnMessage {
   publicId: string
@@ -7,7 +7,6 @@ export interface OwnMessage {
   moderationReasonCode: string | null
   moderationNote: string | null
   content: string
-  recipient: Recipient
   point: { latitude: number; longitude: number }
   precision: LocationPrecision
   locality: string | null
@@ -22,7 +21,6 @@ export function projectOwnMessage(row: {
   moderation_reason_code: string | null
   moderation_note: string | null
   content: string
-  recipient: string | null
   latitude: number
   longitude: number
   location_precision: string
@@ -37,7 +35,6 @@ export function projectOwnMessage(row: {
     moderationReasonCode: row.moderation_reason_code,
     moderationNote: row.moderation_note,
     content: row.content,
-    recipient: row.recipient as Recipient,
     point: { latitude: row.latitude, longitude: row.longitude },
     precision: row.location_precision as LocationPrecision,
     locality: row.locality,

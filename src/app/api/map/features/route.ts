@@ -38,12 +38,11 @@ export function createMapFeaturesGetHandler(
       return Response.json(parsed.error, { status: 400 })
     }
 
-    const { west, south, east, north, zoom, recipient, fan, city, country } = parsed.data
+    const { west, south, east, north, zoom, fan, city, country } = parsed.data
 
     try {
       const features = await list(getDatabase(), { west, south, east, north }, {
         limit: MAX_MAP_FEATURES,
-        recipient: recipient ?? undefined,
         fan: fan ?? undefined,
         city: city ?? undefined,
         country: country ?? undefined,

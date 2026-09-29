@@ -14,7 +14,7 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json(parsed.error, { status: 400 })
   }
 
-  const { west, south, east, north, recipient, fan, city, country, cursor, limit } = parsed.data
+  const { west, south, east, north, fan, city, country, cursor, limit } = parsed.data
 
   if (cursor !== undefined && verifyCursor(cursor) === null) {
     return Response.json(
@@ -28,7 +28,6 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const page = await pagePublicMessages(getDb(), {
       bounds: { west, south, east, north },
-      recipient: recipient ?? undefined,
       fan: fan ?? undefined,
       city: city ?? undefined,
       country: country ?? undefined,

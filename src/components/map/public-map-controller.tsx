@@ -18,7 +18,6 @@ const WORLD_BOUNDS: MapBounds = {
 const EMPTY_FILTERS: MapFilterValues = {
   city: '',
   country: '',
-  recipient: '',
   fan: '',
 }
 
@@ -43,7 +42,6 @@ export function buildFeatureRequest(
 
   appendFilter(params, 'city', filters.city)
   appendFilter(params, 'country', filters.country)
-  appendFilter(params, 'recipient', filters.recipient)
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(filters.fan)) {
     params.set('fan', filters.fan)
   }

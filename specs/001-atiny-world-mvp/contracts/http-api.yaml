@@ -18,7 +18,6 @@ paths:
         - $ref: '#/components/parameters/East'
         - $ref: '#/components/parameters/North'
         - $ref: '#/components/parameters/Zoom'
-        - $ref: '#/components/parameters/Recipient'
         - name: fan
           in: query
           schema: { type: string, format: uuid }
@@ -53,7 +52,6 @@ paths:
         - $ref: '#/components/parameters/South'
         - $ref: '#/components/parameters/East'
         - $ref: '#/components/parameters/North'
-        - $ref: '#/components/parameters/Recipient'
         - name: fan
           in: query
           schema: { type: string, format: uuid }
@@ -223,10 +221,6 @@ components:
       in: query
       required: true
       schema: { type: number, minimum: 0, maximum: 22 }
-    Recipient:
-      name: recipient
-      in: query
-      schema: { $ref: '#/components/schemas/Recipient' }
     Cursor:
       name: cursor
       in: query
@@ -273,9 +267,6 @@ components:
             messageKey: location.providerUnavailable
             retryable: true
   schemas:
-    Recipient:
-      type: [string, 'null']
-      enum: [null, ateez, hongjoong, seonghwa, yunho, yeosang, san, mingi, wooyoung, jongho, atiny]
     Point:
       type: object
       additionalProperties: false
@@ -293,14 +284,13 @@ components:
     MapFeature:
       type: object
       additionalProperties: false
-      required: [publicId, point, precision, locality, country, recipient, publishedAt, author]
+      required: [publicId, point, precision, locality, country, publishedAt, author]
       properties:
         publicId: { type: string, format: uuid }
         point: { $ref: '#/components/schemas/Point' }
         precision: { type: string, enum: [approximate, precise] }
         locality: { type: [string, 'null'] }
         country: { type: string }
-        recipient: { $ref: '#/components/schemas/Recipient' }
         publishedAt: { type: string, format: date-time }
         author: { $ref: '#/components/schemas/PublicUser' }
     PublicMessage:

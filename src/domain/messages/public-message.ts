@@ -1,7 +1,4 @@
-import type {
-  LocationPrecision,
-  Recipient,
-} from '../contracts'
+import type { LocationPrecision } from '../contracts'
 
 export type PublicPoint = {
   latitude: number
@@ -19,7 +16,6 @@ export interface PublicMapFeature {
   precision: LocationPrecision
   locality: string | null
   country: string
-  recipient: Recipient
   publishedAt: string
   author: PublicAuthor
 }
@@ -47,7 +43,6 @@ export function projectPublicFeature(row: {
   location_precision: string
   locality: string | null
   country: string
-  recipient: string | null
   published_at: string
   author_public_id: string
   display_name: string
@@ -58,7 +53,6 @@ export function projectPublicFeature(row: {
     precision: row.location_precision as LocationPrecision,
     locality: row.locality,
     country: row.country,
-    recipient: row.recipient as Recipient,
     publishedAt: row.published_at,
     author: {
       publicId: row.author_public_id,

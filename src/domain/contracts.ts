@@ -1,26 +1,7 @@
 // Clasificación canónica de valores de dominio. Cada guarda aplica EXACTAMENTE
 // las reglas de data-model.md; cualquier cambio futuro de vocabulario (estados,
-// roles, destinatarios, códigos) se declara aquí una sola vez y los tests de
+// roles, códigos) se declara aquí una sola vez y los tests de
 // contrato lo fijan.
-
-export const RECIPIENTS = [
-  'ateez',
-  'hongjoong',
-  'seonghwa',
-  'yunho',
-  'yeosang',
-  'san',
-  'mingi',
-  'wooyoung',
-  'jongho',
-  'atiny',
-] as const
-
-export type Recipient = (typeof RECIPIENTS)[number] | null
-
-export function isRecipient(value: unknown): value is Recipient {
-  return value === null || (typeof value === 'string' && (RECIPIENTS as readonly string[]).includes(value))
-}
 
 export const MESSAGE_STATUSES = ['pending', 'approved', 'rejected', 'withdrawn'] as const
 

@@ -20,4 +20,18 @@ describe('parseMapQuery', () => {
       data: expect.objectContaining({ city: 'Madrid', country: 'es' }),
     })
   })
+
+  it('rejects the removed recipient filter', () => {
+    const parsed = parseMapQuery(
+      new URLSearchParams({
+        west: '-4',
+        south: '40',
+        east: '-3',
+        north: '41',
+        recipient: 'ateez',
+      }),
+    )
+
+    expect(parsed).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } })
+  })
 })

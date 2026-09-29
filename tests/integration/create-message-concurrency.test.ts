@@ -36,7 +36,6 @@ describe('createMessage concurrency', () => {
     const input = {
       clerkUserId: 'publish-limit',
       content: 'Un mensaje válido',
-      recipient: 'ateez' as const,
       location: { precision: 'approximate' as const, localityCenter: { latitude: 40.4, longitude: -3.7 }, country: 'España', countryCode: 'es' },
     }
     const [first, second] = await Promise.all([
@@ -55,7 +54,6 @@ describe('createMessage concurrency', () => {
     const result = await createMessage(db, {
       clerkUserId: 'publish-cooldown',
       content: 'Otro mensaje válido',
-      recipient: 'atiny',
       location: { precision: 'approximate', localityCenter: { latitude: 40.4, longitude: -3.7 }, country: 'España', countryCode: 'es' },
     })
 

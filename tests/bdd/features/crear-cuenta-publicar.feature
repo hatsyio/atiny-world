@@ -8,7 +8,7 @@ Característica: Crear cuenta y publicar un mensaje
   Escenario: Una cuenta verificada completa un perfil y publica aproximadamente
     Dado una identidad Clerk con correo verificado y perfil incompleto
     Cuando Clerk entrega el nombre público "ATINY Seoul"
-    Y publico "Siempre contigo" para "ateez" desde una ubicación aproximada
+    Y publico "Siempre contigo" desde una ubicación aproximada
     Entonces recibo un mensaje pendiente con enlace estable
 
   Escenario: Una ubicación precisa requiere confirmación explícita
@@ -30,10 +30,10 @@ Característica: Crear cuenta y publicar un mensaje
 
   Escenario: La carta pendiente aparece en el mapa cuando no hay moderación previa
     Dado una fan activa con perfil completo
-    Cuando publico "Nos vemos en el mapa" para "atiny" desde una ubicación aproximada
+    Cuando publico "Nos vemos en el mapa" desde una ubicación aproximada
     Entonces el mensaje pendiente aparece en el mapa y abre su enlace estable
 
   Escenario: La moderación previa oculta la carta pendiente
     Dado una fan activa con perfil completo y moderación previa activada
-    Cuando publico "Esperando revisión" para "ateez" desde una ubicación aproximada
+    Cuando publico "Esperando revisión" desde una ubicación aproximada
     Entonces el mensaje pendiente conserva su enlace estable pero no aparece públicamente

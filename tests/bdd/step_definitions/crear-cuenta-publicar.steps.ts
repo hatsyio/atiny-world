@@ -64,9 +64,9 @@ async function publish(world: AtinyWorld, input: CreateMessageActionInput) {
   if (world.messageActionResult.ok) world.publicId = world.messageActionResult.data.publicId
 }
 
-function approximateInput(world: AtinyWorld, content: string, recipient: 'ateez' | 'atiny' | null): CreateMessageActionInput {
+function approximateInput(world: AtinyWorld, content: string): CreateMessageActionInput {
   assert.ok(world.locationSelectionId)
-  return { content, recipient, location: { selectionId: world.locationSelectionId, precision: 'approximate' } }
+  return { content, location: { selectionId: world.locationSelectionId, precision: 'approximate' } }
 }
 
 async function publicReads(publicId: string) {
@@ -123,34 +123,34 @@ Given('una fan activa que acaba de publicar', async function (this: AtinyWorld) 
   await insertMessage(db, profile.id)
 })
 
-When('publico {string} para {string} desde una ubicación aproximada', async function (this: AtinyWorld, content: string, recipient: 'ateez' | 'atiny') {
+When('publico {string} desde una ubicación aproximada', async function (this: AtinyWorld, content: string) {
   await selectLocation(this)
-  await publish(this, approximateInput(this, content, recipient))
+  await publish(this, approximateInput(this, content))
 })
 
 When('intento publicar una ubicación precisa sin confirmar la advertencia', async function (this: AtinyWorld) {
   await selectLocation(this)
   await publish(this, {
-    content: 'Punto preciso sin confirmar', recipient: null,
+    content: 'Punto preciso sin confirmar',
     location: { selectionId: this.locationSelectionId!, precision: 'precise', confirmedPublicPoint: confirmedPoint } as CreateMessageActionInput['location'],
   })
 })
 
 When('confirmo la advertencia y publico una ubicación precisa', async function (this: AtinyWorld) {
   await publish(this, {
-    content: 'Punto preciso confirmado', recipient: null,
+    content: 'Punto preciso confirmado',
     location: { selectionId: this.locationSelectionId!, precision: 'precise', confirmedPublicPoint: confirmedPoint, preciseLocationConfirmed: true },
   })
 })
 
 When('intenta publicar otro mensaje válido', async function (this: AtinyWorld) {
   await selectLocation(this)
-  await publish(this, approximateInput(this, 'El undécimo mensaje', 'atiny'))
+  await publish(this, approximateInput(this, 'El undécimo mensaje'))
 })
 
 When('intenta publicar antes del cooldown configurado', async function (this: AtinyWorld) {
   await selectLocation(this)
-  await publish(this, approximateInput(this, 'Otra carta demasiado pronto', null))
+  await publish(this, approximateInput(this, 'Otra carta demasiado pronto'))
 })
 
 Then('recibo un mensaje pendiente con enlace estable', async function (this: AtinyWorld) {

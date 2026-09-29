@@ -26,7 +26,6 @@ async function insertFixtureMessage(
     status: string
     latitude: number
     longitude: number
-    recipient?: string
     premoderationOff?: boolean
   },
 ): Promise<{ publicId: string; authorId: string }> {
@@ -41,10 +40,10 @@ async function insertFixtureMessage(
 
   const rows = await db<{ public_id: string }[]>`
     insert into app_private.messages (
-      author_id, content, recipient, status, moderation_reason_code,
+      author_id, content, status, moderation_reason_code,
       location_precision, location_algorithm_version, public_point, locality, country, country_code
     ) values (
-      ${authorId}, 'Mensaje de contrato', ${overrides.recipient ?? 'atiny'},
+      ${authorId}, 'Mensaje de contrato',
       ${overrides.status}, ${moderationReason}, 'approximate', 1,
       ST_SetSRID(ST_MakePoint(${overrides.longitude}, ${overrides.latitude}), 4326)::geography,
       'Testloc', 'España', 'es'
@@ -103,13 +102,28 @@ describe('GET /api/map/features', () => {
       expect(feature).toHaveProperty('precision')
       expect(feature).toHaveProperty('locality')
       expect(feature).toHaveProperty('country')
-      expect(feature).toHaveProperty('recipient')
+      expect(feature).not.toHaveProperty('recipient')
       expect(feature).toHaveProperty('publishedAt')
       expect(feature).toHaveProperty('author')
       expect(feature).not.toHaveProperty('content')
       expect(feature).not.toHaveProperty('status')
       expect(feature).not.toHaveProperty('moderationReasonCode')
     }
+  })
+
+  it('rejects the removed recipient filter', async () => {
+    const response = await getFeatures(
+      new Request(apiUrl('/api/map/features', {
+        west: '-10',
+        south: '35',
+        east: '5',
+        north: '45',
+        recipient: 'ateez',
+      })),
+    )
+
+    expect(response.status).toBe(400)
+    expect((await response.json() as Json).code).toBe('VALIDATION_ERROR')
   })
 
   it('accepts an antimeridian-crossing bbox without failure', async () => {
@@ -176,6 +190,21 @@ describe('GET /api/map/features', () => {
 })
 
 describe('GET /api/map/messages', () => {
+  it('rejects the removed recipient filter', async () => {
+    const response = await getMessages(
+      new Request(apiUrl('/api/map/messages', {
+        west: '-10',
+        south: '35',
+        east: '5',
+        north: '45',
+        recipient: 'ateez',
+      })),
+    )
+
+    expect(response.status).toBe(400)
+    expect((await response.json() as Json).code).toBe('VALIDATION_ERROR')
+  })
+
   it('paginates the visible group with stable cursor order', async () => {
     const base = {
       west: '-10',

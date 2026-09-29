@@ -23,13 +23,11 @@ Los objetos JavaScript que lleguen con una propiedad adicional `recipient` no te
 
 ### Persistencia
 
-Crear una migración posterior a las existentes con:
+Crear una migración posterior a las existentes. Como `preview_api.public_messages` proyecta actualmente la columna, la migración debe eliminar y recrear esa vista sin el campo antes de ejecutar el `ALTER TABLE`:
 
-```sql
-alter table app_private.messages drop column recipient;
-```
+La vista recreada debe seleccionar `public_id`, `location_precision`, `locality`, `country`, `country_code`, `published_at`, `author_public_id`, `username` y `display_name`, usando la misma unión, condición de visibilidad, `security_invoker = false` y permisos que tenía antes.
 
-La columna no tiene referencias externas conocidas. La operación conserva filas, identificadores, autoría, contenido, estado, ubicación, fechas y enlaces estables. El seed y los helpers de base de datos de pruebas se adaptarán al nuevo esquema.
+La operación conserva filas, identificadores, autoría, contenido, estado, ubicación, fechas y enlaces estables. La vista mantiene sus controles de seguridad y el grant de lectura para `atiny_preview_reader`. El seed y los helpers de base de datos de pruebas se adaptarán al nuevo esquema.
 
 ### Lecturas, mapa y API
 

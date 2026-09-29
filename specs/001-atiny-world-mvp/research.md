@@ -32,7 +32,7 @@
 
 ## 4. Esquema PostgreSQL y exposición de datos
 
-**Decisión**: almacenar producto en `app_private`, deshabilitar Data API y revocar privilegios por defecto de `PUBLIC`, `anon`, `authenticated` y `service_role`. Las PK internas serán `bigint generated always as identity`; los recursos públicos tendrán además UUID opaco único. Estados, roles y destinatarios usarán `text` con restricciones `CHECK`; fechas, `timestamptz`. El máximo de 500 grafemas se valida en TypeScript, no con `char_length`.
+**Decisión**: almacenar producto en `app_private`, deshabilitar Data API y revocar privilegios por defecto de `PUBLIC`, `anon`, `authenticated` y `service_role`. Las PK internas serán `bigint generated always as identity`; los recursos públicos tendrán además UUID opaco único. Estados y roles usarán `text` con restricciones `CHECK`; fechas, `timestamptz`. El máximo de 500 grafemas se valida en TypeScript, no con `char_length`.
 
 **Razón**: los FK e índices internos quedan compactos, los enlaces no son enumerables y los estados se pueden ampliar con una migración compatible. La separación privada reduce el impacto de una exposición accidental del Data API.
 

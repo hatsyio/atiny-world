@@ -10,10 +10,10 @@ describe('buildFeatureRequest', () => {
     expect(
       buildFeatureRequest(
         { west: -4, south: 40, east: -3, north: 41 },
-        { city: 'Madrid', country: 'es', recipient: 'atiny', fan: '' },
+        { city: 'Madrid', country: 'es', fan: '' },
       ),
     ).toBe(
-      '/api/map/features?west=-4&south=40&east=-3&north=41&city=Madrid&country=es&recipient=atiny',
+      '/api/map/features?west=-4&south=40&east=-3&north=41&city=Madrid&country=es',
     )
   })
 })
@@ -23,7 +23,7 @@ describe('buildMessageRequest', () => {
     expect(
       buildMessageRequest(
         { west: -4, south: 40, east: -3, north: 41 },
-        { city: '', country: '', recipient: '', fan: '' },
+        { city: '', country: '', fan: '' },
       ),
     ).toBe('/api/map/messages?west=-4&south=40&east=-3&north=41&limit=20')
   })

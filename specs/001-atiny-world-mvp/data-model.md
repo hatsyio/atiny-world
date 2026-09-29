@@ -62,7 +62,6 @@ Versión actual de cada mensaje. No existe historial general de texto.
 | `author_id` | bigint | FK a `profiles.id`; la cuenta se purga en la misma transacción antes de eliminarse |
 | `version` | integer | no nulo, inicia en 1, `CHECK version > 0` |
 | `content` | text | no vacío; máximo 500 grafemas validado en dominio; enlaces no se vuelven clicables |
-| `recipient` | text | nullable; `ateez`, ocho miembros o `atiny` |
 | `status` | text | `pending`, `approved`, `rejected`, `withdrawn`; inicia `pending` |
 | `moderation_reason_code` | text | requerido para rechazo/retirada; privado para autora/admin |
 | `moderation_note` | text | nullable, privado para autora/admin |
@@ -75,7 +74,7 @@ Versión actual de cada mensaje. No existe historial general de texto.
 | `published_at` | timestamptz | instante de creación; orden público estable |
 | `created_at`, `updated_at` | timestamptz | no nulos |
 
-Índices iniciales: único `public_id`; `(author_id, created_at DESC, id DESC)`; `(status, published_at DESC, id DESC)`; GiST sobre `public_point`; índices de FK. Los índices por destinatario/localidad serán compuestos o parciales solo cuando las consultas implementadas lo demuestren.
+Índices iniciales: único `public_id`; `(author_id, created_at DESC, id DESC)`; `(status, published_at DESC, id DESC)`; GiST sobre `public_point`; índices de FK. Los índices por localidad serán compuestos o parciales solo cuando las consultas implementadas lo demuestren.
 
 Transiciones:
 
@@ -119,7 +118,6 @@ Snapshot separado para limitar acceso, backup y purga.
 | `review_request_id` | bigint | PK y FK a `review_requests`, `ON DELETE CASCADE` |
 | `content_snapshot` | text | copia exacta de la versión solicitada |
 | `author_display_name_snapshot` | text | contexto mínimo no credencial |
-| `recipient_snapshot` | text | nullable |
 | `location_label_snapshot` | text | localidad/país mostrable, nunca dirección |
 | `captured_at` | timestamptz | no nulo |
 | `purge_at` | timestamptz | `NULL` mientras abierta; al cerrar, dos años naturales después |
@@ -237,7 +235,7 @@ Bloquear perfil, marcar `deletion_pending`, borrar mensajes, anular referencias 
 
 ## Read models
 
-- `PublicMapFeature`: `publicId`, punto, precisión, localidad/país, destinatario, fecha y autora mínima; sin texto completo.
+- `PublicMapFeature`: `publicId`, punto, precisión, localidad/país, fecha y autora mínima; sin texto completo.
 - `PublicMessageDetail`: añade texto completo solo tras volver a comprobar visibilidad.
 - `OwnMessage`: estado, motivo, versión y controles de propiedad; nunca sale por endpoints públicos.
 - `AdminReviewCase`: solicitud + evidencia vigente; solo runtime admin, nunca preview.
