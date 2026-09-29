@@ -24,6 +24,25 @@ export interface PublicMessagePage {
   nextCursor: string | null
 }
 
+export async function listLatestPublicMessages(
+  sql: Sql,
+  limit = 4,
+): Promise<PublicMessageDetail[]> {
+  const rows = await sql<FeatureRow[]>`
+    select ${featureColumnsWithContent(sql, true)}
+      from app_private.messages m
+      join app_private.profiles p on p.id = m.author_id
+     where ${visibilityCondition(sql)}
+     order by m.published_at desc, m.id desc
+     limit ${limit}
+  `
+
+  return rows.map((row) => ({
+    ...projectPublicFeature(row),
+    content: row.content ?? '',
+  }))
+}
+
 type FeatureRow = {
   id: string
   public_id: string
@@ -32,6 +51,7 @@ type FeatureRow = {
   location_precision: string
   locality: string | null
   country: string
+  country_code: string
   published_at: string
   author_public_id: string
   display_name: string
@@ -91,13 +111,13 @@ function featureColumnsWithContent(sql: Sql, includeContent: boolean): Fragment 
   if (includeContent) {
     return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
       st_x(m.public_point::geometry) as longitude, m.location_precision,
-      m.locality, m.country, m.published_at,
+      m.locality, m.country, m.country_code, m.published_at,
       p.public_id as author_public_id, p.display_name,
       m.content`
   }
   return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
     st_x(m.public_point::geometry) as longitude, m.location_precision,
-    m.locality, m.country, m.published_at,
+    m.locality, m.country, m.country_code, m.published_at,
     p.public_id as author_public_id, p.display_name,
     null as content`
 }

@@ -53,7 +53,7 @@ export async function updateMessage(
       latitude: point.latitude,
       longitude: point.longitude,
       algorithmVersion: location.data.precision === 'approximate' ? 1 : null,
-      locality: null,
+      locality: input.location.locality,
       country: input.location.country,
       countryCode: input.location.countryCode,
     }

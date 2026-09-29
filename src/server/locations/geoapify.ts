@@ -4,6 +4,7 @@ import type { PublicPoint } from '../../domain/location/public-point'
 import { getGeoapifyApiKey } from '../env'
 
 const GEOAPIFY_AUTOCOMPLETE_URL = 'https://api.geoapify.com/v1/geocode/autocomplete'
+const GEOAPIFY_REVERSE_URL = 'https://api.geoapify.com/v1/geocode/reverse'
 const PROVIDER_TIMEOUT_MS = 5_000
 
 export type GeoapifyLocationQuery = {
@@ -102,6 +103,44 @@ export async function searchGeoapifyLocations(
     return payload.results
       .map((result) => normalizeResult(result as GeoapifyResult))
       .filter((result): result is GeoapifyLocationSuggestion => result !== null)
+  } catch (error) {
+    if (error instanceof GeoapifyProviderError) throw error
+    throw new GeoapifyProviderError('unavailable')
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export async function reverseGeoapifyLocality(
+  point: PublicPoint,
+  dependencies: GeoapifyDependencies = {},
+): Promise<string | null> {
+  const parameters = new URLSearchParams({
+    lat: String(point.latitude),
+    lon: String(point.longitude),
+    type: 'city',
+    format: 'json',
+    limit: '1',
+  })
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), dependencies.timeoutMs ?? PROVIDER_TIMEOUT_MS)
+
+  try {
+    const response = await (dependencies.fetch ?? fetch)(`${GEOAPIFY_REVERSE_URL}?${parameters}`, {
+      headers: { 'x-api-key': dependencies.apiKey ?? getGeoapifyApiKey() },
+      signal: controller.signal,
+    })
+
+    if (response.status === 429) throw new GeoapifyProviderError('rate_limited')
+    if (!response.ok) throw new GeoapifyProviderError('unavailable')
+
+    const payload = await response.json() as GeoapifyResponse
+    if (!Array.isArray(payload.results)) throw new GeoapifyProviderError('unavailable')
+
+    const result = payload.results
+      .map((value) => normalizeResult(value as GeoapifyResult))
+      .find((value) => value !== null)
+    return result?.locality ?? null
   } catch (error) {
     if (error instanceof GeoapifyProviderError) throw error
     throw new GeoapifyProviderError('unavailable')

@@ -190,6 +190,7 @@ describe('updateMessage point preservation and replacement', () => {
       location: {
         precision: 'precise',
         localityCenter: { latitude: 35.1796, longitude: 129.0756 },
+        locality: 'Busan',
         country: 'South Korea',
         countryCode: 'kr',
         confirmed: true,
@@ -298,6 +299,7 @@ describe('deleteMessage ownership, released slot and cooldown timestamp', () => 
       location: {
         precision: 'approximate',
         localityCenter: { latitude: 40.4168, longitude: -3.7038 },
+        locality: 'Madrid',
         country: 'España',
         countryCode: 'es',
       },
@@ -318,6 +320,7 @@ describe('deleteMessage ownership, released slot and cooldown timestamp', () => 
       location: {
         precision: 'approximate',
         localityCenter: { latitude: 40.4168, longitude: -3.7038 },
+        locality: 'Madrid',
         country: 'España',
         countryCode: 'es',
       },
