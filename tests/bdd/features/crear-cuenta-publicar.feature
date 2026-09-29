@@ -5,9 +5,9 @@ Característica: Crear cuenta y publicar un mensaje
   Quiero completar mi perfil y publicar desde una ubicación pública
   Para participar en el mapa sin exceder los límites de mi cuenta
 
-  Escenario: Una cuenta verificada completa un perfil y publica aproximadamente
-    Dado una identidad Clerk con correo verificado y perfil incompleto
-    Cuando Clerk entrega el nombre público "ATINY Seoul"
+  Escenario: Una cuenta sin correo completa un perfil y publica aproximadamente
+    Dado una identidad Clerk sin correo y con perfil incompleto
+    Cuando Clerk entrega el username "atiny_seoul"
     Y publico "Siempre contigo" desde una ubicación aproximada
     Entonces recibo un mensaje pendiente con enlace estable
 

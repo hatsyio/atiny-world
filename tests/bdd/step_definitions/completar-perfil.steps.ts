@@ -17,12 +17,11 @@ Before(async () => { await truncateProductTables(db) })
 After(async () => { await truncateProductTables(db) })
 AfterAll(async () => { await db.end() })
 
-Given('que Clerk identifica a la fan {string} con correo verificado y perfil incompleto', function (this: AtinyWorld, id: string) {
+Given('que Clerk identifica a la fan {string} sin correo y con perfil incompleto', function (this: AtinyWorld, id: string) {
   this.clerkUserId = id
   this.clerkUser = {
     id,
-    primaryEmailAddressId: 'email_1',
-    emailAddresses: [{ id: 'email_1', verification: { status: 'verified' } }],
+    username: null,
     unsafeMetadata: {},
   }
 })
@@ -32,12 +31,8 @@ Given('que Clerk identifica a la fan {string} con perfil completo', async functi
   await db`insert into app_private.profiles (clerk_user_id, display_name) values (${id}, 'Ready ATINY')`
 })
 
-Given('otra cuenta ya usa el nombre público {string}', async function (this: AtinyWorld, name: string) {
-  await db`insert into app_private.profiles (clerk_user_id, display_name) values ('other-account', ${name})`
-})
-
-When('Clerk entrega el nombre público {string}', async function (this: AtinyWorld, name: string) {
-  if (this.clerkUser) this.clerkUser.unsafeMetadata = { publicName: name }
+When('Clerk entrega el username {string}', async function (this: AtinyWorld, username: string) {
+  if (this.clerkUser) this.clerkUser.username = username
   this.profileActionResult = await completeProfileForSession(db, identityOrNull(this), async () => this.clerkUser ?? null)
 })
 
@@ -66,10 +61,10 @@ Then('puede continuar hacia la publicación', function (this: AtinyWorld) {
   assert.equal(writeLetterRedirect(this.accountGate, 'es'), null)
 })
 
-Then('recibo un error para el nombre público', function (this: AtinyWorld) {
+Then('recibo un error para el username', function (this: AtinyWorld) {
   assert.equal(this.profileActionResult?.ok, false)
   assert.ok(this.profileActionResult && !this.profileActionResult.ok)
-  assert.equal(this.profileActionResult.error.fieldErrors?.publicName, 'profile.publicNameRequired')
+  assert.equal(this.profileActionResult.error.fieldErrors?.username, 'profile.usernameRequired')
 })
 
 Then('recibo una salida clara de sesión ausente', function (this: AtinyWorld) {

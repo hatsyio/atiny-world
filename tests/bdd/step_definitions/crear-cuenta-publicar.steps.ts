@@ -88,13 +88,12 @@ AfterAll(async function () {
   await db.end()
 })
 
-Given('una identidad Clerk con correo verificado y perfil incompleto', async function (this: AtinyWorld) {
+Given('una identidad Clerk sin correo y con perfil incompleto', async function (this: AtinyWorld) {
   await resetScenario(this)
   this.clerkUser = {
     id: clerkUserId,
+    username: null,
     unsafeMetadata: {},
-    primaryEmailAddressId: 'bdd-email',
-    emailAddresses: [{ id: 'bdd-email', verification: { status: 'verified' } }],
   }
 })
 

@@ -9,5 +9,5 @@ export default async function ContinueAfterAuth({ params }: { params: Promise<{ 
   const gate = await resolveAccountGate(getDb())
   if (gate.kind === 'anonymous') redirect(`/${locale}/sign-in`)
   if (gate.kind === 'incomplete') redirect(`/${locale}/profile`)
-  redirect(`/${locale}/messages/new`)
+  redirect(`/${locale}`)
 }
