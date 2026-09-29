@@ -2,7 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
-import { GeoapifyProviderError, searchGeoapifyLocations } from '../../../../src/server/locations/geoapify'
+import {
+  GeoapifyProviderError,
+  reverseGeoapifyLocality,
+  searchGeoapifyLocations,
+} from '../../../../src/server/locations/geoapify'
 
 const providerPayload = {
   results: [
@@ -22,6 +26,20 @@ const providerPayload = {
 }
 
 describe('Geoapify location autocomplete', () => {
+  it('resolves a public point to a city without exposing address fields', async () => {
+    const providerFetch = vi.fn<typeof fetch>()
+    providerFetch.mockResolvedValue(new Response(JSON.stringify(providerPayload), { status: 200 }))
+
+    const locality = await reverseGeoapifyLocality(
+      { latitude: 40.4191, longitude: -3.7128 },
+      { apiKey: 'test-server-key', fetch: providerFetch },
+    )
+
+    const [url] = providerFetch.mock.calls[0] ?? []
+    expect(String(url)).toBe('https://api.geoapify.com/v1/geocode/reverse?lat=40.4191&lon=-3.7128&type=city&format=json&limit=1')
+    expect(locality).toBe('Madrid')
+  })
+
   it('sends an unbiased backend request and allowlists its public suggestion fields', async () => {
     const providerFetch = vi.fn<typeof fetch>()
     providerFetch.mockResolvedValue(new Response(JSON.stringify(providerPayload), { status: 200 }))

@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 afterEach(cleanup)
 
+vi.mock('server-only', () => ({}))
+
 vi.mock('@clerk/nextjs', () => ({
   Show: ({ children, when }: PropsWithChildren<{ when: string }>) => (
     <div data-auth-state={when}>{children}</div>

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { PublicMapController } from '@/components/map/public-map-controller'
 import type { PublicMessageDetail } from '@/domain/messages/public-message'
 import { getDb } from '@/server/db/client'
-import { listLatestPublicMessages } from '@/server/messages/public-repository'
+import { listLatestHomepageMessages } from '@/server/messages/latest-public-messages'
 
 export const dynamic = 'force-dynamic'
 
@@ -133,6 +133,6 @@ export default async function Page({ params, searchParams }: {
   const { lang } = await params
   const { publication } = await searchParams
   const locale = lang === 'es' ? 'es' : 'en'
-  const latestLetters = await listLatestPublicMessages(getDb())
+  const latestLetters = await listLatestHomepageMessages(getDb())
   return <PublicHome lang={locale} latestLetters={latestLetters} publicationPending={publication === 'pending'} />
 }

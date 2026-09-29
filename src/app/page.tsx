@@ -1,10 +1,10 @@
 import { PublicHome } from './[lang]/page'
 import { getDb } from '@/server/db/client'
-import { listLatestPublicMessages } from '@/server/messages/public-repository'
+import { listLatestHomepageMessages } from '@/server/messages/latest-public-messages'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const latestLetters = await listLatestPublicMessages(getDb())
+  const latestLetters = await listLatestHomepageMessages(getDb())
   return <PublicHome lang="en" latestLetters={latestLetters} />
 }

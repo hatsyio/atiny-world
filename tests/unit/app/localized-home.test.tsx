@@ -3,6 +3,8 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('server-only', () => ({}))
+
 vi.mock('@clerk/nextjs', () => ({
   Show: ({ children }: { children: React.ReactNode }) => children,
   SignInButton: ({ children }: { children: React.ReactNode }) => children,
