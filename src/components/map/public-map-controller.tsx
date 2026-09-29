@@ -28,15 +28,33 @@ function appendFilter(
   if (value) params.set(name, value)
 }
 
+function normalizeLongitude(longitude: number): number {
+  if (longitude >= -180 && longitude <= 180) return longitude
+  return ((longitude + 180) % 360 + 360) % 360 - 180
+}
+
+function requestBounds(bounds: MapBounds): MapBounds {
+  if (bounds.east - bounds.west >= 360) {
+    return { ...bounds, west: -180, east: 180 }
+  }
+
+  return {
+    ...bounds,
+    west: normalizeLongitude(bounds.west),
+    east: normalizeLongitude(bounds.east),
+  }
+}
+
 export function buildFeatureRequest(
   bounds: MapBounds,
   filters: MapFilterValues,
 ): string {
+  const viewport = requestBounds(bounds)
   const params = new URLSearchParams({
-    west: String(bounds.west),
-    south: String(bounds.south),
-    east: String(bounds.east),
-    north: String(bounds.north),
+    west: String(viewport.west),
+    south: String(viewport.south),
+    east: String(viewport.east),
+    north: String(viewport.north),
   })
 
   appendFilter(params, 'city', filters.city)
