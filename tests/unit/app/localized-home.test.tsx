@@ -73,6 +73,13 @@ describe('PublicHome', () => {
     expect(screen.getByText('Pirates', { selector: 'span' })).toBeInTheDocument()
   })
 
+  it('uses singular labels when a statistic is exactly one', () => {
+    render(<PublicHome lang="en" homepageStats={{ letters: 1, countries: 1 }} />)
+
+    expect(screen.getByText('Letter', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText('Country', { selector: 'span' })).toBeInTheDocument()
+  })
+
   it('shows zero for letter and country statistics when the public collection is empty', () => {
     render(<PublicHome lang="es" homepageStats={{ letters: 0, countries: 0 }} />)
 
