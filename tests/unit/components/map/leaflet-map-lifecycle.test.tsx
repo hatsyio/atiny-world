@@ -122,8 +122,13 @@ describe('LeafletMap lifecycle', () => {
     await waitFor(() => expect(control).toHaveAccessibleName('Salir de pantalla completa'))
     expect(leaflet.instance.invalidateSize).toHaveBeenCalled()
     expect(container.querySelector('section')).toHaveClass('map--fullscreen')
-    expect(queryByRole('button', { name: /view messages/i })).toBeNull()
+    expect(queryByRole('button', { name: /view messages/i })).toHaveAttribute('aria-expanded', 'true')
+    expect(container.querySelector('.map--fullscreen #map-cluster-list')).toBeTruthy()
+
+    fireEvent.click(groupButton)
     expect(container.querySelector('#map-cluster-list')).toBeNull()
+    fireEvent.click(groupButton)
+    expect(container.querySelector('.map--fullscreen #map-cluster-list')).toBeTruthy()
 
     fireEvent.keyDown(window, { key: 'Escape' })
     await waitFor(() => expect(control).toHaveAccessibleName('Entrar en pantalla completa'))

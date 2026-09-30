@@ -78,6 +78,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map__group-toggle { cursor: pointer; background: var(--navy); color: #f4dab0; border: 1px solid var(--gold); padding: .65rem 1rem; }
 .map__group-toggle:hover, .map__group-toggle[aria-expanded='true'] { background: #213c55; }
 .map__message-panel { width: 100%; max-height: min(350px, 62vh); overflow-y: auto; background: #f2dfb7; border: 2px solid #87582c; }
+.map--fullscreen .map__overlay { width: min(420px, calc(100% - 2rem)); }
+.map--fullscreen .map__message-panel { max-height: min(620px, 68vh); }
 .cluster-list-wrap { padding: .4rem; }
 .cluster-list-wrap > [role='status'] { padding: .6rem; }
 .cluster-list-wrap [role='status'] p { margin: 0 0 .5rem; }
@@ -198,6 +200,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .map__filters { top: .5rem; right: .5rem; width: min(250px, calc(100% - 1rem)); }
   .map__overlay { right: .5rem; bottom: .5rem; width: min(350px, calc(100% - 1rem)); }
   .map__message-panel { max-height: 220px; }
+  .map--fullscreen .map__overlay { width: min(350px, calc(100% - 1rem)); }
+  .map--fullscreen .map__message-panel { max-height: 55vh; }
   .section-heading h2 { letter-spacing: .1em; }
   .letter-grid { grid-template-columns: 1fr; max-width: 400px; margin: auto; }
   .letter-card { min-height: 205px; }

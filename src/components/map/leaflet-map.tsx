@@ -296,7 +296,7 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
           {isFiltersOpen ? <div id="map-filters-panel" className="map__filters-panel"><MapFilters value={filters} onChange={onFiltersChange} lang={lang} /></div> : null}
         </div>
       ) : null}
-      {!isFullscreen && features.length > 1 ? (
+      {features.length > 1 ? (
         <div className="map__overlay">
           <button
             className="map__group-toggle"
