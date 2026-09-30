@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 import type { MapBounds, PublicMapFeature } from '@/domain/messages/public-message'
 
-import { MapFilters, type MapFilterValues } from './map-filters'
+import type { MapFilterValues } from './map-filters'
 import { PublicMapLoader } from './public-map-loader'
 
 const WORLD_BOUNDS: MapBounds = {
@@ -127,7 +127,6 @@ export function PublicMapController({
 
   return (
     <section aria-label="Explorar mensajes">
-      {hasBasemap ? <MapFilters value={filters} onChange={setFilters} /> : null}
       <div className="map-feedback" aria-live="polite" aria-atomic="true">
         {error ? (
           <div role="status">
@@ -143,6 +142,8 @@ export function PublicMapController({
         onSelect={selectMessage}
         lang={lang}
         onViewportChange={setBounds}
+        filters={filters}
+        onFiltersChange={setFilters}
         groupRequestUrl={buildMessageRequest(bounds, filters)}
         selectedPublicId={selectedPublicId}
       />

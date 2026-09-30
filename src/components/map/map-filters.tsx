@@ -8,6 +8,7 @@ export interface MapFilterValues {
 interface Props {
   value: MapFilterValues
   onChange: (values: MapFilterValues) => void
+  lang?: 'en' | 'es'
 }
 
 const MAX_TEXT_FILTER_LENGTH = 100
@@ -24,15 +25,18 @@ function normalizeCountry(value: string): string {
   return ISO_ALPHA_2_COUNTRIES.includes(country) ? country : ''
 }
 
-export function MapFilters({ value, onChange }: Props) {
+export function MapFilters({ value, onChange, lang = 'es' }: Props) {
+  const copy = lang === 'es'
+    ? { filters: 'Filtros', city: 'Ciudad', country: 'País', all: 'Todos' }
+    : { filters: 'Filters', city: 'City', country: 'Country', all: 'All' }
   return (
-    <div className="map-filters" role="group" aria-label="Filtros">
-      <label htmlFor="city-filter">Ciudad</label>
+    <div className="map-filters" role="group" aria-label={copy.filters}>
+      <label htmlFor="city-filter">{copy.city}</label>
       <input
         id="city-filter"
         type="text"
         name="city"
-        aria-label="Ciudad"
+        aria-label={copy.city}
         value={value.city ?? ''}
         maxLength={MAX_TEXT_FILTER_LENGTH}
         onChange={(event) =>
@@ -40,17 +44,17 @@ export function MapFilters({ value, onChange }: Props) {
         }
       />
 
-      <label htmlFor="country-filter">País</label>
+      <label htmlFor="country-filter">{copy.country}</label>
       <select
         id="country-filter"
         name="country"
-        aria-label="País"
+        aria-label={copy.country}
         value={normalizeCountry(value.country ?? '')}
         onChange={(event) =>
           onChange({ ...value, country: normalizeCountry(event.target.value) })
         }
       >
-        <option value="">Todos</option>
+        <option value="">{copy.all}</option>
         {ISO_ALPHA_2_COUNTRIES.map((country) => (
           <option key={country} value={country}>
             {country.toUpperCase()}

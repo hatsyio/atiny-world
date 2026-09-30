@@ -8,12 +8,16 @@ import { PublicMapController } from '@/components/map/public-map-controller'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 vi.mock('@/components/map/public-map-loader', () => ({
-  PublicMapLoader: ({ onViewportChange }: {
+  PublicMapLoader: ({ onViewportChange, onFiltersChange, groupRequestUrl }: {
     onViewportChange: (bounds: { west: number; south: number; east: number; north: number }) => void
+    onFiltersChange: (filters: { city: string; country: string }) => void
+    groupRequestUrl: string
   }) => (
-    <button type="button" onClick={() => onViewportChange({ west: -4, south: 40, east: -3, north: 41 })}>
-      Set viewport
-    </button>
+    <div>
+      <button type="button" onClick={() => onViewportChange({ west: -4, south: 40, east: -3, north: 41 })}>Set viewport</button>
+      <button type="button" onClick={() => onFiltersChange({ city: 'Madrid', country: 'es' })}>Set filters</button>
+      <span>{groupRequestUrl}</span>
+    </div>
   ),
 }))
 
@@ -24,6 +28,24 @@ afterEach(() => {
 })
 
 describe('PublicMapController', () => {
+  it('passes map filters to both feature and message requests', async () => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+    const fetch = vi.fn<typeof globalThis.fetch>(async () =>
+      new Response(JSON.stringify({ features: [] })),
+    )
+    vi.stubGlobal('fetch', fetch)
+
+    const { getByRole, getByText, queryByRole } = render(<PublicMapController />)
+    expect(queryByRole('group', { name: 'Filtros' })).toBeNull()
+    act(() => getByRole('button', { name: 'Set filters' }).click())
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith(
+      '/api/map/features?west=-180&south=-90&east=180&north=90&city=Madrid&country=es',
+      expect.objectContaining({ cache: 'no-store' }),
+    ))
+    expect(getByText('/api/map/messages?west=-180&south=-90&east=180&north=90&city=Madrid&country=es&limit=20')).toBeTruthy()
+  })
+
   it('recarga el viewport actual cuando se publica una carta', async () => {
     vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
     const fetch = vi.fn<typeof globalThis.fetch>(async () =>
