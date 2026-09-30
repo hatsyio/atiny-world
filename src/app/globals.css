@@ -63,12 +63,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map-feedback [role='status'] { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem; width: 100%; padding: .5rem 1rem; text-align: center; }
 .map-feedback p { margin: 0; }
 .map { min-height: 390px; position: relative; }
-.map--fullscreen { position: fixed; inset: 0; padding: 1rem; z-index: 20; background: #e0bb83; }
+.map--fullscreen { position: fixed; inset: 0; min-height: 0; padding: 0; z-index: 20; background: #e0bb83; }
 .map__canvas { height: clamp(360px, 43vw, 540px); width: 100%; background: transparent url('/images/world-silhouette.svg') center / contain no-repeat; filter: sepia(.42) contrast(.94); }
 .map--preview .map__canvas { position: relative; }
 .map--preview .map__canvas::after { content: '✧'; position: absolute; right: 3%; top: 3%; font-size: clamp(3rem, 7vw, 7rem); color: #6a3b20; }
-.map--fullscreen .map__canvas { height: calc(100vh - 100px); }
-.map button { cursor: pointer; background: var(--navy); color: #f4dab0; border: 1px solid var(--gold); padding: .4rem .7rem; margin: .4rem; }
+.map--fullscreen .map__canvas { height: 100%; }
+.map > button { cursor: pointer; background: var(--navy); color: #f4dab0; border: 1px solid var(--gold); padding: .4rem .7rem; margin: .4rem; }
+.leaflet-control-fullscreen .leaflet-control-zoom-fullscreen { display: block; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 4px; background: #fff; color: #000; font: 18px/26px 'Lucida Console', Monaco, monospace; text-align: center; cursor: pointer; }
+.leaflet-control-fullscreen .leaflet-control-zoom-fullscreen:hover, .leaflet-control-fullscreen .leaflet-control-zoom-fullscreen:focus { background: #f4f4f4; }
+.leaflet-touch .leaflet-control-fullscreen .leaflet-control-zoom-fullscreen { width: 30px; height: 30px; font-size: 22px; line-height: 30px; border-radius: 2px; }
 .map p[role='status'] { padding: .3rem 1rem; margin: 0; text-align: center; font-style: italic; }
 .leaflet-popup-content .map-message-popup { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 

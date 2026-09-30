@@ -35,6 +35,27 @@ function popupContent(content: string): HTMLElement {
   return paragraph
 }
 
+function updateFullscreenControl(button: HTMLButtonElement, isFullscreen: boolean): void {
+  const action = isFullscreen ? 'Salir de pantalla completa' : 'Entrar en pantalla completa'
+  button.setAttribute('aria-label', action)
+  button.setAttribute('aria-pressed', String(isFullscreen))
+  button.title = action
+}
+
+function createFullscreenControl(onToggle: () => void): HTMLButtonElement {
+  const control = document.createElement('button')
+  control.type = 'button'
+  control.className = 'leaflet-control-zoom-fullscreen'
+  control.textContent = '⛶'
+  updateFullscreenControl(control, false)
+  control.addEventListener('click', onToggle)
+  return control
+}
+
+type FullscreenControl = import('leaflet').Control & {
+  onAdd: () => HTMLElement
+}
+
 export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, groupRequestUrl, selectedPublicId }: Props) {
   const element = useRef<HTMLDivElement>(null)
   const map = useRef<import('leaflet').Map | null>(null)
@@ -44,6 +65,7 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
   const messageRequests = useRef(new Map<string, AbortController>())
   const centeredPublicId = useRef<string | null>(null)
   const onViewportChangeRef = useRef(onViewportChange)
+  const fullscreenButton = useRef<HTMLButtonElement | null>(null)
   const [instance, setInstance] = useState<import('leaflet').Map | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -59,6 +81,7 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
     if (!element.current || !apiKey) return
 
     let disposed = false
+    let removeFullscreenButtonListener: (() => void) | undefined
 
     async function initialize(key: string) {
       try {
@@ -91,6 +114,18 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
         }
         instance.on('moveend', reportViewport)
         reportViewport()
+        const toggleFullscreen = () => setIsFullscreen((current) => !current)
+        const fullscreenControl = new leaflet.Control({ position: 'topleft' }) as FullscreenControl
+        fullscreenControl.onAdd = () => {
+          const container = document.createElement('div')
+          container.className = 'leaflet-bar leaflet-control-fullscreen'
+          const control = createFullscreenControl(toggleFullscreen)
+          container.append(control)
+          fullscreenButton.current = control
+          removeFullscreenButtonListener = () => control.removeEventListener('click', toggleFullscreen)
+          return container
+        }
+        instance.addControl(fullscreenControl)
         map.current = instance
         setInstance(instance)
       } catch {
@@ -102,6 +137,8 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
 
     return () => {
       disposed = true
+      removeFullscreenButtonListener?.()
+      fullscreenButton.current = null
       map.current?.remove()
       map.current = null
     }
@@ -211,6 +248,20 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
     return () => window.clearTimeout(timer)
   }, [instance, isFullscreen])
 
+  useEffect(() => {
+    const button = fullscreenButton.current
+    if (button) updateFullscreenControl(button, isFullscreen)
+  }, [isFullscreen])
+
+  useEffect(() => {
+    if (!isFullscreen) return
+    const exitFullscreen = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsFullscreen(false)
+    }
+    window.addEventListener('keydown', exitFullscreen)
+    return () => window.removeEventListener('keydown', exitFullscreen)
+  }, [isFullscreen])
+
   if (!cartoApiKey) {
     return (
       <section className="map map--preview" aria-label="Mapa de mensajes">
@@ -223,7 +274,7 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
   return (
     <section aria-label="Mapa de mensajes" className={isFullscreen ? 'map map--fullscreen' : 'map'}>
       {error ? <p role="status">{error}</p> : null}
-      {features.length > 1 ? (
+      {!isFullscreen && features.length > 1 ? (
         <button
           type="button"
           aria-expanded={isClusterListOpen}
@@ -233,16 +284,8 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
           Ver mensajes del grupo ({features.length})
         </button>
       ) : null}
-      <button
-        type="button"
-        aria-pressed={isFullscreen}
-        aria-label="Pantalla completa"
-        onClick={() => setIsFullscreen((current) => !current)}
-      >
-        Pantalla completa
-      </button>
       <div ref={element} className="map__canvas" />
-      {isClusterListOpen ? (
+      {!isFullscreen && isClusterListOpen ? (
         <div id="map-cluster-list" aria-label="Mensajes del grupo">
           <MessageClusterList
             items={features}
