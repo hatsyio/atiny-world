@@ -128,14 +128,16 @@ export function PublicMapController({
   return (
     <section aria-label="Explorar mensajes">
       {hasBasemap ? <MapFilters value={filters} onChange={setFilters} /> : null}
-      {error ? (
-        <div role="status">
-          <p>{error}</p>
-          <button type="button" onClick={() => setRetry((current) => current + 1)}>
-            Reintentar
-          </button>
-        </div>
-      ) : null}
+      <div className="map-feedback" aria-live="polite" aria-atomic="true">
+        {error ? (
+          <div role="status">
+            <p>{error}</p>
+            <button type="button" onClick={() => setRetry((current) => current + 1)}>
+              Reintentar
+            </button>
+          </div>
+        ) : null}
+      </div>
       <PublicMapLoader
         features={features}
         onSelect={selectMessage}

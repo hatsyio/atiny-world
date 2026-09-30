@@ -59,6 +59,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem .8rem; padding: .7rem; border-bottom: 1px solid #87582c; }
 .map-filters label { font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; }
 .map-filters input, .map-filters select { width: 110px; max-width: 100%; padding: .35rem; background: #f2dfb7; color: #291910; border: 1px solid #8b603a; border-radius: 0; }
+.map-feedback { block-size: 5.5rem; display: grid; place-items: center; }
+.map-feedback [role='status'] { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem; width: 100%; padding: .5rem 1rem; text-align: center; }
+.map-feedback p { margin: 0; }
 .map { min-height: 390px; position: relative; }
 .map--fullscreen { position: fixed; inset: 0; padding: 1rem; z-index: 20; background: #e0bb83; }
 .map__canvas { height: clamp(360px, 43vw, 540px); width: 100%; background: transparent url('/images/world-silhouette.svg') center / contain no-repeat; filter: sepia(.42) contrast(.94); }

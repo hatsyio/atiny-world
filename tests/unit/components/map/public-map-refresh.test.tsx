@@ -43,4 +43,23 @@ describe('PublicMapController', () => {
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(before + 1))
     expect(fetch.mock.calls.at(-1)?.[0]).toBe('/api/map/features?west=-4&south=40&east=-3&north=41')
   })
+
+  it('mantiene la zona de avisos al fallar y reintentar la carga del mapa', async () => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+    const fetch = vi.fn<typeof globalThis.fetch>()
+      .mockRejectedValueOnce(new Error('network unavailable'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ features: [] })))
+    vi.stubGlobal('fetch', fetch)
+
+    const { container, getByRole, queryByRole } = render(<PublicMapController />)
+    const feedback = container.querySelector('.map-feedback')
+    expect(feedback).not.toBeNull()
+
+    await waitFor(() => expect(getByRole('status')).toHaveTextContent('No se pudieron cargar los mensajes del mapa.'))
+    getByRole('button', { name: 'Reintentar' }).click()
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(queryByRole('status')).toBeNull())
+    expect(container.querySelector('.map-feedback')).toBe(feedback)
+  })
 })
