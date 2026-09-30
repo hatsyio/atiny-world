@@ -52,6 +52,10 @@ function createFullscreenControl(onToggle: () => void): HTMLButtonElement {
   return control
 }
 
+type FullscreenControl = import('leaflet').Control & {
+  onAdd: () => HTMLElement
+}
+
 export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, groupRequestUrl, selectedPublicId }: Props) {
   const element = useRef<HTMLDivElement>(null)
   const map = useRef<import('leaflet').Map | null>(null)
@@ -110,14 +114,18 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
         }
         instance.on('moveend', reportViewport)
         reportViewport()
-        const zoomControlContainer = instance.zoomControl.getContainer()
-        if (!zoomControlContainer) throw new Error('zoom control unavailable')
-
         const toggleFullscreen = () => setIsFullscreen((current) => !current)
-        const control = createFullscreenControl(toggleFullscreen)
-        zoomControlContainer.append(control)
-        fullscreenButton.current = control
-        removeFullscreenButtonListener = () => control.removeEventListener('click', toggleFullscreen)
+        const fullscreenControl = new leaflet.Control({ position: 'topleft' }) as FullscreenControl
+        fullscreenControl.onAdd = () => {
+          const container = document.createElement('div')
+          container.className = 'leaflet-bar leaflet-control-fullscreen'
+          const control = createFullscreenControl(toggleFullscreen)
+          container.append(control)
+          fullscreenButton.current = control
+          removeFullscreenButtonListener = () => control.removeEventListener('click', toggleFullscreen)
+          return container
+        }
+        instance.addControl(fullscreenControl)
         map.current = instance
         setInstance(instance)
       } catch {

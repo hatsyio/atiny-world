@@ -8,11 +8,16 @@ import type { PublicMapFeature } from '@/domain/messages/public-message'
 import { LeafletMap } from '@/components/map/leaflet-map'
 
 const leaflet = vi.hoisted(() => {
+  let fullscreenControlContainer: HTMLElement | null = null
   const zoomControlContainer = document.createElement('div')
+  zoomControlContainer.className = 'leaflet-bar leaflet-control-zoom'
   const bounds = { getWest: () => -10, getSouth: () => -5, getEast: () => 10, getNorth: () => 5 }
   const instance = {
     setView: vi.fn().mockReturnThis(),
     addLayer: vi.fn(),
+    addControl: vi.fn((control: { onAdd: (map: typeof instance) => HTMLElement }) => {
+      fullscreenControlContainer = control.onAdd(instance)
+    }),
     removeLayer: vi.fn(),
     on: vi.fn(),
     off: vi.fn(),
@@ -39,6 +44,12 @@ const leaflet = vi.hoisted(() => {
     markerClusterGroup: vi.fn(() => cluster),
     marker: vi.fn(() => markerInstance),
     Icon: { Default: { imagePath: undefined as string | undefined } },
+    Control: class {
+      onAdd = () => document.createElement('div')
+      constructor(readonly options: { position: string }) {}
+    },
+    getFullscreenControlContainer: () => fullscreenControlContainer,
+    resetFullscreenControlContainer: () => { fullscreenControlContainer = null },
   }
 })
 
@@ -61,6 +72,7 @@ afterEach(() => {
   vi.unstubAllEnvs()
   vi.clearAllMocks()
   leaflet.instance.zoomControl.getContainer().replaceChildren()
+  leaflet.resetFullscreenControlContainer()
   leaflet.markerHandlers.clear()
 })
 
@@ -85,10 +97,14 @@ describe('LeafletMap lifecycle', () => {
     const { container, queryByRole } = render(<LeafletMap features={[feature, { ...feature, publicId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1' }]} onSelect={() => {}} />)
     await waitFor(() => expect(leaflet.map).toHaveBeenCalledTimes(1))
 
-    const control = leaflet.instance.zoomControl.getContainer().querySelector<HTMLButtonElement>('.leaflet-control-zoom-fullscreen')
+    const fullscreenControlContainer = leaflet.getFullscreenControlContainer()
+    const control = fullscreenControlContainer?.querySelector<HTMLButtonElement>('.leaflet-control-zoom-fullscreen')
     if (!control) throw new Error('fullscreen control unavailable')
 
     expect(control).toHaveClass('leaflet-control-zoom-fullscreen')
+    expect(fullscreenControlContainer).toHaveClass('leaflet-control-fullscreen', 'leaflet-bar')
+    expect(fullscreenControlContainer).not.toBe(leaflet.instance.zoomControl.getContainer())
+    expect(leaflet.instance.addControl).toHaveBeenCalledTimes(1)
     expect(control).toHaveAccessibleName('Entrar en pantalla completa')
     expect(control.title).toBe('Entrar en pantalla completa')
     const groupButton = queryByRole('button', { name: /ver mensajes del grupo/i })

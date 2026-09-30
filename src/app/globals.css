@@ -69,9 +69,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map--preview .map__canvas::after { content: '✧'; position: absolute; right: 3%; top: 3%; font-size: clamp(3rem, 7vw, 7rem); color: #6a3b20; }
 .map--fullscreen .map__canvas { height: 100%; }
 .map > button { cursor: pointer; background: var(--navy); color: #f4dab0; border: 1px solid var(--gold); padding: .4rem .7rem; margin: .4rem; }
-.leaflet-control-zoom-fullscreen { display: block; width: 26px; height: 26px; padding: 0; margin-top: 6px; border: 0; border-radius: 4px; background: #fff; color: #000; box-shadow: 0 1px 5px rgba(0,0,0,0.65); font: 18px/26px 'Lucida Console', Monaco, monospace; text-align: center; cursor: pointer; }
-.leaflet-control-zoom-fullscreen:hover { background: #f4f4f4; }
-.leaflet-touch .leaflet-control-zoom-fullscreen { width: 30px; height: 30px; font-size: 22px; line-height: 30px; border-radius: 2px; }
+.leaflet-control-fullscreen .leaflet-control-zoom-fullscreen { display: block; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 4px; background: #fff; color: #000; font: 18px/26px 'Lucida Console', Monaco, monospace; text-align: center; cursor: pointer; }
+.leaflet-control-fullscreen .leaflet-control-zoom-fullscreen:hover, .leaflet-control-fullscreen .leaflet-control-zoom-fullscreen:focus { background: #f4f4f4; }
+.leaflet-touch .leaflet-control-fullscreen .leaflet-control-zoom-fullscreen { width: 30px; height: 30px; font-size: 22px; line-height: 30px; border-radius: 2px; }
 .map p[role='status'] { padding: .3rem 1rem; margin: 0; text-align: center; font-style: italic; }
 .leaflet-popup-content .map-message-popup { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 
