@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import type { MapBounds, PublicMapFeature, PublicMessageDetail } from '@/domain/messages/public-message'
 
+import { MapFilters, type MapFilterValues } from './map-filters'
 import { MessageClusterList } from './message-cluster-list'
 
 interface Props {
@@ -13,6 +14,8 @@ interface Props {
   onSelect: (publicId: string) => void
   lang?: 'en' | 'es'
   onViewportChange?: (bounds: MapBounds) => void
+  filters?: MapFilterValues
+  onFiltersChange?: (values: MapFilterValues) => void
   groupRequestUrl?: string
   selectedPublicId?: string
 }
@@ -56,7 +59,7 @@ type FullscreenControl = import('leaflet').Control & {
   onAdd: () => HTMLElement
 }
 
-export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, groupRequestUrl, selectedPublicId }: Props) {
+export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: Props) {
   const element = useRef<HTMLDivElement>(null)
   const map = useRef<import('leaflet').Map | null>(null)
   const cluster = useRef<import('leaflet').MarkerClusterGroup | null>(null)
@@ -70,6 +73,7 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
   const [error, setError] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isClusterListOpen, setIsClusterListOpen] = useState(false)
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY
 
   useEffect(() => {
@@ -275,6 +279,23 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
     <section aria-label="Mapa de mensajes" className={isFullscreen ? 'map map--fullscreen' : 'map'}>
       {error ? <p role="status">{error}</p> : null}
       <div ref={element} className="map__canvas" />
+      {filters && onFiltersChange ? (
+        <div className="map__filters">
+          <button
+            className="map__filters-toggle"
+            type="button"
+            aria-expanded={isFiltersOpen}
+            aria-controls="map-filters-panel"
+            onClick={() => {
+              setIsFiltersOpen((current) => !current)
+              setIsClusterListOpen(false)
+            }}
+          >
+            {lang === 'es' ? 'Filtros' : 'Filters'}{filters.city || filters.country ? ` (${Number(Boolean(filters.city)) + Number(Boolean(filters.country))})` : ''}
+          </button>
+          {isFiltersOpen ? <div id="map-filters-panel" className="map__filters-panel"><MapFilters value={filters} onChange={onFiltersChange} lang={lang} /></div> : null}
+        </div>
+      ) : null}
       {!isFullscreen && features.length > 1 ? (
         <div className="map__overlay">
           <button
@@ -282,7 +303,10 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
             type="button"
             aria-expanded={isClusterListOpen}
             aria-controls="map-cluster-list"
-            onClick={() => setIsClusterListOpen((current) => !current)}
+            onClick={() => {
+              setIsClusterListOpen((current) => !current)
+              setIsFiltersOpen(false)
+            }}
           >
             {lang === 'es' ? 'Ver mensajes' : 'View messages'} ({features.length})
           </button>

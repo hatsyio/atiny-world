@@ -129,6 +129,41 @@ describe('LeafletMap lifecycle', () => {
     await waitFor(() => expect(control).toHaveAccessibleName('Entrar en pantalla completa'))
   })
 
+  it('opens the city and country filters inside the map and preserves them in fullscreen', async () => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+    const onFiltersChange = vi.fn()
+    const { container, getByRole } = render(
+      <LeafletMap
+        features={[feature, { ...feature, publicId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1' }]}
+        onSelect={() => {}}
+        lang="es"
+        filters={{ city: '', country: '' }}
+        onFiltersChange={onFiltersChange}
+      />,
+    )
+    await waitFor(() => expect(leaflet.map).toHaveBeenCalledTimes(1))
+
+    const toggle = getByRole('button', { name: 'Filtros' })
+    expect(toggle.closest('.map')).toBeTruthy()
+    expect(container.querySelector('.map-filters')).toBeNull()
+    fireEvent.click(toggle)
+    expect(getByRole('textbox', { name: 'Ciudad' })).toBeVisible()
+    expect(getByRole('combobox', { name: 'País' })).toBeVisible()
+    fireEvent.change(getByRole('textbox', { name: 'Ciudad' }), { target: { value: 'Madrid' } })
+    expect(onFiltersChange).toHaveBeenCalledWith({ city: 'Madrid', country: '' })
+
+    fireEvent.click(getByRole('button', { name: /Ver mensajes/ }))
+    expect(container.querySelector('.map-filters')).toBeNull()
+    expect(container.querySelector('#map-cluster-list')).toBeTruthy()
+    fireEvent.click(toggle)
+    expect(container.querySelector('#map-cluster-list')).toBeNull()
+
+    const fullscreenControl = leaflet.getFullscreenControlContainer()?.querySelector<HTMLButtonElement>('button')
+    if (!fullscreenControl) throw new Error('fullscreen control unavailable')
+    fireEvent.click(fullscreenControl)
+    expect(container.querySelector('.map--fullscreen .map-filters')).toBeTruthy()
+  })
+
   it('uses the bundled marker images from a stable public path', async () => {
     vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
     leaflet.Icon.Default.imagePath = undefined
