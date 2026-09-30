@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -11,7 +11,11 @@ import { PublicMapLoader } from '../../../../src/components/map/public-map-loade
 import { PublicMessageCard } from '../../../../src/components/messages/public-message-card'
 import type { MapFeature } from '../../../../src/server/messages/public-repository'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
+})
 
 vi.mock('next/link', () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -31,41 +35,41 @@ const baseFeature: MapFeature = {
 }
 
 describe('MessageClusterList', () => {
-  it('renders one entry per public point', () => {
-    render(
-      <MessageClusterList
-        items={[
-          { ...baseFeature, publicId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1' },
-          { ...baseFeature, publicId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2' },
-        ]}
-        onSelect={() => {}}
-      />,
-    )
+  it('loads message content and keeps the author secondary', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+      items: [{ ...baseFeature, content: 'Gracias por vuestra música' }],
+      nextCursor: null,
+    }))))
+    render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={() => {}} lang="es" />)
 
-    const list = screen.getByRole('list')
-    expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.queryByText('ATINY')).toBeNull()
+    expect(await screen.findByText('Gracias por vuestra música')).toBeInTheDocument()
+    expect(screen.getByText(/Madrid, España · ATINY/)).toBeInTheDocument()
+    expect(within(screen.getByRole('list')).getAllByRole('listitem')).toHaveLength(1)
   })
 
-  it('does not render any text content or moderation state', () => {
-    render(
-      <MessageClusterList
-        items={[baseFeature]}
-        onSelect={() => {}}
-      />,
-    )
-
-    expect(screen.queryByText(/hola/i)).toBeNull()
-    expect(screen.queryByText(/rejected|pending|approved/i)).toBeNull()
-  })
-
-  it('notifies selection of a point', async () => {
+  it('notifies selection of a message', async () => {
     const user = userEvent.setup()
     const onSelect = vi.fn()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+      items: [{ ...baseFeature, content: 'A letter for ATEEZ' }],
+      nextCursor: null,
+    }))))
+    render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={onSelect} lang="en" />)
 
-    render(<MessageClusterList items={[baseFeature]} onSelect={onSelect} />)
-
-    await user.click(screen.getByRole('button', { name: /ATINY/ }))
+    await user.click(await screen.findByRole('button', { name: /A letter for ATEEZ/ }))
     expect(onSelect).toHaveBeenCalledWith(baseFeature.publicId)
+  })
+
+  it('shows a retry action when the messages cannot be loaded', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>()
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ items: [], nextCursor: null })))
+    vi.stubGlobal('fetch', fetch)
+    render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={() => {}} lang="es" />)
+
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Reintentar' }))
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
   })
 })
 
@@ -108,7 +112,7 @@ describe('PublicMapLoader', () => {
       />,
     )
 
-    expect(screen.getByRole('button', { name: /ver mensajes del grupo/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /view messages/i })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Pantalla completa' })).toBeNull()
   })
 })

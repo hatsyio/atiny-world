@@ -274,27 +274,31 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
   return (
     <section aria-label="Mapa de mensajes" className={isFullscreen ? 'map map--fullscreen' : 'map'}>
       {error ? <p role="status">{error}</p> : null}
-      {!isFullscreen && features.length > 1 ? (
-        <button
-          type="button"
-          aria-expanded={isClusterListOpen}
-          aria-controls="map-cluster-list"
-          onClick={() => setIsClusterListOpen((current) => !current)}
-        >
-          Ver mensajes del grupo ({features.length})
-        </button>
-      ) : null}
       <div ref={element} className="map__canvas" />
-      {!isFullscreen && isClusterListOpen ? (
-        <div id="map-cluster-list" aria-label="Mensajes del grupo">
-          <MessageClusterList
-            items={features}
-            onSelect={(publicId) => {
-              onSelect(publicId)
-              setIsClusterListOpen(false)
-            }}
-            requestUrl={groupRequestUrl}
-          />
+      {!isFullscreen && features.length > 1 ? (
+        <div className="map__overlay">
+          <button
+            className="map__group-toggle"
+            type="button"
+            aria-expanded={isClusterListOpen}
+            aria-controls="map-cluster-list"
+            onClick={() => setIsClusterListOpen((current) => !current)}
+          >
+            {lang === 'es' ? 'Ver mensajes' : 'View messages'} ({features.length})
+          </button>
+          {isClusterListOpen ? (
+            <div id="map-cluster-list" className="map__message-panel" aria-label={lang === 'es' ? 'Mensajes del mapa' : 'Map messages'}>
+              {groupRequestUrl ? <MessageClusterList
+                key={groupRequestUrl}
+                requestUrl={groupRequestUrl}
+                lang={lang}
+                onSelect={(publicId) => {
+                  onSelect(publicId)
+                  setIsClusterListOpen(false)
+                }}
+              /> : null}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </section>

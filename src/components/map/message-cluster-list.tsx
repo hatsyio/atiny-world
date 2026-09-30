@@ -1,28 +1,28 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 import type { PublicMessageDetail } from '@/domain/messages/public-message'
 
 interface Props {
-  items: PublicMessageDetail[] | import('@/domain/messages/public-message').PublicMapFeature[]
+  requestUrl: string
   onSelect: (publicId: string) => void
-  requestUrl?: string
+  lang: 'en' | 'es'
 }
 
-export function MessageClusterList({ items, onSelect, requestUrl }: Props) {
-  const [page, setPage] = useState(items)
+export function MessageClusterList({ requestUrl, onSelect, lang }: Props) {
+  const [page, setPage] = useState<PublicMessageDetail[]>([])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [retry, setRetry] = useState(0)
 
   useEffect(() => {
-    if (!requestUrl) return
     const controller = new AbortController()
     void fetch(requestUrl, { cache: 'no-store', signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error('group unavailable')
-        return response.json() as Promise<{ items: typeof items; nextCursor: string | null }>
+        return response.json() as Promise<{ items: PublicMessageDetail[]; nextCursor: string | null }>
       })
       .then((result) => {
         if (!controller.signal.aborted) {
@@ -30,55 +30,69 @@ export function MessageClusterList({ items, onSelect, requestUrl }: Props) {
           setNextCursor(result.nextCursor)
         }
       })
-      .catch(() => undefined)
+      .catch(() => {
+        if (!controller.signal.aborted) setError(true)
+      })
       .finally(() => {
         if (!controller.signal.aborted) setIsLoading(false)
       })
     return () => controller.abort()
-  }, [items, requestUrl])
+  }, [requestUrl, retry])
 
   async function loadMore() {
-    if (!requestUrl || !nextCursor || isLoading) return
+    if (!nextCursor || isLoading) return
     const url = new URL(requestUrl, window.location.origin)
     url.searchParams.set('cursor', nextCursor)
     setIsLoading(true)
+    setError(false)
     try {
       const response = await fetch(`${url.pathname}?${url.searchParams.toString()}`, {
         cache: 'no-store',
       })
       if (!response.ok) throw new Error('group unavailable')
       const result = await response.json() as {
-        items: typeof items
+        items: PublicMessageDetail[]
         nextCursor: string | null
       }
       setPage((current) => [...current, ...result.items])
       setNextCursor(result.nextCursor)
+    } catch {
+      setError(true)
     } finally {
       setIsLoading(false)
     }
   }
 
+  const copy = lang === 'es'
+    ? { loading: 'Cargando mensajes…', unavailable: 'No se pudieron cargar los mensajes.', retry: 'Reintentar', empty: 'No hay mensajes en esta zona.', more: 'Cargar más mensajes' }
+    : { loading: 'Loading messages…', unavailable: 'The messages could not be loaded.', retry: 'Try again', empty: 'No messages in this area.', more: 'Load more messages' }
+
+  function retryLoad() {
+    setPage([])
+    setNextCursor(null)
+    setError(false)
+    setIsLoading(true)
+    setRetry((current) => current + 1)
+  }
+
   return (
-    <div>
-    <ul className="cluster-list">
-      {page.map((feature) => (
-        <li key={feature.publicId} className="cluster-list__item">
-          <Link href={`/en/messages/${feature.publicId}`}>
-            <button
-              type="button"
-              onClick={() => onSelect(feature.publicId)}
-            >
-              {feature.author.displayName}
-            </button>
-          </Link>
-        </li>
-      ))}
-    </ul>
-    {nextCursor ? (
-      <button type="button" disabled={isLoading} onClick={() => void loadMore()}>
-        Cargar más mensajes
-      </button>
-    ) : null}
+    <div className="cluster-list-wrap">
+      {isLoading && page.length === 0 ? <p role="status">{copy.loading}</p> : null}
+      {error ? <div role="status"><p>{copy.unavailable}</p><button type="button" onClick={retryLoad}>{copy.retry}</button></div> : null}
+      {!isLoading && !error && page.length === 0 ? <p role="status">{copy.empty}</p> : null}
+      {page.length > 0 ? (
+        <ul className="cluster-list">
+          {page.map((message) => (
+            <li key={message.publicId} className="cluster-list__item">
+              <button type="button" onClick={() => onSelect(message.publicId)}>
+                <span className="cluster-list__content">{message.content}</span>
+                <span className="cluster-list__meta">{[message.locality, message.country].filter(Boolean).join(', ')} · {message.author.displayName}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {nextCursor && !error ? <button className="cluster-list__more" type="button" disabled={isLoading} onClick={() => void loadMore()}>{copy.more}</button> : null}
     </div>
   )
 }
