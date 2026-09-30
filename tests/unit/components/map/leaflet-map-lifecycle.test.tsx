@@ -82,7 +82,7 @@ describe('LeafletMap lifecycle', () => {
 
   it('adds an accessible fullscreen control below the zoom controls', async () => {
     vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
-    render(<LeafletMap features={[]} onSelect={() => {}} />)
+    const { container, queryByRole } = render(<LeafletMap features={[feature, { ...feature, publicId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1' }]} onSelect={() => {}} />)
     await waitFor(() => expect(leaflet.map).toHaveBeenCalledTimes(1))
 
     const control = leaflet.instance.zoomControl.getContainer().querySelector<HTMLButtonElement>('.leaflet-control-zoom-fullscreen')
@@ -91,10 +91,17 @@ describe('LeafletMap lifecycle', () => {
     expect(control).toHaveClass('leaflet-control-zoom-fullscreen')
     expect(control).toHaveAccessibleName('Entrar en pantalla completa')
     expect(control.title).toBe('Entrar en pantalla completa')
+    const groupButton = queryByRole('button', { name: /ver mensajes del grupo/i })
+    if (!groupButton) throw new Error('group control unavailable')
+    fireEvent.click(groupButton)
+    expect(container.querySelector('#map-cluster-list')).toBeTruthy()
 
     fireEvent.click(control)
     await waitFor(() => expect(control).toHaveAccessibleName('Salir de pantalla completa'))
     expect(leaflet.instance.invalidateSize).toHaveBeenCalled()
+    expect(container.querySelector('section')).toHaveClass('map--fullscreen')
+    expect(queryByRole('button', { name: /ver mensajes del grupo/i })).toBeNull()
+    expect(container.querySelector('#map-cluster-list')).toBeNull()
 
     fireEvent.keyDown(window, { key: 'Escape' })
     await waitFor(() => expect(control).toHaveAccessibleName('Entrar en pantalla completa'))

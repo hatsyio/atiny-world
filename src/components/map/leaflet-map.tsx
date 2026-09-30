@@ -112,7 +112,6 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
         reportViewport()
         const zoomControlContainer = instance.zoomControl.getContainer()
         if (!zoomControlContainer) throw new Error('zoom control unavailable')
-        zoomControlContainer.classList.add('leaflet-control-zoom--fullscreen')
 
         const toggleFullscreen = () => setIsFullscreen((current) => !current)
         const control = createFullscreenControl(toggleFullscreen)
@@ -267,7 +266,7 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
   return (
     <section aria-label="Mapa de mensajes" className={isFullscreen ? 'map map--fullscreen' : 'map'}>
       {error ? <p role="status">{error}</p> : null}
-      {features.length > 1 ? (
+      {!isFullscreen && features.length > 1 ? (
         <button
           type="button"
           aria-expanded={isClusterListOpen}
@@ -278,7 +277,7 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
         </button>
       ) : null}
       <div ref={element} className="map__canvas" />
-      {isClusterListOpen ? (
+      {!isFullscreen && isClusterListOpen ? (
         <div id="map-cluster-list" aria-label="Mensajes del grupo">
           <MessageClusterList
             items={features}
