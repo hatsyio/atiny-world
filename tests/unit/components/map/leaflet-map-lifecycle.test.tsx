@@ -8,6 +8,7 @@ import type { PublicMapFeature } from '@/domain/messages/public-message'
 import { LeafletMap } from '@/components/map/leaflet-map'
 
 const leaflet = vi.hoisted(() => {
+  const zoomControlContainer = document.createElement('div')
   const bounds = { getWest: () => -10, getSouth: () => -5, getEast: () => 10, getNorth: () => 5 }
   const instance = {
     setView: vi.fn().mockReturnThis(),
@@ -18,6 +19,7 @@ const leaflet = vi.hoisted(() => {
     getBounds: vi.fn(() => bounds),
     invalidateSize: vi.fn(),
     remove: vi.fn(),
+    zoomControl: { getContainer: vi.fn(() => zoomControlContainer) },
   }
   const cluster = { addLayer: vi.fn(), removeLayer: vi.fn(), clearLayers: vi.fn() }
   const markerHandlers = new Map<string, () => void>()
@@ -58,6 +60,7 @@ afterEach(() => {
   cleanup()
   vi.unstubAllEnvs()
   vi.clearAllMocks()
+  leaflet.instance.zoomControl.getContainer().replaceChildren()
   leaflet.markerHandlers.clear()
 })
 
@@ -77,14 +80,24 @@ describe('LeafletMap lifecycle', () => {
     expect(leaflet.instance.setView).toHaveBeenCalledTimes(1)
   })
 
-  it('resizes the existing map when entering fullscreen', async () => {
+  it('adds an accessible fullscreen control below the zoom controls', async () => {
     vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
-    const { getByRole } = render(<LeafletMap features={[]} onSelect={() => {}} />)
+    render(<LeafletMap features={[]} onSelect={() => {}} />)
     await waitFor(() => expect(leaflet.map).toHaveBeenCalledTimes(1))
 
-    fireEvent.click(getByRole('button', { name: 'Pantalla completa' }))
-    await waitFor(() => expect(leaflet.instance.invalidateSize).toHaveBeenCalled())
-    expect(leaflet.map).toHaveBeenCalledTimes(1)
+    const control = leaflet.instance.zoomControl.getContainer().querySelector<HTMLButtonElement>('.leaflet-control-zoom-fullscreen')
+    if (!control) throw new Error('fullscreen control unavailable')
+
+    expect(control).toHaveClass('leaflet-control-zoom-fullscreen')
+    expect(control).toHaveAccessibleName('Entrar en pantalla completa')
+    expect(control.title).toBe('Entrar en pantalla completa')
+
+    fireEvent.click(control)
+    await waitFor(() => expect(control).toHaveAccessibleName('Salir de pantalla completa'))
+    expect(leaflet.instance.invalidateSize).toHaveBeenCalled()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    await waitFor(() => expect(control).toHaveAccessibleName('Entrar en pantalla completa'))
   })
 
   it('uses the bundled marker images from a stable public path', async () => {

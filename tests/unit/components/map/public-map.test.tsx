@@ -99,7 +99,7 @@ describe('PublicMapLoader', () => {
     expect(screen.getByRole('status').textContent).toMatch(/cargando mapa/i)
   })
 
-  it('offers visible spiderfy and fullscreen controls for clustered points', () => {
+  it('offers the group control without an external fullscreen button', () => {
     process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY = 'test-key'
     render(
       <LeafletMap
@@ -109,7 +109,7 @@ describe('PublicMapLoader', () => {
     )
 
     expect(screen.getByRole('button', { name: /ver mensajes del grupo/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /pantalla completa/i })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Pantalla completa' })).toBeNull()
   })
 })
 
