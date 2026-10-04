@@ -1,4 +1,3 @@
-import { Show, UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 
 import { PublicMapController } from '@/components/map/public-map-controller'
@@ -14,21 +13,19 @@ export const dynamic = 'force-dynamic'
 
 const copy = {
   en: {
-    home: 'Home', send: 'Send a letter', explore: 'Explore the map', letters: 'Letters', myLetters: 'My letters', about: 'About', signIn: 'Sign in', join: 'Join',
+    send: 'Write a letter', explore: 'Explore the map',
     heroScript: 'Dear, ATEEZ…', heroTitle: 'Messages across the seas', heroSub: 'From ATINY around the world, to ATEEZ.', heroText: 'Leave a message of love, encouragement, or appreciation and add your voice to our global map.',
     mapTitle: 'A global ocean of ATINY', mapNote: 'Different lands. Same love. Always ATEEZ.', mapHint: 'Explore the map and find letters from around the world.',
     lettersTitle: 'Letters from ATINY', lettersNote: 'Recent messages shared publicly by ATINY around the world.', emptyLetters: 'No public letters yet. Be the first to share one.', letterStat: { one: 'Letter', other: 'Letters' }, countryStat: { one: 'Country', other: 'Countries' }, piratesStat: 'Pirates',
-    bannerTitle: 'Send your letter', bannerText: 'Share your message, mark your location, and be part of this journey.', bannerAction: 'Write your letter',
-    footer: 'An independent fan project by ATINY, for ATEEZ. Not affiliated with or endorsed by KQ Entertainment.',
+    bannerTitle: 'Send your letter', bannerText: 'Share your message, mark your location, and be part of this journey.', bannerAction: 'Write a letter',
     publicationPending: 'Your letter was sent. It is pending moderation and will appear on the map once approved.',
   },
   es: {
-    home: 'Inicio', send: 'Envía una carta', explore: 'Explora el mapa', letters: 'Cartas', myLetters: 'Mis cartas', about: 'Sobre el proyecto', signIn: 'Entrar', join: 'Únete',
+    send: 'Escribir una carta', explore: 'Explora el mapa',
     heroScript: 'Querido ATEEZ…', heroTitle: 'Mensajes a través de los mares', heroSub: 'De ATINY de todo el mundo, para ATEEZ.', heroText: 'Deja un mensaje de cariño, ánimo o agradecimiento y suma tu voz a nuestro mapa global.',
     mapTitle: 'Un océano global de ATINY', mapNote: 'Tierras distintas. El mismo cariño. Siempre ATEEZ.', mapHint: 'Explora el mapa y encuentra cartas de todo el mundo.',
     lettersTitle: 'Cartas de ATINY', lettersNote: 'Mensajes públicos recientes compartidos por ATINY de todo el mundo.', emptyLetters: 'Todavía no hay cartas públicas. Sé la primera persona en compartir una.', letterStat: { one: 'Carta', other: 'Cartas' }, countryStat: { one: 'País', other: 'Países' }, piratesStat: 'Piratas',
-    bannerTitle: 'Envía tu carta', bannerText: 'Comparte tu mensaje, marca tu lugar y forma parte de este viaje.', bannerAction: 'Escribe tu carta',
-    footer: 'Un proyecto independiente de fans, de ATINY para ATEEZ. Sin afiliación ni respaldo de KQ Entertainment.',
+    bannerTitle: 'Envía tu carta', bannerText: 'Comparte tu mensaje, marca tu lugar y forma parte de este viaje.', bannerAction: 'Escribir una carta',
     publicationPending: 'Tu carta se ha enviado. Está pendiente de moderación y aparecerá en el mapa en cuanto sea aprobada.',
   },
 } as const
@@ -60,25 +57,7 @@ export function PublicHome({
   const writeUrl = `/${lang}/messages/new`
 
   return (
-    <div className="voyage" id="home">
-      <header className="site-header" aria-label="Site header">
-        <nav className="main-nav" aria-label="Main navigation">
-          <Link href="#home">{t.home}</Link>
-          <Link href={writeUrl}>{t.send}</Link>
-          <Link href="#map">{t.explore}</Link>
-          <Link href="#letters">{t.letters}</Link>
-          <Link href="#about">{t.about}</Link>
-        </nav>
-        <Link className="nav-brand" href={`/${lang}`} aria-label="atiny world, home">
-          <span className="nav-compass" aria-hidden="true">✧</span>
-          <span>ATINY <i>•</i> FOR ATEEZ <i>•</i> ACROSS EVERY SEA</span>
-        </Link>
-        <nav className="account-actions" aria-label="Account">
-          <Show when="signed-out"><Link href={`/${lang}/sign-in`}>{t.signIn}</Link><Link href={`/${lang}/sign-up`}>{t.join}</Link></Show>
-          <Show when="signed-in"><Link href={`/${lang}/my-messages`}>{t.myLetters}</Link><UserButton /></Show>
-        </nav>
-      </header>
-
+    <div className="voyage" id="home" tabIndex={-1}>
       <main>
         <section className="voyage-hero" aria-labelledby="public-home-title">
           <div className="hero-emblem" aria-hidden="true"><span className="hero-emblem__star">✦</span><span>ATEEZ</span></div>
@@ -102,14 +81,14 @@ export function PublicHome({
             <div className="stat-plaque"><strong>8</strong><span>{t.piratesStat}</span></div>
           </section>
 
-          <section className="map-section" id="map" aria-labelledby="map-title">
+          <section className="map-section" id="map" tabIndex={-1} aria-labelledby="map-title">
             <div className="map-heading"><h2 id="map-title">{t.mapTitle}</h2><p>{t.mapNote}</p></div>
             {publicationPending && <p className="profile-note" role="status">{t.publicationPending}</p>}
             <p className="map-hint">{t.mapHint}</p>
             <div className="live-map-frame"><PublicMapController lang={lang} /></div>
           </section>
 
-          <section className="letters-section" id="letters" aria-labelledby="letters-title">
+          <section className="letters-section" id="letters" tabIndex={-1} aria-labelledby="letters-title">
             <div className="section-heading"><span className="section-rule" /><h2 id="letters-title">{t.lettersTitle}</h2><span className="section-rule" /></div>
             <p className="letters-note">{t.lettersNote}</p>
             <div className="letter-grid">
@@ -127,7 +106,6 @@ export function PublicHome({
 
         <section className="send-banner" aria-labelledby="send-title"><div><h2 id="send-title">{t.bannerTitle}</h2><p>{t.bannerText}</p></div><Link className="ornate-button" href={writeUrl}>{t.bannerAction} <span aria-hidden="true">→</span></Link><span className="banner-seal" aria-hidden="true">✧</span></section>
       </main>
-      <footer className="site-footer" id="about"><p className="footer-script">Dear, ATEEZ…</p><p>{t.footer}</p><p className="footer-motto">DIFFERENT PLACES <span>•</span> SAME SKY <span>•</span> ONE ATEEZ</p></footer>
     </div>
   )
 }

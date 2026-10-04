@@ -2,13 +2,13 @@
 @us3
 Característica: Gestionar mensajes propios
   Como fan autenticada
-  Quiero consultar, localizar, editar y eliminar mis mensajes
+  Quiero consultar, localizar, editar y eliminar mis cartas
   Para mantener bajo mi control mis aportaciones y conocer el motivo de cada decisión
 
-  Escenario: Mis mensajes lista todos los propios con estado y motivo
+  Escenario: Mis cartas lista todos los propios con estado y motivo
     Dado una fan con mensajes visibles y ocultos
-    Cuando abro "Mis mensajes"
-    Entonces consulto todos mis mensajes con su estado y el motivo de moderación cuando exista
+    Cuando abro "Mis cartas"
+    Entonces consulto todos mis cartas con su estado y el motivo de moderación cuando exista
     Y ningún estado ni motivo privado aparece en las respuestas públicas
 
   Escenario: Localizar un mensaje propio centra el mapa en su punto

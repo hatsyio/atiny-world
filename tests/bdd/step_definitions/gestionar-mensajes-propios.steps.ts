@@ -110,7 +110,7 @@ Given('un mensaje de una fan', async function (this: AtinyWorld) {
 })
 
 When('abro {string}', async function (this: AtinyWorld, label: string) {
-  assert.equal(label, 'Mis mensajes')
+  assert.equal(label, 'Mis cartas')
   this.ownMessages = await pageOwnMessages(db, { clerkUserId: this.clerkUserId! })
 })
 
@@ -165,7 +165,7 @@ When('un administrador intenta reescribir su texto', async function (this: Atiny
   }, { readAuth: auth(this) })
 })
 
-Then('consulto todos mis mensajes con su estado y el motivo de moderación cuando exista', function (this: AtinyWorld) {
+Then('consulto todos mis cartas con su estado y el motivo de moderación cuando exista', function (this: AtinyWorld) {
   assert.equal(this.ownMessages?.items.length, 2)
   assert.deepEqual(new Set(this.ownMessages?.items.map((item) => item.status)), new Set(['approved', 'rejected']))
   const rejected = this.ownMessages?.items.find((item) => item.status === 'rejected')

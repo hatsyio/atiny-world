@@ -1,3 +1,5 @@
+import { SiteHeader } from '@/components/navigation/site-header'
+import { SiteFooter } from '@/components/navigation/site-footer'
 import { PublicHome } from './[lang]/page'
 import { getDb } from '@/server/db/client'
 import {
@@ -13,5 +15,5 @@ export default async function Home() {
     listLatestHomepageMessages(db),
     getHomepageStats(db),
   ])
-  return <PublicHome lang="en" latestLetters={latestLetters} homepageStats={homepageStats} />
+  return <div className="site-shell" lang="en"><SiteHeader lang="en" /><PublicHome lang="en" latestLetters={latestLetters} homepageStats={homepageStats} /><SiteFooter lang="en" /></div>
 }

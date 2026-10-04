@@ -16,15 +16,37 @@ a { color: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #f4ca77; outline-offset: 3px; }
 
 .voyage { overflow: clip; max-width: 1800px; margin: auto; box-shadow: 0 0 80px #100a08; }
-.site-header { min-height: 48px; background: #181b21; border-bottom: 1px solid #4f3824; color: #f0d8a9; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .3rem clamp(1rem, 3vw, 3rem); position: relative; z-index: 5; }
-.main-nav, .account-actions { display: flex; align-items: center; gap: clamp(.7rem, 1.8vw, 2rem); }
-.main-nav a, .nav-brand, .account-actions a, .account-actions button { font-size: clamp(.6rem, .82vw, .82rem); letter-spacing: .095em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
-.main-nav a:hover, .nav-brand:hover, .account-actions a:hover, .account-actions button:hover { color: #fff; }
-.nav-brand { display: flex; align-items: center; gap: .85rem; }
-.nav-brand i { color: var(--gold); font-style: normal; margin: 0 .3rem; }
+.site-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.site-shell > .voyage, .site-shell > main { flex: 1; }
+.site-shell > .auth-page, .site-shell > .message-page { min-height: 75vh; }
+.site-header { min-height: 64px; background: #181b21; border-bottom: 1px solid #4f3824; color: #f0d8a9; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .6rem clamp(1rem, 3vw, 3rem); position: sticky; top: 0; z-index: 600; font-family: var(--font-interface), sans-serif; }
+.main-nav { display: flex; align-items: center; gap: clamp(.7rem, 1.8vw, 2rem); }
+.main-nav a, .nav-brand, .site-header button { font-size: .78rem; letter-spacing: .06em; text-decoration: none; white-space: nowrap; }
+.main-nav a, .site-header button { padding: .6rem .3rem; }
+.main-nav a:hover, .nav-brand:hover, .site-header button:hover { color: #fff; }
+.nav-brand { display: flex; align-items: center; gap: .65rem; font-size: 1rem; }
 .nav-compass { font-size: 2rem; color: var(--gold); line-height: 1; }
-.account-actions { gap: .65rem; }
-.account-actions button { border: 1px solid #756047; padding: .35rem .6rem; background: transparent; color: inherit; cursor: pointer; }
+.site-header button { border: 1px solid #756047; background: transparent; color: inherit; cursor: pointer; font-family: inherit; }
+.main-nav [aria-current] { color: #fff0cb; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .4rem; }
+.main-nav .navigation-write { padding: .65rem .9rem; color: #fff0cb; background: #19334b; border: 3px double #d8ae6d; }
+.site-header :focus-visible, .site-footer a:focus-visible { outline: 2px solid #f4dbad; outline-offset: 4px; }
+.site-header .navigation-toggle { display: none; padding: .65rem .9rem; }
+.account-menu { position: relative; }
+.account-menu > button { padding: .65rem .9rem; }
+.account-links { position: absolute; right: 0; top: calc(100% + .5rem); min-width: 190px; display: grid; gap: .3rem; padding: .6rem; background: #181b21; border: 1px solid #756047; box-shadow: 0 6px 18px #0006; }
+.account-links[hidden] { display: none; }
+.account-links a, .account-links button { text-align: left; padding: .7rem; }
+#map, #letters, #about { scroll-margin-top: 6rem; }
+.site-footer a { color: inherit; width: fit-content; }
+@media (max-width: 950px) {
+  .site-header { flex-wrap: wrap; }
+  .site-header .navigation-toggle { display: inline-block; }
+  .main-nav { display: none; flex-basis: 100%; align-items: stretch; gap: .4rem; padding: .5rem 0; }
+  .main-nav[data-open='true'] { display: flex; flex-direction: column; max-height: calc(100dvh - 90px); overflow-y: auto; }
+  .main-nav > a { padding: .8rem; }
+  .account-menu > button { width: 100%; text-align: left; }
+  .account-links { position: static; margin-top: .4rem; box-shadow: none; }
+}
 
 .voyage-hero { position: relative; min-height: clamp(520px, 54vw, 760px); background: #3b281b url('/images/nautical-desk.png') center center / cover no-repeat; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5.5rem 1rem 3.5rem; isolation: isolate; }
 .voyage-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(#1b120d24, transparent 40%, #3d1e0b1a); z-index: -1; }
@@ -63,7 +85,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map-feedback [role='status'] { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem; width: 100%; padding: .5rem 1rem; text-align: center; }
 .map-feedback p { margin: 0; }
 .map { min-height: 390px; position: relative; }
-.map--fullscreen { position: fixed; inset: 0; min-height: 0; padding: 0; z-index: 20; background: #e0bb83; }
+.map--fullscreen { position: fixed; inset: 0; min-height: 0; padding: 0; z-index: 1000; background: #e0bb83; }
 .map__canvas { height: clamp(360px, 43vw, 540px); width: 100%; background: transparent url('/images/world-silhouette.svg') center / contain no-repeat; filter: sepia(.42) contrast(.94); }
 .map--preview .map__canvas { position: relative; }
 .map--preview .map__canvas::after { content: '✧'; position: absolute; right: 3%; top: 3%; font-size: clamp(3rem, 7vw, 7rem); color: #6a3b20; }
@@ -166,18 +188,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .my-message-actions [role='group'] p { flex-basis: 100%; margin: 0; }
 
 @media (max-width: 1100px) {
-  .site-header { flex-wrap: wrap; justify-content: center; }
-  .nav-brand { order: -1; margin-right: auto; }
-  .main-nav { order: 3; width: 100%; justify-content: center; padding: .35rem 0; }
   .letter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 650px) {
   .site-header { gap: .35rem; padding: .5rem .8rem; }
-  .nav-brand span:last-child { font-size: .53rem; }
   .nav-compass { font-size: 1.5rem; }
-  .main-nav { flex-wrap: wrap; justify-content: center; gap: .5rem 1rem; }
-  .main-nav a { font-size: .63rem; }
-  .account-actions button { font-size: .6rem; }
   .voyage-hero { min-height: 690px; background-position: center; padding-top: 3rem; justify-content: end; }
   .hero-emblem { top: 1.2rem; }
   .hero-message { margin-top: 9rem; padding: 1.4rem 1rem 2.5rem; background: #e8c58fa8; border: 1px solid #9d6e3d99; }

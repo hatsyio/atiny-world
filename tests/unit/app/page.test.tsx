@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 afterEach(cleanup)
 
 vi.mock('server-only', () => ({}))
+vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
 
 vi.mock('@clerk/nextjs', () => ({
   Show: ({ children, when }: PropsWithChildren<{ when: string }>) => (
@@ -14,6 +15,7 @@ vi.mock('@clerk/nextjs', () => ({
   ),
   SignInButton: ({ children }: PropsWithChildren) => children,
   SignUpButton: ({ children }: PropsWithChildren) => children,
+  useClerk: () => ({ openUserProfile: vi.fn(), signOut: vi.fn() }),
   UserButton: () => <button aria-label="User account" type="button" />,
 }))
 
@@ -42,7 +44,7 @@ describe('Home', () => {
         name: 'Messages across the seas',
       }),
     ).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'atiny world, home' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'ATINY World' })).toBeTruthy()
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
   })
 
@@ -50,7 +52,7 @@ describe('Home', () => {
     render(await Home())
 
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/en/sign-in')
-    expect(screen.getByRole('link', { name: 'Join' })).toHaveAttribute('href', '/en/sign-up')
-    expect(screen.getByRole('button', { name: 'User account' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/en/sign-up')
+    expect(screen.getByRole('button', { name: 'My account' })).toBeTruthy()
   })
 })

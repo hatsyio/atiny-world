@@ -8,8 +8,8 @@ import { getDb } from '@/server/db/client'
 import { pageOwnMessages } from '@/server/messages/own-message-repository'
 
 const copy = {
-  en: { back: 'Back to your messages', script: 'Dear, ATEEZ…', title: 'Edit your letter' },
-  es: { back: 'Volver a tus mensajes', script: 'Querido ATEEZ…', title: 'Editar tu carta' },
+  en: { back: 'Back to my letters', script: 'Dear, ATEEZ…', title: 'Edit your letter' },
+  es: { back: 'Volver a mis cartas', script: 'Querido ATEEZ…', title: 'Editar tu carta' },
 } as const
 
 export default async function EditOwnMessagePage({

@@ -266,7 +266,7 @@ describe('CreateMessageForm', () => {
     expect(screen.getByRole('button', { name: /publicar carta/i })).toBeEnabled()
   })
 
-  it('muestra el límite con un enlace real a «Mis mensajes» y mantiene la publicación bloqueada', async () => {
+  it('muestra el límite con un enlace real a «Mis cartas» y mantiene la publicación bloqueada', async () => {
     const submit = vi.fn(async () => failResult('MESSAGE_LIMIT_REACHED', { messageKey: 'message.limitReached' }))
     renderForm({ submitMessage: submit, lang: 'es' })
 
@@ -276,7 +276,7 @@ describe('CreateMessageForm', () => {
     await flushEffects()
 
     expect(screen.getByRole('alert')).toHaveTextContent(/límite/i)
-    const link = screen.getByRole('link', { name: /mis mensajes/i })
+    const link = screen.getByRole('link', { name: /mis cartas/i })
     expect(link).toHaveAttribute('href', '/es/my-messages')
     expect(screen.getByRole('button', { name: /publicar carta/i })).toBeDisabled()
   })

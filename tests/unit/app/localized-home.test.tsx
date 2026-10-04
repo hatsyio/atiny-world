@@ -1,10 +1,11 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const clerkState = vi.hoisted(() => ({ signedIn: true }))
 vi.mock('server-only', () => ({}))
+vi.mock('next/navigation', () => ({ usePathname: () => '/es' }))
 
 vi.mock('@clerk/nextjs', () => ({
   Show: ({ children, when }: { children: React.ReactNode; when: string }) => (
@@ -12,6 +13,7 @@ vi.mock('@clerk/nextjs', () => ({
   ),
   SignInButton: ({ children }: { children: React.ReactNode }) => children,
   SignUpButton: ({ children }: { children: React.ReactNode }) => children,
+  useClerk: () => ({ openUserProfile: vi.fn(), signOut: vi.fn() }),
   UserButton: () => <button aria-label="Cuenta" type="button" />,
 }))
 
@@ -20,6 +22,12 @@ vi.mock('../../../src/components/map/public-map-controller', () => ({
 }))
 
 import { PublicHome } from '../../../src/app/[lang]/page'
+import { SiteHeader } from '@/components/navigation/site-header'
+import { SiteFooter } from '@/components/navigation/site-footer'
+
+function Home(props: React.ComponentProps<typeof PublicHome>) {
+  return <><SiteHeader lang={props.lang} /><PublicHome {...props} /><SiteFooter lang={props.lang} /></>
+}
 
 afterEach(() => {
   clerkState.signedIn = true
@@ -40,13 +48,13 @@ const letter = {
 
 describe('PublicHome', () => {
   it('places account header, introduction, map, publication entry point and footer in order', () => {
-    render(<PublicHome lang="en" latestLetters={[letter]} />)
+    render(<Home lang="en" latestLetters={[letter]} />)
     expect(screen.getByRole('banner')).toBeTruthy()
     expect(screen.getByRole('main')).toBeTruthy()
     expect(screen.getByRole('contentinfo')).toBeTruthy()
     expect(screen.getByRole('heading', { level: 1, name: 'Messages across the seas' })).toBeTruthy()
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
-    expect(screen.getAllByRole('link', { name: /send a letter/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /write a letter/i }).length).toBeGreaterThan(0)
     expect(screen.getByText('Gracias por vuestra música.')).toBeInTheDocument()
     expect(screen.getByText('🇪🇸')).toBeInTheDocument()
     expect(screen.getByText('Madrid, España')).toBeInTheDocument()
@@ -56,41 +64,43 @@ describe('PublicHome', () => {
   })
 
   it('shows the localized private letters link separately from the public letters section', () => {
-    render(<PublicHome lang="es" />)
+    render(<Home lang="es" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Mi cuenta' }))
 
     expect(screen.getByRole('link', { name: 'Mis cartas' })).toHaveAttribute('href', '/es/my-messages')
-    expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('href', '#letters')
+    expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('href', '/es#letters')
   })
 
   it('hides the private letters link for signed-out visitors', () => {
     clerkState.signedIn = false
 
-    render(<PublicHome lang="en" />)
+    render(<Home lang="en" />)
 
     expect(screen.queryByRole('link', { name: 'My letters' })).not.toBeInTheDocument()
   })
 
   it('keeps the private letters link in the active locale', () => {
-    render(<PublicHome lang="en" />)
+    render(<Home lang="en" />)
+    fireEvent.click(screen.getByRole('button', { name: 'My account' }))
 
     expect(screen.getByRole('link', { name: 'My letters' })).toHaveAttribute('href', '/en/my-messages')
   })
 
   it('shows the pending publication beside the refreshed map without exposing a message link', () => {
-    render(<PublicHome lang="es" publicationPending />)
+    render(<Home lang="es" publicationPending />)
     expect(screen.getByText(/pendiente de moderación/i)).toBeInTheDocument()
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
     expect(screen.queryByRole('link', { name: /stable-id/i })).not.toBeInTheDocument()
   })
 
   it('shows a clear localized empty state when no public letters exist', () => {
-    render(<PublicHome lang="es" />)
+    render(<Home lang="es" />)
 
     expect(screen.getByRole('status')).toHaveTextContent(/todavía no hay cartas públicas/i)
   })
 
   it('shows the localized homepage statistics and the fixed number of pirates', () => {
-    render(<PublicHome lang="en" homepageStats={{ letters: 12, countries: 5 }} />)
+    render(<Home lang="en" homepageStats={{ letters: 12, countries: 5 }} />)
 
     expect(screen.getByText('12')).toBeInTheDocument()
     expect(screen.getByText('Letters', { selector: 'span' })).toBeInTheDocument()
@@ -101,14 +111,14 @@ describe('PublicHome', () => {
   })
 
   it('uses singular labels when a statistic is exactly one', () => {
-    render(<PublicHome lang="en" homepageStats={{ letters: 1, countries: 1 }} />)
+    render(<Home lang="en" homepageStats={{ letters: 1, countries: 1 }} />)
 
     expect(screen.getByText('Letter', { selector: 'span' })).toBeInTheDocument()
     expect(screen.getByText('Country', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('shows zero for letter and country statistics when the public collection is empty', () => {
-    render(<PublicHome lang="es" homepageStats={{ letters: 0, countries: 0 }} />)
+    render(<Home lang="es" homepageStats={{ letters: 0, countries: 0 }} />)
 
     expect(screen.getAllByText('0')).toHaveLength(2)
     expect(screen.getByText('Cartas', { selector: 'span' })).toBeInTheDocument()
