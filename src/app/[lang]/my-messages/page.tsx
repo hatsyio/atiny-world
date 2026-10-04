@@ -1,3 +1,4 @@
+import { authRoute } from '@/server/auth/auth-destination'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
@@ -35,11 +36,13 @@ export default async function MyMessagesPage({
 }) {
   const { lang } = await params
   const locale = lang === 'es' ? 'es' : 'en'
+  const { cursor } = await searchParams
+  const destination = `/${locale}/my-messages${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`
   const t = copy[locale]
   const gate = await resolveAccountGate(getDb())
 
-  if (gate.kind === 'anonymous') redirect(`/${locale}/sign-in`)
-  if (gate.kind === 'incomplete') redirect(`/${locale}/profile`)
+  if (gate.kind === 'anonymous') redirect(authRoute(locale, 'sign-in', destination))
+  if (gate.kind === 'incomplete') redirect(authRoute(locale, 'profile', destination))
 
   const back = <Link className="auth-back" href={`/${locale}#map`}>← {t.back}</Link>
   if (gate.kind === 'deletion-pending') {
@@ -47,8 +50,7 @@ export default async function MyMessagesPage({
   }
 
   const identity = await getSessionIdentity()
-  if (!identity) redirect(`/${locale}/sign-in`)
-  const { cursor } = await searchParams
+  if (!identity) redirect(authRoute(locale, 'sign-in', destination))
   const page = await pageOwnMessages(getDb(), { clerkUserId: identity.clerkUserId, cursor })
 
   return (

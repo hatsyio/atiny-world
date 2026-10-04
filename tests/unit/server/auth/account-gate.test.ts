@@ -84,9 +84,9 @@ describe('writeLetterRedirect', () => {
   const gate: AccountGate = { kind: 'incomplete' }
 
   it('directs anonymous and incomplete accounts to the localized exit', () => {
-    expect(writeLetterRedirect({ kind: 'anonymous' }, 'es')).toBe('/es/sign-in')
-    expect(writeLetterRedirect({ kind: 'anonymous' }, 'en')).toBe('/en/sign-in')
-    expect(writeLetterRedirect(gate, 'es')).toBe('/es/profile')
+    expect(writeLetterRedirect({ kind: 'anonymous' }, 'es')).toBe('/es/sign-in?next=%2Fes%2Fmessages%2Fnew')
+    expect(writeLetterRedirect({ kind: 'anonymous' }, 'en')).toBe('/en/sign-in?next=%2Fen%2Fmessages%2Fnew')
+    expect(writeLetterRedirect(gate, 'es')).toBe('/es/profile?next=%2Fes%2Fmessages%2Fnew')
   })
 
   it('lets allowed accounts continue while preserving the route language', () => {

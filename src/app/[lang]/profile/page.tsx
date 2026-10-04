@@ -1,3 +1,4 @@
+import { authRoute, authDestination, type AuthSearchParams } from '@/server/auth/auth-destination'
 import Link from 'next/link'
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
@@ -38,14 +39,16 @@ const copy = {
 export default async function ProfilePage({
   params,
   searchParams,
-}: { params: Promise<{ lang: string }>; searchParams: Promise<{ error?: string }> }) {
+}: { params: Promise<{ lang: string }>; searchParams: Promise<AuthSearchParams & { error?: string }> }) {
   const { lang } = await params
   const locale = lang === 'es' ? 'es' : 'en'
   const t = copy[locale]
+  const { next, error } = await searchParams
+  const destination = authDestination(locale, next)
   const gate = await resolveAccountGate(getDb())
 
-  if (gate.kind === 'anonymous') redirect(`/${locale}/sign-in`)
-  if (gate.kind === 'allowed') redirect(`/${locale}`)
+  if (gate.kind === 'anonymous') redirect(authRoute(locale, 'sign-in', destination))
+  if (gate.kind === 'allowed') redirect(destination)
 
   const back = <Link className="auth-back" href={`/${locale}#map`}>← {t.back}</Link>
 
@@ -65,7 +68,6 @@ export default async function ProfilePage({
   const user = await currentUser()
   const legacyName = user?.unsafeMetadata?.publicName
   if (user && !user.username && !(typeof legacyName === 'string' && legacyName.trim())) {
-    const { error } = await searchParams
     return (
       <main className="auth-page">
         {back}
@@ -74,6 +76,7 @@ export default async function ProfilePage({
           <h1>{t.usernameTitle}</h1>
           <p className="profile-intro">{t.usernameIntro}</p>
           <form className="profile-form" action={recoverUsername.bind(null, locale)}>
+            <input type="hidden" name="next" value={destination} />
             <div className="profile-field">
               <label htmlFor="recovery-username">{t.usernameLabel}</label>
               <input id="recovery-username" name="username" type="text" autoComplete="username" minLength={4} maxLength={64} required />
@@ -93,7 +96,7 @@ export default async function ProfilePage({
         <p className="auth-script">{t.script}</p>
         <h1>{t.title}</h1>
         <p className="profile-intro">{t.intro}</p>
-        <Link className="profile-submit" href={`/${locale}/auth/continue`}>{locale === 'es' ? 'Reintentar' : 'Try again'}</Link>
+        <Link className="profile-submit" href={authRoute(locale, 'auth/continue', destination)}>{locale === 'es' ? 'Reintentar' : 'Try again'}</Link>
       </div>
     </main>
   )
