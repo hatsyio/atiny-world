@@ -18,10 +18,10 @@ Característica: Crear cuenta y publicar un mensaje
     Cuando confirmo la advertencia y publico una ubicación precisa
     Entonces el punto público preciso no incluye la dirección escrita
 
-  Escenario: El undécimo mensaje es bloqueado y enlaza a mis mensajes
+  Escenario: El undécimo mensaje es bloqueado y enlaza a mis cartas
     Dado una fan activa con diez mensajes no eliminados
     Cuando intenta publicar otro mensaje válido
-    Entonces recibe el error "MESSAGE_LIMIT_REACHED" y acceso a "Mis mensajes"
+    Entonces recibe el error "MESSAGE_LIMIT_REACHED" y acceso a "Mis cartas"
 
   Escenario: El cooldown muestra el tiempo restante
     Dado una fan activa que acaba de publicar

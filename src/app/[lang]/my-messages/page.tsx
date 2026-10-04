@@ -11,7 +11,7 @@ const copy = {
   en: {
     back: 'Back to the map',
     script: 'Dear, ATEEZ…',
-    title: 'Your letters',
+    title: 'My letters',
     intro: 'See every letter you have sent, including its moderation status.',
     next: 'Load older letters',
     unavailable: 'Your account is not available right now.',
@@ -19,7 +19,7 @@ const copy = {
   es: {
     back: 'Volver al mapa',
     script: 'Querido ATEEZ…',
-    title: 'Mis mensajes',
+    title: 'Mis cartas',
     intro: 'Consulta todas las cartas que has enviado, incluido su estado de moderación.',
     next: 'Ver cartas anteriores',
     unavailable: 'Tu cuenta no está disponible en este momento.',

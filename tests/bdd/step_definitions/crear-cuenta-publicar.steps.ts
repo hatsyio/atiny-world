@@ -198,7 +198,7 @@ Then('recibe el error {string} y acceso a {string}', async function (this: Atiny
   assert.ok(this.messageActionResult && !this.messageActionResult.ok)
   assert.equal(this.messageActionResult.error.code, code)
   assert.equal(this.messageActionResult.error.messageKey, 'message.limitReached')
-  assert.equal(label, 'Mis mensajes')
+  assert.equal(label, 'Mis cartas')
   const rows = await db<Array<{ count: number }>>`select count(*)::int as count from app_private.messages`
   assert.equal(rows[0].count, 10)
 })

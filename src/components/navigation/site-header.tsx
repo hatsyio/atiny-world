@@ -1,0 +1,101 @@
+'use client'
+
+import { Show } from '@clerk/nextjs'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
+
+import { AccountMenu } from '@/components/account/account-menu'
+import { navigationCopy } from './copy'
+
+type Section = 'home' | 'map' | 'letters'
+
+export function SiteHeader({ lang }: { lang: 'en' | 'es' }) {
+  const t = navigationCopy[lang]
+  const pathname = usePathname()
+  const home = `/${lang}`
+  const isHome = pathname === home || pathname === '/' || pathname === `${home}/`
+  const [section, setSection] = useState<Section>('home')
+  const [openedPath, setOpenedPath] = useState<string | null>(null)
+  const expanded = openedPath === pathname
+  const toggle = useRef<HTMLButtonElement>(null)
+  const header = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!isHome) return
+    const readHash = () => {
+      const hash = window.location.hash.slice(1)
+      if (hash === 'map' || hash === 'letters') setSection(hash)
+      else if (hash === 'about') readScroll()
+      else setSection('home')
+    }
+    const readScroll = () => {
+      const boundary = window.innerHeight * 0.25
+      let current: Section = 'home'
+      for (const id of ['map', 'letters'] as const) {
+        const element = document.getElementById(id)
+        if (!element) continue
+        const top = element.getBoundingClientRect().top
+        const atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2
+        if (top <= boundary || (atBottom && top < window.innerHeight)) current = id
+      }
+      setSection(current)
+    }
+    readHash()
+    window.addEventListener('hashchange', readHash)
+    window.addEventListener('scroll', readScroll, { passive: true })
+    return () => {
+      window.removeEventListener('hashchange', readHash)
+      window.removeEventListener('scroll', readScroll)
+    }
+  }, [isHome, pathname])
+
+  useEffect(() => {
+    const closeOutside = (event: PointerEvent) => {
+      if (!header.current?.contains(event.target as Node)) setOpenedPath(null)
+    }
+    document.addEventListener('pointerdown', closeOutside)
+    return () => document.removeEventListener('pointerdown', closeOutside)
+  }, [])
+
+  const writing = pathname === `${home}/messages/new`
+  const reading = !writing && pathname?.startsWith(`${home}/messages/`)
+  const account = pathname?.startsWith(`${home}/my-messages`) || pathname === `${home}/profile`
+  const close = () => setOpenedPath(null)
+  const current = (id: Section) => isHome && section === id ? (id === 'home' ? 'page' : 'location') : undefined
+
+  return (
+    <header className="site-header" ref={header} onKeyDown={event => {
+      if (event.key === 'Escape' && expanded && !event.defaultPrevented) {
+        close()
+        toggle.current?.focus()
+      }
+    }}>
+      <Link className="nav-brand" href={home} onClick={close}>
+        <span className="nav-compass" aria-hidden="true">✧</span>
+        <span>ATINY World</span>
+      </Link>
+      <button className="navigation-toggle" type="button" ref={toggle} aria-expanded={expanded} aria-controls="global-navigation" onClick={() => setOpenedPath(expanded ? null : pathname)}>{t.menu}</button>
+      <nav className="main-nav" id="global-navigation" aria-label={t.navigation} data-open={expanded} onClick={event => {
+        const link = (event.target as Element).closest('a')
+        if (!link) return
+        if (expanded && isHome) {
+          const href = link.getAttribute('href')
+          const id = href === home ? 'home' : href?.startsWith(`${home}#`) ? href.split('#')[1] : null
+          if (id) document.getElementById(id)?.focus({ preventScroll: true })
+        }
+        close()
+      }}>
+        <Link href={home} aria-current={current('home')}>{t.home}</Link>
+        <Link href={`${home}#map`} aria-current={current('map')}>{t.map}</Link>
+        <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t.letters}</Link>
+        <Link className="navigation-write" href={`${home}/messages/new`} aria-current={writing ? 'page' : undefined}>{t.write}</Link>
+        <Show when="signed-in"><AccountMenu lang={lang} active={Boolean(account)} onNavigate={close} /></Show>
+        <Show when="signed-out">
+          <Link href={`${home}/sign-in`} aria-current={pathname?.startsWith(`${home}/sign-in`) ? 'page' : undefined}>{t.signIn}</Link>
+          <Link href={`${home}/sign-up`} aria-current={pathname?.startsWith(`${home}/sign-up`) ? 'page' : undefined}>{t.signUp}</Link>
+        </Show>
+      </nav>
+    </header>
+  )
+}

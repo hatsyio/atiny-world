@@ -26,7 +26,7 @@ type Props = {
 
 const copy = {
   en: {
-    listLabel: 'Your letters',
+    listLabel: 'My letters',
     status: {
       pending: 'Pending review',
       approved: 'Approved',

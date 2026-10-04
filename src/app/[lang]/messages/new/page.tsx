@@ -9,14 +9,14 @@ const copy = {
   en: {
     back: 'Back to the map',
     script: 'Dear, ATEEZ…',
-    title: 'Write your letter',
+    title: 'Write a letter',
     intro: 'Write your letter and choose where it will appear on the map.',
     unavailable: 'Your account is not available, so you cannot publish a letter right now.',
   },
   es: {
     back: 'Volver al mapa',
     script: 'Querido ATEEZ…',
-    title: 'Escribe tu carta',
+    title: 'Escribir una carta',
     intro: 'Escribe tu carta y elige dónde aparecerá en el mapa.',
     unavailable: 'Tu cuenta no está disponible, así que no puedes publicar una carta ahora mismo.',
   },
