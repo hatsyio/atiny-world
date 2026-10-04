@@ -40,3 +40,9 @@ it.each(['en', 'es'] as const)('returns from account setup to the map in %s', as
   render(await ProfilePage({ params: Promise.resolve({ lang }), searchParams: Promise.resolve({}) }))
   expect(screen.getByRole('link', { name: lang === 'es' ? /Volver al mapa/ : /Back to the map/ })).toHaveAttribute('href', `/${lang}#map`)
 })
+
+it('submits the validated pending action with the username recovery form', async () => {
+  state.username = null
+  const view = render(await ProfilePage({ params: Promise.resolve({ lang: 'es' }), searchParams: Promise.resolve({ next: '/es/messages/new' }) }))
+  expect(view.container.querySelector('input[name="next"]')).toHaveValue('/es/messages/new')
+})

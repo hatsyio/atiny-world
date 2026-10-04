@@ -1,4 +1,5 @@
 import type { Sql } from 'postgres'
+import { authRoute } from './auth-destination'
 
 import { auth } from '@clerk/nextjs/server'
 import { completeProfileForSession } from '@/server/actions/complete-profile'
@@ -20,13 +21,14 @@ export type AccountGate =
 
 export function writeLetterRedirect(
   gate: AccountGate,
-  lang: string,
+  lang: 'en' | 'es',
+  next: string = `/${lang}/messages/new`,
 ): string | null {
   switch (gate.kind) {
     case 'anonymous':
-      return `/${lang}/sign-in`
+      return authRoute(lang, 'sign-in', next)
     case 'incomplete':
-      return `/${lang}/profile`
+      return authRoute(lang, 'profile', next)
     default:
       return null
   }

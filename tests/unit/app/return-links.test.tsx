@@ -30,8 +30,8 @@ afterEach(() => { cleanup(); state.kind = 'allowed' })
 it.each(['en', 'es'] as const)('returns from direct internal links to the map in %s', async lang => {
   const params = Promise.resolve({ lang, publicId: 'letter-id' })
   for (const page of [
-    () => SignInPage({ params }),
-    () => SignUpPage({ params }),
+    () => SignInPage({ params, searchParams: Promise.resolve({}) }),
+    () => SignUpPage({ params, searchParams: Promise.resolve({}) }),
     () => PublicMessagePage({ params }),
     () => MyMessagesPage({ params, searchParams: Promise.resolve({}) }),
     () => NewMessagePage({ params, searchParams: Promise.resolve({}) }),

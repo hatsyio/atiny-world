@@ -32,7 +32,8 @@ export default async function NewMessagePage({
   const origin = returnDestination(locale, returnTo)
   const gate = await resolveAccountGate(getDb())
 
-  const destination = writeLetterRedirect(gate, locale)
+  const requestedAction = `/${locale}/messages/new${returnTo ? `?returnTo=${encodeURIComponent(origin.href)}` : ''}`
+  const destination = writeLetterRedirect(gate, locale, requestedAction)
   if (destination !== null) redirect(destination)
 
   const back = <Link className="auth-back" href={origin.href}>← {origin.back}</Link>
