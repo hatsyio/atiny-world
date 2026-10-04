@@ -6,7 +6,7 @@ export default async function SignUpPage({ params }: { params: Promise<{ lang: s
   const locale = lang === 'es' ? 'es' : 'en'
   return (
     <main className="auth-page">
-      <Link className="auth-back" href={`/${locale}`}>← {locale === 'es' ? 'Volver al mapa' : 'Back to the map'}</Link>
+      <Link className="auth-back" href={`/${locale}#map`}>← {locale === 'es' ? 'Volver al mapa' : 'Back to the map'}</Link>
       <div className="clerk-auth-step">
         <SignUp
           signInUrl={`/${locale}/sign-in`}

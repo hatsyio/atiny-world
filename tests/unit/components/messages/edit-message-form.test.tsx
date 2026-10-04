@@ -91,3 +91,11 @@ describe('EditMessageForm', () => {
     expect(push).not.toHaveBeenCalled()
   })
 })
+
+it.each(['en', 'es'] as const)('cancels directly to own letters in %s without submitting', lang => {
+  const submitUpdate = vi.fn()
+  render(<EditMessageForm lang={lang} message={message} submitUpdate={submitUpdate} />)
+  fireEvent.click(screen.getByRole('button', { name: lang === 'es' ? 'Cancelar' : 'Cancel' }))
+  expect(push).toHaveBeenCalledWith(`/${lang}/my-messages`)
+  expect(submitUpdate).not.toHaveBeenCalled()
+})
