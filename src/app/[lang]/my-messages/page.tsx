@@ -41,7 +41,7 @@ export default async function MyMessagesPage({
   if (gate.kind === 'anonymous') redirect(`/${locale}/sign-in`)
   if (gate.kind === 'incomplete') redirect(`/${locale}/profile`)
 
-  const back = <Link className="auth-back" href={`/${locale}`}>← {t.back}</Link>
+  const back = <Link className="auth-back" href={`/${locale}#map`}>← {t.back}</Link>
   if (gate.kind === 'deletion-pending') {
     return <main className="auth-page">{back}<div className="auth-panel"><p className="auth-script">{t.script}</p><h1>{t.title}</h1><p className="profile-intro">{t.unavailable}</p></div></main>
   }

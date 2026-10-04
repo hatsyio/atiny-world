@@ -47,7 +47,7 @@ export default async function ProfilePage({
   if (gate.kind === 'anonymous') redirect(`/${locale}/sign-in`)
   if (gate.kind === 'allowed') redirect(`/${locale}`)
 
-  const back = <Link className="auth-back" href={`/${locale}`}>← {t.back}</Link>
+  const back = <Link className="auth-back" href={`/${locale}#map`}>← {t.back}</Link>
 
   if (gate.kind === 'suspended' || gate.kind === 'deletion-pending') {
     return (

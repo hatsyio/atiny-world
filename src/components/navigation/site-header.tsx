@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { AccountMenu } from '@/components/account/account-menu'
 import { navigationCopy } from './copy'
+import { returnDestination } from './return-destination'
 
 type Section = 'home' | 'map' | 'letters'
 
@@ -59,6 +60,8 @@ export function SiteHeader({ lang }: { lang: 'en' | 'es' }) {
   }, [])
 
   const writing = pathname === `${home}/messages/new`
+  const origin = returnDestination(lang, !isHome && !writing ? pathname ?? undefined : undefined)
+  const writeHref = `${home}/messages/new${origin.href !== `${home}#map` ? `?returnTo=${encodeURIComponent(origin.href)}` : ''}`
   const reading = !writing && pathname?.startsWith(`${home}/messages/`)
   const account = pathname?.startsWith(`${home}/my-messages`) || pathname === `${home}/profile`
   const close = () => setOpenedPath(null)
@@ -89,7 +92,7 @@ export function SiteHeader({ lang }: { lang: 'en' | 'es' }) {
         <Link href={home} aria-current={current('home')}>{t.home}</Link>
         <Link href={`${home}#map`} aria-current={current('map')}>{t.map}</Link>
         <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t.letters}</Link>
-        <Link className="navigation-write" href={`${home}/messages/new`} aria-current={writing ? 'page' : undefined}>{t.write}</Link>
+        <Link className="navigation-write" href={writeHref} aria-current={writing ? 'page' : undefined}>{t.write}</Link>
         <Show when="signed-in"><AccountMenu lang={lang} active={Boolean(account)} onNavigate={close} /></Show>
         <Show when="signed-out">
           <Link href={`${home}/sign-in`} aria-current={pathname?.startsWith(`${home}/sign-in`) ? 'page' : undefined}>{t.signIn}</Link>

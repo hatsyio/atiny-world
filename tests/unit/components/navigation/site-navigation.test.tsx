@@ -21,7 +21,7 @@ describe('shared navigation', () => {
     render(<SiteHeader lang="es" />)
     const links = within(screen.getByRole('navigation', { name: 'Navegación principal' })).getAllByRole('link')
     expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual([
-      ['Inicio', '/es'], ['Mapa', '/es#map'], ['Cartas', '/es#letters'], ['Escribir una carta', '/es/messages/new'], ['Entrar', '/es/sign-in'], ['Registrarse', '/es/sign-up'],
+      ['Inicio', '/es'], ['Mapa', '/es#map'], ['Cartas', '/es#letters'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/es/messages/new?returnTo=${encodeURIComponent(`/es${suffix}`)}` : '/es/messages/new'], ['Entrar', '/es/sign-in'], ['Registrarse', '/es/sign-up'],
     ])
     expect(screen.getByRole('link', { name: 'ATINY World' })).toHaveAttribute('href', '/es')
     expect(screen.getAllByRole('link').filter(link => link.hasAttribute('aria-current')).length).toBeLessThanOrEqual(1)
@@ -122,4 +122,13 @@ describe('shared navigation', () => {
     render(<SiteFooter lang="es" />)
     expect(screen.getByRole('contentinfo')).toHaveTextContent('Un proyecto independiente')
   })
+})
+
+it.each(['/es/my-messages', '/es/messages/letter-1'])('carries the reading origin into writing from %s', pathname => {
+  state.pathname = pathname
+  render(<SiteHeader lang="es" />)
+  const link = screen.getByRole('link', { name: 'Escribir una carta' })
+  const url = new URL(link.getAttribute('href')!, 'https://atiny.invalid')
+  expect(url.pathname).toBe('/es/messages/new')
+  expect(url.searchParams.get('returnTo')).toBe(pathname)
 })

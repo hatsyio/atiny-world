@@ -7,8 +7,10 @@ import { CreateMessageForm, type CreateMessageSubmit } from './create-message-fo
 export function CreateMessageFlow({
   lang,
   submitMessage,
+  returnTo,
 }: {
   lang: 'en' | 'es'
+  returnTo?: string
   submitMessage?: CreateMessageSubmit
 }) {
   const router = useRouter()
@@ -23,5 +25,5 @@ export function CreateMessageFlow({
     }
   }
 
-  return <CreateMessageForm lang={lang} submitMessage={submitMessage} onPublished={onPublished} />
+  return <CreateMessageForm lang={lang} returnTo={returnTo} submitMessage={submitMessage} onPublished={onPublished} />
 }

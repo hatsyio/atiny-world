@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 
 import { createMessageAction, type CreateMessageActionResult } from '@/app/[lang]/actions/create-message'
 import { LocationPicker, type LocationPickerSelection } from '@/components/map/location-picker'
+import { returnDestination } from '@/components/navigation/return-destination'
 import { MAX_GRAPHEMES, countGraphemes } from '@/domain/messages/content'
 import type { CreateMessageActionInput } from '@/server/actions/create-message'
 
@@ -23,7 +24,6 @@ const copy = {
     locationInvalid: 'That place selection is not valid. Search again and choose a place.',
     publish: 'Publish letter',
     publishing: 'Publishing…',
-    cancel: 'Cancel',
     cooldown: 'You can publish another letter in {seconds} seconds.',
     limitTitle: 'You reached the limit of letters you can publish',
     limitText: 'Manage your published letters before publishing a new one.',
@@ -46,7 +46,6 @@ const copy = {
     locationInvalid: 'Esa selección de lugar no es válida. Busca de nuevo y elige un lugar.',
     publish: 'Publicar carta',
     publishing: 'Publicando…',
-    cancel: 'Cancelar',
     cooldown: 'Podrás publicar otra carta en {seconds} segundos.',
     limitTitle: 'Llegaste al límite de cartas que puedes publicar',
     limitText: 'Gestiona tus cartas publicadas antes de publicar una nueva.',
@@ -70,6 +69,7 @@ export type FormFieldErrors = {
 
 export interface CreateMessageFormProps {
   lang?: 'en' | 'es'
+  returnTo?: string
   onPublished?: (publicId: string, publicVisible: boolean) => void
   submitMessage?: CreateMessageSubmit
 }
@@ -77,9 +77,11 @@ export interface CreateMessageFormProps {
 export function CreateMessageForm({
   lang = 'en',
   onPublished,
+  returnTo,
   submitMessage = createMessageAction,
 }: CreateMessageFormProps) {
   const t = copy[lang]
+  const origin = returnDestination(lang, returnTo)
   const router = useRouter()
 
   const [content, setContent] = useState('')
@@ -280,8 +282,8 @@ export function CreateMessageForm({
         <button type="submit" className="profile-submit" disabled={publishDisabled}>
           {sending ? t.publishing : t.publish}
         </button>
-        <button type="button" className="profile-cancel" disabled={sending} onClick={() => router.push(`/${lang}`)}>
-          {t.cancel}
+        <button type="button" className="profile-cancel" disabled={sending} onClick={() => router.push(origin.href)}>
+          {origin.cancel}
         </button>
       </div>
     </form>

@@ -35,3 +35,8 @@ describe('profile recovery', () => {
     expect(screen.queryByLabelText('Username')).toBeNull()
   })
 })
+
+it.each(['en', 'es'] as const)('returns from account setup to the map in %s', async lang => {
+  render(await ProfilePage({ params: Promise.resolve({ lang }), searchParams: Promise.resolve({}) }))
+  expect(screen.getByRole('link', { name: lang === 'es' ? /Volver al mapa/ : /Back to the map/ })).toHaveAttribute('href', `/${lang}#map`)
+})
