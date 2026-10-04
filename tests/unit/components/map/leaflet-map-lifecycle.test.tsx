@@ -22,6 +22,8 @@ const leaflet = vi.hoisted(() => {
     on: vi.fn(),
     off: vi.fn(),
     getBounds: vi.fn(() => bounds),
+    getCenter: vi.fn(() => ({ lat: 40.5, lng: -3.5 })),
+    getZoom: vi.fn(() => 8),
     invalidateSize: vi.fn(),
     remove: vi.fn(),
     zoomControl: { getContainer: vi.fn(() => zoomControlContainer) },
@@ -206,4 +208,14 @@ describe('LeafletMap lifecycle', () => {
     await waitFor(() => expect(leaflet.marker).toHaveBeenCalledTimes(1))
     expect(leaflet.cluster.removeLayer).not.toHaveBeenCalled()
   })
+})
+
+
+it('initializes the restored map at the saved center and zoom and reports subsequent moves', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  const onViewChange = vi.fn()
+  render(<LeafletMap features={[]} onSelect={() => {}} initialView={{ latitude: 40.5, longitude: -3.5, zoom: 8 }} onViewChange={onViewChange} />)
+  await waitFor(() => expect(leaflet.map).toHaveBeenCalledTimes(1))
+  expect(leaflet.instance.setView).toHaveBeenCalledWith([40.5, -3.5], 8)
+  expect(onViewChange).toHaveBeenCalledWith({ latitude: 40.5, longitude: -3.5, zoom: 8 })
 })

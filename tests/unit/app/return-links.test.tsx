@@ -64,3 +64,12 @@ it('keeps the map escape available for an unavailable writing account', async ()
   expect(screen.getByRole('link', { name: /Volver al mapa/ })).toHaveAttribute('href', '/es#map')
   expect(screen.queryByTestId('form-destination')).toBeNull()
 })
+
+it.each([
+  ['/es#letters-letter-id', 'Volver a las cartas'],
+  ['/es/my-messages?cursor=older#own-letter-id', 'Volver a mis cartas'],
+  ['https://evil.example', 'Volver al mapa'],
+] as const)('public detail resolves its reading origin: %s', async (returnTo, label) => {
+  render(await PublicMessagePage({ params: Promise.resolve({ lang: 'es', publicId: 'letter-id' }), searchParams: Promise.resolve({ returnTo }) }))
+  expect(screen.getByRole('link', { name: `← ${label}` })).toHaveAttribute('href', returnTo.startsWith('/es') ? returnTo : '/es#map')
+})

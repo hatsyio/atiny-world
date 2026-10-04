@@ -1,9 +1,10 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 
+import { LetterLink } from '@/components/navigation/letter-link'
+import { ownLetterOrigin } from '@/components/navigation/letter-origin'
 import type { MessageStatus } from '@/domain/contracts'
 import type { OwnMessage } from '@/domain/messages/own-message'
 import { deleteMessageAction } from '@/app/[lang]/my-messages/delete-action'
@@ -18,6 +19,7 @@ type Locale = 'en' | 'es'
 
 type Props = {
   lang?: string
+  cursor?: string
   messages: OwnMessageListItem[]
   accountSuspended?: boolean
   onDelete?: (publicId: string, expectedVersion: number) => void | Promise<void>
@@ -98,6 +100,7 @@ function DefaultEditButton({ item, lang, disabled, label }: {
 
 export function MyMessageList({
   lang = 'en',
+  cursor,
   messages,
   accountSuspended = false,
   onDelete,
@@ -148,19 +151,19 @@ export function MyMessageList({
           {messages.map((item, index) => {
             const reason = reasonLabel(locale, item.moderationReasonCode)
             const isConfirming = confirming === item.publicId
-            const publicHref = `/${locale}/messages/${item.publicId}`
+            const origin = ownLetterOrigin(locale, item.publicId, cursor)
 
             return (
-              <li className="my-message-item" key={`${item.publicId}-${index}`} aria-label={item.content}>
+              <li id={`own-${item.publicId}`} className="my-message-item" key={`${item.publicId}-${index}`} aria-label={item.content}>
                 <p className="my-message-content">{item.content}</p>
                 <p><strong>{t.status[item.status as MessageStatus]}</strong></p>
                 {reason ? <p><span>{reason}</span></p> : null}
                 {item.moderationNote ? <p><small><span>{t.moderationNote}: </span><span>{item.moderationNote}</span></small></p> : null}
                 <p className="my-message-links">
                   {item.status === 'approved' ? (
-                    <Link href={publicHref}>{t.locate}</Link>
+                    <LetterLink lang={locale} publicId={item.publicId} origin={origin}>{t.locate}</LetterLink>
                   ) : (
-                    <Link href={publicHref}>{t.unavailable}</Link>
+                    <LetterLink lang={locale} publicId={item.publicId} origin={origin}>{t.unavailable}</LetterLink>
                   )}
                 </p>
                 <div className="my-message-actions">
