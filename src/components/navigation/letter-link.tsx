@@ -1,0 +1,20 @@
+'use client'
+
+import Link from 'next/link'
+import type { ComponentProps } from 'react'
+
+import { letterHref } from './letter-origin'
+
+/** Replace the source entry before pushing the detail, so browser Back has the same origin. */
+export function rememberLetterOrigin(origin: string) {
+  const path = origin.split(/[?#]/)[0]
+  if (window.location.pathname === path) window.history.replaceState(null, '', origin)
+}
+
+export function LetterLink({ lang, publicId, origin, children, ...props }: {
+  lang: 'en' | 'es'
+  publicId: string
+  origin: string
+} & Omit<ComponentProps<typeof Link>, 'href' | 'onNavigate'>) {
+  return <Link {...props} href={letterHref(lang, publicId, origin)} onNavigate={() => rememberLetterOrigin(origin)}>{children}</Link>
+}

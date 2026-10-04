@@ -36,7 +36,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .account-links { position: absolute; right: 0; top: calc(100% + .5rem); min-width: 190px; display: grid; gap: .3rem; padding: .6rem; background: #181b21; border: 1px solid #756047; box-shadow: 0 6px 18px #0006; }
 .account-links[hidden] { display: none; }
 .account-links a, .account-links button { text-align: left; padding: .7rem; }
-#map, #letters, #about { scroll-margin-top: 6rem; }
+#map, #letters, #about, [id^="letters-"], [id^="own-"] { scroll-margin-top: 6rem; }
 .site-footer a { color: inherit; width: fit-content; }
 @media (max-width: 950px) {
   .site-header { flex-wrap: wrap; }

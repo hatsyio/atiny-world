@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import { LetterLink } from '@/components/navigation/letter-link'
+
 import { PublicMapController } from '@/components/map/public-map-controller'
 import type { PublicMessageDetail } from '@/domain/messages/public-message'
 import { getDb } from '@/server/db/client'
@@ -93,12 +95,12 @@ export function PublicHome({
             <p className="letters-note">{t.lettersNote}</p>
             <div className="letter-grid">
               {latestLetters.length === 0 ? <p role="status">{t.emptyLetters}</p> : latestLetters.map((letter) => (
-                <Link className="letter-card" key={letter.publicId} href={`/${lang}/messages/${letter.publicId}`} aria-label={`${locationLabel(letter)} — ${letter.author.displayName}`}>
+                <LetterLink className="letter-card" id={`letters-${letter.publicId}`} key={letter.publicId} lang={lang} publicId={letter.publicId} origin={`/${lang}#letters-${letter.publicId}`} aria-label={`${locationLabel(letter)} — ${letter.author.displayName}`}>
                   <div className="letter-place"><span role="img" aria-label={letter.country}>{countryFlag(letter.countryCode)}</span><span>{locationLabel(letter)}</span></div>
                   <p className="letter-body">{letter.content}</p>
                   <p className="letter-signature">— {letter.author.displayName}</p>
                   <span className="letter-seal" aria-hidden="true">✧</span>
-                </Link>
+                </LetterLink>
               ))}
             </div>
           </section>

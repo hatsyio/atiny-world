@@ -6,10 +6,14 @@ import { useEffect, useRef, useState } from 'react'
 
 import type { MapBounds, PublicMapFeature, PublicMessageDetail } from '@/domain/messages/public-message'
 
+import type { MapView } from '@/components/navigation/letter-origin'
+
 import { MapFilters, type MapFilterValues } from './map-filters'
 import { MessageClusterList } from './message-cluster-list'
 
 interface Props {
+  initialView?: MapView
+  onViewChange?: (view: MapView) => void
   features: PublicMapFeature[]
   onSelect: (publicId: string) => void
   lang?: 'en' | 'es'
@@ -59,7 +63,7 @@ type FullscreenControl = import('leaflet').Control & {
   onAdd: () => HTMLElement
 }
 
-export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: Props) {
+export function LeafletMap({ initialView, onViewChange, features, onSelect, lang = 'en', onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: Props) {
   const element = useRef<HTMLDivElement>(null)
   const map = useRef<import('leaflet').Map | null>(null)
   const cluster = useRef<import('leaflet').MarkerClusterGroup | null>(null)
@@ -67,6 +71,8 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
   const loadMessages = useRef(new Map<string, () => void>())
   const messageRequests = useRef(new Map<string, AbortController>())
   const centeredPublicId = useRef<string | null>(null)
+  const initialViewRef = useRef(initialView)
+  const onViewChangeRef = useRef(onViewChange)
   const onViewportChangeRef = useRef(onViewportChange)
   const fullscreenButton = useRef<HTMLButtonElement | null>(null)
   const [instance, setInstance] = useState<import('leaflet').Map | null>(null)
@@ -78,7 +84,8 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
 
   useEffect(() => {
     onViewportChangeRef.current = onViewportChange
-  }, [onViewportChange])
+    onViewChangeRef.current = onViewChange
+  }, [onViewportChange, onViewChange])
 
   useEffect(() => {
     const apiKey = cartoApiKey
@@ -97,10 +104,14 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
 
         const leaflet = (leafletModule as { default?: LeafletModule }).default ?? leafletModule
         configureMarkerIcons(leaflet)
+        const savedView = initialViewRef.current ?? { latitude: 20, longitude: 0, zoom: 2 }
         const instance = leaflet.map(element.current, {
           attributionControl: true,
           zoomControl: true,
-        }).setView([20, 0], 2)
+          // Keep the center inside the tile projection while allowing horizontal world wrapping.
+          maxBounds: [[-85.05112878, -Infinity], [85.05112878, Infinity]],
+          maxBoundsViscosity: 1,
+        }).setView([savedView.latitude, savedView.longitude], savedView.zoom)
 
         leaflet.tileLayer(cartoTileUrl(key), {
           attribution: CARTO_ATTRIBUTION,
@@ -108,6 +119,8 @@ export function LeafletMap({ features, onSelect, lang = 'en', onViewportChange, 
         }).addTo(instance)
 
         const reportViewport = () => {
+          const center = instance.getCenter()
+          onViewChangeRef.current?.({ latitude: center.lat, longitude: center.lng, zoom: instance.getZoom() })
           const bounds = instance.getBounds()
           onViewportChangeRef.current?.({
             west: bounds.getWest(),

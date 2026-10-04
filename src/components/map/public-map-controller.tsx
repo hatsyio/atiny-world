@@ -1,7 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+
+import { rememberLetterOrigin } from '@/components/navigation/letter-link'
+import { letterHref, mapOrigin, readMapFilters, readMapView, type MapView } from '@/components/navigation/letter-origin'
 
 import type { MapBounds, PublicMapFeature } from '@/domain/messages/public-message'
 
@@ -15,10 +18,7 @@ const WORLD_BOUNDS: MapBounds = {
   north: 90,
 }
 
-const EMPTY_FILTERS: MapFilterValues = {
-  city: '',
-  country: '',
-}
+const DEFAULT_VIEW: MapView = { latitude: 20, longitude: 0, zoom: 2 }
 
 function appendFilter(
   params: URLSearchParams,
@@ -74,16 +74,28 @@ export function buildMessageRequest(
   return `/api/map/messages?${params.toString()}`
 }
 
-export function PublicMapController({
-  lang = 'en',
-  selectedPublicId,
-}: {
+export function PublicMapController({ lang = 'en', selectedPublicId }: {
   lang?: 'en' | 'es'
   selectedPublicId?: string
 }) {
+  const params = useSearchParams()
+  const initialView = selectedPublicId ? DEFAULT_VIEW : readMapView(params) ?? DEFAULT_VIEW
+  const initialFilters = selectedPublicId ? { city: '', country: '' } : readMapFilters(params)
+  // Next can retain a page between visits. A different URL context is a different exploration.
+  const contextKey = JSON.stringify([selectedPublicId, initialView, initialFilters])
+  return <MapExploration key={contextKey} lang={lang} selectedPublicId={selectedPublicId} initialView={initialView} initialFilters={initialFilters} />
+}
+
+function MapExploration({ lang, selectedPublicId, initialView, initialFilters }: {
+  lang: 'en' | 'es'
+  selectedPublicId?: string
+  initialView: MapView
+  initialFilters: MapFilterValues
+}) {
   const router = useRouter()
+  const view = useRef(initialView)
   const [bounds, setBounds] = useState<MapBounds>(WORLD_BOUNDS)
-  const [filters, setFilters] = useState<MapFilterValues>(EMPTY_FILTERS)
+  const [filters, setFilters] = useState<MapFilterValues>(initialFilters)
   const [features, setFeatures] = useState<PublicMapFeature[]>([])
   const [error, setError] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
@@ -122,8 +134,10 @@ export function PublicMapController({
   }, [bounds, filters, retry, hasBasemap])
 
   const selectMessage = useCallback((publicId: string) => {
-    router.push(`/${lang}/messages/${publicId}`)
-  }, [lang, router])
+    const origin = mapOrigin(lang, view.current, filters)
+    rememberLetterOrigin(origin)
+    router.push(letterHref(lang, publicId, origin))
+  }, [lang, router, filters])
 
   return (
     <section aria-label="Explorar mensajes">
@@ -138,6 +152,8 @@ export function PublicMapController({
         ) : null}
       </div>
       <PublicMapLoader
+        initialView={initialView}
+        onViewChange={(nextView) => { view.current = nextView }}
         features={features}
         onSelect={selectMessage}
         lang={lang}

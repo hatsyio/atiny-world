@@ -58,7 +58,7 @@ export default async function MyMessagesPage({
         <p className="auth-script">{t.script}</p>
         <h1>{t.title}</h1>
         <p className="profile-intro">{t.intro}</p>
-        <MyMessageList lang={locale} messages={page.items} accountSuspended={gate.kind === 'suspended'} />
+        <MyMessageList cursor={cursor} lang={locale} messages={page.items} accountSuspended={gate.kind === 'suspended'} />
         {page.nextCursor ? <Link className="profile-cancel" href={`/${locale}/my-messages?cursor=${encodeURIComponent(page.nextCursor)}`}>{t.next}</Link> : null}
       </div>
     </main>

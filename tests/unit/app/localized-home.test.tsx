@@ -60,7 +60,7 @@ describe('PublicHome', () => {
     expect(screen.getByText('Madrid, España')).toBeInTheDocument()
     expect(screen.queryByText('Dear ATEEZ,')).not.toBeInTheDocument()
     expect(screen.queryByText('♡')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Madrid, España/i })).toHaveAttribute('href', '/en/messages/letter-1')
+    expect(screen.getByRole('link', { name: /Madrid, España/i })).toHaveAttribute('href', '/en/messages/letter-1?returnTo=%2Fen%23letters-letter-1')
   })
 
   it('shows the localized private letters link separately from the public letters section', () => {
