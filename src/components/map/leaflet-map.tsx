@@ -1,5 +1,9 @@
 'use client'
 
+import type { Locale } from '@/i18n/locale'
+
+import { useLocale, useTranslations } from 'next-intl'
+
 import 'leaflet/dist/leaflet.css'
 
 import { useEffect, useRef, useState } from 'react'
@@ -16,7 +20,7 @@ interface Props {
   onViewChange?: (view: MapView) => void
   features: PublicMapFeature[]
   onSelect: (publicId: string) => void
-  lang?: 'en' | 'es'
+  lang?: Locale
   onViewportChange?: (bounds: MapBounds) => void
   filters?: MapFilterValues
   onFiltersChange?: (values: MapFilterValues) => void
@@ -42,19 +46,19 @@ function popupContent(content: string): HTMLElement {
   return paragraph
 }
 
-function updateFullscreenControl(button: HTMLButtonElement, isFullscreen: boolean): void {
-  const action = isFullscreen ? 'Salir de pantalla completa' : 'Entrar en pantalla completa'
+function updateFullscreenControl(button: HTMLButtonElement, isFullscreen: boolean, enter: string, exit: string): void {
+  const action = isFullscreen ? exit : enter
   button.setAttribute('aria-label', action)
   button.setAttribute('aria-pressed', String(isFullscreen))
   button.title = action
 }
 
-function createFullscreenControl(onToggle: () => void): HTMLButtonElement {
+function createFullscreenControl(onToggle: () => void, enter: string, exit: string): HTMLButtonElement {
   const control = document.createElement('button')
   control.type = 'button'
   control.className = 'leaflet-control-zoom-fullscreen'
   control.textContent = '⛶'
-  updateFullscreenControl(control, false)
+  updateFullscreenControl(control, false, enter, exit)
   control.addEventListener('click', onToggle)
   return control
 }
@@ -63,7 +67,12 @@ type FullscreenControl = import('leaflet').Control & {
   onAdd: () => HTMLElement
 }
 
-export function LeafletMap({ initialView, onViewChange, features, onSelect, lang = 'en', onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: Props) {
+export function LeafletMap({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: Props) {
+  const lang = useLocale()
+  const t = useTranslations('Map.leaflet')
+  const translations = useRef(t)
+  useEffect(() => { translations.current = t }, [t])
+  const popupStates = useRef(new Map<string, 'loadingMessage' | 'messageUnavailable' | 'content'>())
   const element = useRef<HTMLDivElement>(null)
   const map = useRef<import('leaflet').Map | null>(null)
   const cluster = useRef<import('leaflet').MarkerClusterGroup | null>(null)
@@ -130,13 +139,20 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
           })
         }
         instance.on('moveend', reportViewport)
+        instance.on('popupopen', () => {
+          const closeButtons = element.current?.querySelectorAll<HTMLAnchorElement>('.leaflet-popup-close-button')
+          closeButtons?.forEach((button) => {
+            button.setAttribute('aria-label', translations.current('closePopup'))
+            button.title = translations.current('closePopup')
+          })
+        })
         reportViewport()
         const toggleFullscreen = () => setIsFullscreen((current) => !current)
         const fullscreenControl = new leaflet.Control({ position: 'topleft' }) as FullscreenControl
         fullscreenControl.onAdd = () => {
           const container = document.createElement('div')
           container.className = 'leaflet-bar leaflet-control-fullscreen'
-          const control = createFullscreenControl(toggleFullscreen)
+          const control = createFullscreenControl(toggleFullscreen, translations.current('enterFullscreen'), translations.current('exitFullscreen'))
           container.append(control)
           fullscreenButton.current = control
           removeFullscreenButtonListener = () => control.removeEventListener('click', toggleFullscreen)
@@ -146,7 +162,7 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
         map.current = instance
         setInstance(instance)
       } catch {
-        if (!disposed) setError('No se pudo cargar el mapa. Inténtalo de nuevo.')
+        if (!disposed) setError('unavailable')
       }
     }
 
@@ -192,9 +208,9 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
           marker = leaflet.marker([feature.point.latitude, feature.point.longitude])
           const currentMarker = marker
           const publicId = feature.publicId
-          const loading = lang === 'es' ? 'Cargando mensaje…' : 'Loading message…'
-          const unavailable = lang === 'es' ? 'No se pudo cargar el mensaje.' : 'The message could not be loaded.'
-          marker.bindPopup(popupContent(loading), {
+
+          popupStates.current.set(publicId, 'loadingMessage')
+          marker.bindPopup(popupContent(translations.current('loadingMessage')), {
             autoClose: false,
             closeOnClick: false,
             maxWidth: 320,
@@ -205,7 +221,8 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
             messageRequests.current.get(publicId)?.abort()
             const request = new AbortController()
             messageRequests.current.set(publicId, request)
-            currentMarker.setPopupContent(popupContent(loading))
+            popupStates.current.set(publicId, 'loadingMessage')
+            currentMarker.setPopupContent(popupContent(translations.current('loadingMessage')))
             try {
               const response = await fetch(`/api/messages/${publicId}`, {
                 cache: 'no-store',
@@ -214,11 +231,13 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
               if (!response.ok) throw new Error('message unavailable')
               const message = await response.json() as PublicMessageDetail
               if (!request.signal.aborted && markerLayers.current.get(publicId) === currentMarker) {
+                popupStates.current.set(publicId, 'content')
                 currentMarker.setPopupContent(popupContent(message.content))
               }
             } catch {
               if (!request.signal.aborted && markerLayers.current.get(publicId) === currentMarker) {
-                currentMarker.setPopupContent(popupContent(unavailable))
+                popupStates.current.set(publicId, 'messageUnavailable')
+                currentMarker.setPopupContent(popupContent(translations.current('messageUnavailable')))
               }
             } finally {
               if (messageRequests.current.get(publicId) === request) messageRequests.current.delete(publicId)
@@ -242,7 +261,7 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
 
     void updateMarkers()
     return () => { active = false }
-  }, [instance, features, selectedPublicId, lang])
+  }, [instance, features, selectedPublicId])
 
   useEffect(() => {
     if (!instance) return
@@ -267,8 +286,20 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
 
   useEffect(() => {
     const button = fullscreenButton.current
-    if (button) updateFullscreenControl(button, isFullscreen)
-  }, [isFullscreen])
+    if (button) updateFullscreenControl(button, isFullscreen, t('enterFullscreen'), t('exitFullscreen'))
+  }, [isFullscreen, t, instance])
+
+  useEffect(() => {
+    for (const [selector, key] of [['.leaflet-control-zoom-in', 'zoomIn'], ['.leaflet-control-zoom-out', 'zoomOut'], ['.leaflet-popup-close-button', 'closePopup']] as const) {
+      element.current?.querySelectorAll<HTMLAnchorElement>(selector).forEach((button) => {
+        button.setAttribute('aria-label', t(key))
+        button.title = t(key)
+      })
+    }
+    for (const [publicId, state] of popupStates.current) {
+      if (state !== 'content') markerLayers.current.get(publicId)?.setPopupContent(popupContent(t(state)))
+    }
+  }, [t, instance])
 
   useEffect(() => {
     if (!isFullscreen) return
@@ -281,16 +312,16 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
 
   if (!cartoApiKey) {
     return (
-      <section className="map map--preview" aria-label="Mapa de mensajes">
-        <div className="map__canvas" role="img" aria-label="Mapa del mundo" />
-        <p role="status">{lang === 'es' ? 'El mapa interactivo estará disponible próximamente.' : 'The interactive map is coming soon.'}</p>
+      <section className="map map--preview" aria-label={t('label')}>
+        <div className="map__canvas" role="img" aria-label={t('world')} />
+        <p role="status">{t('preview')}</p>
       </section>
     )
   }
 
   return (
-    <section aria-label="Mapa de mensajes" className={isFullscreen ? 'map map--fullscreen' : 'map'}>
-      {error ? <p role="status">{error}</p> : null}
+    <section aria-label={t('label')} className={isFullscreen ? 'map map--fullscreen' : 'map'}>
+      {error ? <p role="status">{t('unavailable')}</p> : null}
       <div ref={element} className="map__canvas" />
       {filters && onFiltersChange ? (
         <div className="map__filters">
@@ -304,7 +335,7 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
               setIsClusterListOpen(false)
             }}
           >
-            {lang === 'es' ? 'Filtros' : 'Filters'}{filters.city || filters.country ? ` (${Number(Boolean(filters.city)) + Number(Boolean(filters.country))})` : ''}
+            {t('filters')}{filters.city || filters.country ? ` (${Number(Boolean(filters.city)) + Number(Boolean(filters.country))})` : ''}
           </button>
           {isFiltersOpen ? <div id="map-filters-panel" className="map__filters-panel"><MapFilters value={filters} onChange={onFiltersChange} lang={lang} /></div> : null}
         </div>
@@ -321,10 +352,10 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, lang
               setIsFiltersOpen(false)
             }}
           >
-            {lang === 'es' ? 'Ver mensajes' : 'View messages'} ({features.length})
+            {t('viewMessages', {count: features.length})}
           </button>
           {isClusterListOpen ? (
-            <div id="map-cluster-list" className="map__message-panel" aria-label={lang === 'es' ? 'Mensajes del mapa' : 'Map messages'}>
+            <div id="map-cluster-list" className="map__message-panel" aria-label={t('messages')}>
               {groupRequestUrl ? <MessageClusterList
                 key={groupRequestUrl}
                 requestUrl={groupRequestUrl}

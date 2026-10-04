@@ -5,17 +5,19 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
+import {LanguageSwitcher} from '@/components/i18n/language-switcher'
 import { AccountMenu } from '@/components/account/account-menu'
-import { navigationCopy } from './copy'
+import {useLocale, useTranslations} from 'next-intl'
 import { returnDestination } from './return-destination'
 
 type Section = 'home' | 'map' | 'letters'
 
-export function SiteHeader({ lang }: { lang: 'en' | 'es' }) {
-  const t = navigationCopy[lang]
+export function SiteHeader() {
+  const lang = useLocale()
+  const t = useTranslations('Navigation')
   const pathname = usePathname()
-  const home = `/${lang}`
-  const isHome = pathname === home || pathname === '/' || pathname === `${home}/`
+  const home = '/'
+  const isHome = pathname === '/'
   const [section, setSection] = useState<Section>('home')
   const [openedPath, setOpenedPath] = useState<string | null>(null)
   const expanded = openedPath === pathname
@@ -59,11 +61,11 @@ export function SiteHeader({ lang }: { lang: 'en' | 'es' }) {
     return () => document.removeEventListener('pointerdown', closeOutside)
   }, [])
 
-  const writing = pathname === `${home}/messages/new`
+  const writing = pathname === '/messages/new'
   const origin = returnDestination(lang, !isHome && !writing ? pathname ?? undefined : undefined)
-  const writeHref = `${home}/messages/new${origin.href !== `${home}#map` ? `?returnTo=${encodeURIComponent(origin.href)}` : ''}`
-  const reading = !writing && pathname?.startsWith(`${home}/messages/`)
-  const account = pathname?.startsWith(`${home}/my-messages`) || pathname === `${home}/profile`
+  const writeHref = `/messages/new${origin.href !== `${home}#map` ? `?returnTo=${encodeURIComponent(origin.href)}` : ''}`
+  const reading = !writing && pathname?.startsWith('/messages/')
+  const account = pathname?.startsWith('/my-messages') || pathname === '/profile' || pathname === '/settings'
   const close = () => setOpenedPath(null)
   const current = (id: Section) => isHome && section === id ? (id === 'home' ? 'page' : 'location') : undefined
 
@@ -78,8 +80,8 @@ export function SiteHeader({ lang }: { lang: 'en' | 'es' }) {
         <span className="nav-compass" aria-hidden="true">✧</span>
         <span>ATINY World</span>
       </Link>
-      <button className="navigation-toggle" type="button" ref={toggle} aria-expanded={expanded} aria-controls="global-navigation" onClick={() => setOpenedPath(expanded ? null : pathname)}>{t.menu}</button>
-      <nav className="main-nav" id="global-navigation" aria-label={t.navigation} data-open={expanded} onClick={event => {
+      <button className="navigation-toggle" type="button" ref={toggle} aria-expanded={expanded} aria-controls="global-navigation" onClick={() => setOpenedPath(expanded ? null : pathname)}>{t('menu')}</button>
+      <nav className="main-nav" id="global-navigation" aria-label={t('navigation')} data-open={expanded} onClick={event => {
         const link = (event.target as Element).closest('a')
         if (!link) return
         if (expanded && isHome) {
@@ -89,16 +91,16 @@ export function SiteHeader({ lang }: { lang: 'en' | 'es' }) {
         }
         close()
       }}>
-        <Link href={home} aria-current={current('home')}>{t.home}</Link>
-        <Link href={`${home}#map`} aria-current={current('map')}>{t.map}</Link>
-        <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t.letters}</Link>
-        <Link className="navigation-write" href={writeHref} aria-current={writing ? 'page' : undefined}>{t.write}</Link>
+        <Link href={home} aria-current={current('home')}>{t('home')}</Link>
+        <Link href={`${home}#map`} aria-current={current('map')}>{t('map')}</Link>
+        <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t('letters')}</Link>
+        <Link className="navigation-write" href={writeHref} aria-current={writing ? 'page' : undefined}>{t('write')}</Link>
         <Show when="signed-in"><AccountMenu lang={lang} active={Boolean(account)} onNavigate={close} /></Show>
         <Show when="signed-out">
-          <Link href={`${home}/sign-in`} aria-current={pathname?.startsWith(`${home}/sign-in`) ? 'page' : undefined}>{t.signIn}</Link>
-          <Link href={`${home}/sign-up`} aria-current={pathname?.startsWith(`${home}/sign-up`) ? 'page' : undefined}>{t.signUp}</Link>
+          <Link href={'/sign-in'} aria-current={pathname?.startsWith('/sign-in') ? 'page' : undefined}>{t('signIn')}</Link>
+          <Link href={'/sign-up'} aria-current={pathname?.startsWith('/sign-up') ? 'page' : undefined}>{t('signUp')}</Link>
         </Show>
-      </nav>
+      <LanguageSwitcher /></nav>
     </header>
   )
 }

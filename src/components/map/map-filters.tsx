@@ -1,5 +1,9 @@
 'use client'
 
+import type { Locale } from '@/i18n/locale'
+
+import { useTranslations } from 'next-intl'
+
 export interface MapFilterValues {
   city?: string
   country?: string
@@ -8,7 +12,7 @@ export interface MapFilterValues {
 interface Props {
   value: MapFilterValues
   onChange: (values: MapFilterValues) => void
-  lang?: 'en' | 'es'
+  lang?: Locale
 }
 
 const MAX_TEXT_FILTER_LENGTH = 100
@@ -25,18 +29,16 @@ function normalizeCountry(value: string): string {
   return ISO_ALPHA_2_COUNTRIES.includes(country) ? country : ''
 }
 
-export function MapFilters({ value, onChange, lang = 'es' }: Props) {
-  const copy = lang === 'es'
-    ? { filters: 'Filtros', city: 'Ciudad', country: 'País', all: 'Todos' }
-    : { filters: 'Filters', city: 'City', country: 'Country', all: 'All' }
+export function MapFilters({ value, onChange }: Props) {
+  const t = useTranslations('Map.filters')
   return (
-    <div className="map-filters" role="group" aria-label={copy.filters}>
-      <label htmlFor="city-filter">{copy.city}</label>
+    <div className="map-filters" role="group" aria-label={t('filters')}>
+      <label htmlFor="city-filter">{t('city')}</label>
       <input
         id="city-filter"
         type="text"
         name="city"
-        aria-label={copy.city}
+        aria-label={t('city')}
         value={value.city ?? ''}
         maxLength={MAX_TEXT_FILTER_LENGTH}
         onChange={(event) =>
@@ -44,17 +46,17 @@ export function MapFilters({ value, onChange, lang = 'es' }: Props) {
         }
       />
 
-      <label htmlFor="country-filter">{copy.country}</label>
+      <label htmlFor="country-filter">{t('country')}</label>
       <select
         id="country-filter"
         name="country"
-        aria-label={copy.country}
+        aria-label={t('country')}
         value={normalizeCountry(value.country ?? '')}
         onChange={(event) =>
           onChange({ ...value, country: normalizeCountry(event.target.value) })
         }
       >
-        <option value="">{copy.all}</option>
+        <option value="">{t('all')}</option>
         {ISO_ALPHA_2_COUNTRIES.map((country) => (
           <option key={country} value={country}>
             {country.toUpperCase()}

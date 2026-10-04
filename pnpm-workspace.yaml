@@ -1,6 +1,11 @@
 allowBuilds:
+  # Optional next-intl tooling: prebuilt binaries, no lifecycle scripts required.
+  "@parcel/watcher": false
+  "@swc/core": false
   esbuild: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@vercel/config@0.7.1'
   - '@vercel/routing-utils@6.6.0'
+overrides:
+  "@clerk/localizations@4.16.1>@clerk/shared": 4.31.1

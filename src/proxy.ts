@@ -2,7 +2,7 @@ import { clerkMiddleware } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-import { isLocalizedPath, isApiPath } from '@/server/http/locale'
+import { isLocalizedPath, isApiPath, stripLegacyLocale } from '@/server/http/locale'
 
 export default clerkMiddleware((_auth, request: NextRequest) => {
   const { pathname, search } = request.nextUrl
@@ -11,11 +11,11 @@ export default clerkMiddleware((_auth, request: NextRequest) => {
     return NextResponse.next()
   }
 
-  if (!isLocalizedPath(pathname)) {
+  if (isLocalizedPath(pathname)) {
     const target = request.nextUrl.clone()
-    target.pathname = `/en${pathname === '/' ? '' : pathname}`
+    target.pathname = stripLegacyLocale(pathname)
     target.search = search
-    return NextResponse.redirect(target, 308)
+    return NextResponse.redirect(target, 307)
   }
 
   return NextResponse.next()

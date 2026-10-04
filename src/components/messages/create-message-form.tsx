@@ -1,62 +1,20 @@
 'use client'
 
+import type { Locale } from '@/i18n/locale'
+
+import { useLocale, useTranslations } from 'next-intl'
+
 import { useEffect, useState } from 'react'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-import { createMessageAction, type CreateMessageActionResult } from '@/app/[lang]/actions/create-message'
+import { createMessageAction, type CreateMessageActionResult } from '@/app/(site)/actions/create-message'
 import { LocationPicker, type LocationPickerSelection } from '@/components/map/location-picker'
 import { returnDestination } from '@/components/navigation/return-destination'
 import { MAX_GRAPHEMES, countGraphemes } from '@/domain/messages/content'
 import type { CreateMessageActionInput } from '@/server/actions/create-message'
 
-const copy = {
-  en: {
-    contentLabel: 'Your letter',
-    contentPlaceholder: 'Dear ATEEZ…',
-    counterLabel: 'characters',
-    contentRequired: 'Write your letter before publishing.',
-    contentTooLong: 'This letter is too long. Shorten it before publishing.',
-    locationRequired: 'Choose a place to publish your letter.',
-    locationMissing: 'Search for and confirm a place before publishing.',
-    locationExpired: 'That place selection expired. Search again and choose a place.',
-    locationInvalid: 'That place selection is not valid. Search again and choose a place.',
-    publish: 'Publish letter',
-    publishing: 'Publishing…',
-    cooldown: 'You can publish another letter in {seconds} seconds.',
-    limitTitle: 'You reached the limit of letters you can publish',
-    limitText: 'Manage your published letters before publishing a new one.',
-    myMessages: 'My letters',
-    publishedTitle: 'Letter sent!',
-    publishedText: 'It is pending moderation and will appear on the map once approved.',
-    publishedVisibleText: 'Your letter is now visible on the map.',
-    accountUnavailable: 'Your account is not available right now, so the letter could not be published.',
-    genericError: 'We could not publish your letter. Try again soon.',
-  },
-  es: {
-    contentLabel: 'Tu carta',
-    contentPlaceholder: 'Querido ATEEZ…',
-    counterLabel: 'caracteres',
-    contentRequired: 'Escribe tu carta antes de publicar.',
-    contentTooLong: 'Esta carta es demasiado larga. Acórtala antes de publicar.',
-    locationRequired: 'Elige un lugar para publicar tu carta.',
-    locationMissing: 'Busca y confirma un lugar antes de publicar.',
-    locationExpired: 'Esa selección de lugar ha caducado. Busca de nuevo y elige un lugar.',
-    locationInvalid: 'Esa selección de lugar no es válida. Busca de nuevo y elige un lugar.',
-    publish: 'Publicar carta',
-    publishing: 'Publicando…',
-    cooldown: 'Podrás publicar otra carta en {seconds} segundos.',
-    limitTitle: 'Llegaste al límite de cartas que puedes publicar',
-    limitText: 'Gestiona tus cartas publicadas antes de publicar una nueva.',
-    myMessages: 'Mis cartas',
-    publishedTitle: '¡Carta enviada!',
-    publishedText: 'Está pendiente de moderación y aparecerá en el mapa en cuanto sea aprobada.',
-    publishedVisibleText: 'Tu carta ya es visible en el mapa.',
-    accountUnavailable: 'Tu cuenta no está disponible ahora mismo, así que la carta no se pudo publicar.',
-    genericError: 'No pudimos publicar tu carta. Inténtalo pronto de nuevo.',
-  },
-} as const
 
 export type CreateMessageSubmit = (
   input: CreateMessageActionInput,
@@ -68,19 +26,19 @@ export type FormFieldErrors = {
 }
 
 export interface CreateMessageFormProps {
-  lang?: 'en' | 'es'
+  lang?: Locale
   returnTo?: string
   onPublished?: (publicId: string, publicVisible: boolean) => void
   submitMessage?: CreateMessageSubmit
 }
 
 export function CreateMessageForm({
-  lang = 'en',
   onPublished,
   returnTo,
   submitMessage = createMessageAction,
 }: CreateMessageFormProps) {
-  const t = copy[lang]
+  const lang = useLocale()
+  const t = useTranslations('Forms.create')
   const origin = returnDestination(lang, returnTo)
   const router = useRouter()
 
@@ -191,13 +149,13 @@ export function CreateMessageForm({
   }
 
   const contentAlert =
-    fieldErrors.content === 'required' ? t.contentRequired
-      : contentTooLong || fieldErrors.content === 'tooLong' ? t.contentTooLong
+    fieldErrors.content === 'required' ? t('contentRequired')
+      : contentTooLong || fieldErrors.content === 'tooLong' ? t('contentTooLong')
         : null
   const locationAlert =
-    fieldErrors.location === 'required' ? t.locationRequired
-      : fieldErrors.location === 'expired' ? t.locationExpired
-        : fieldErrors.location === 'invalid' ? t.locationInvalid
+    fieldErrors.location === 'required' ? t('locationRequired')
+      : fieldErrors.location === 'expired' ? t('locationExpired')
+        : fieldErrors.location === 'invalid' ? t('locationInvalid')
           : null
   const descriptionId = contentAlert !== null ? 'message-counter message-content-error' : 'message-counter'
 
@@ -211,18 +169,18 @@ export function CreateMessageForm({
     >
       {publishedPublicId !== null && (
         <p className="profile-note" role="status">
-          <strong>{t.publishedTitle}</strong> {publishedPublicVisible ? t.publishedVisibleText : t.publishedText}
+          <strong>{t('publishedTitle')}</strong> {publishedPublicVisible ? t('publishedVisibleText') : t('publishedText')}
         </p>
       )}
 
       <div className="profile-field">
-        <label htmlFor="message-content">{t.contentLabel}</label>
+        <label htmlFor="message-content">{t('contentLabel')}</label>
         <textarea
           id="message-content"
           name="content"
           rows={8}
           value={content}
-          placeholder={t.contentPlaceholder}
+          placeholder={t('contentPlaceholder')}
           aria-invalid={contentAlert !== null}
           aria-describedby={descriptionId}
           onChange={(event) => {
@@ -231,7 +189,7 @@ export function CreateMessageForm({
           }}
         />
         <p id="message-counter" className="message-counter" aria-live="polite">
-          {graphemeCount}/{MAX_GRAPHEMES} {t.counterLabel}
+          {t('counter', {count: graphemeCount, max: MAX_GRAPHEMES})}
         </p>
         {contentAlert !== null && (
           <p id="message-content-error" className="profile-error" role="alert">
@@ -248,39 +206,39 @@ export function CreateMessageForm({
       )}
       {location === null && locationAlert === null && graphemeCount > 0 && (
         <p className="profile-hint" role="note">
-          {t.locationMissing}
+          {t('locationMissing')}
         </p>
       )}
 
       {cooldownActive && (
         <p className="profile-note" role="status">
-          {t.cooldown.replace('{seconds}', String(cooldownRemaining))}
+          {t('cooldown', {seconds: cooldownRemaining})}
         </p>
       )}
 
       {limitBlocked && (
         <div className="profile-error" role="alert">
           <p>
-            <strong>{t.limitTitle}</strong> {t.limitText}
+            <strong>{t('limitTitle')}</strong> {t('limitText')}
           </p>
-          <Link href={`/${lang}/my-messages`}>{t.myMessages}</Link>
+          <Link href={'/my-messages'}>{t('myMessages')}</Link>
         </div>
       )}
 
       {accountError && (
         <p className="profile-error profile-error--general" role="alert">
-          {t.accountUnavailable}
+          {t('accountUnavailable')}
         </p>
       )}
       {genericError && (
         <p className="profile-error profile-error--general" role="alert">
-          {t.genericError}
+          {t('genericError')}
         </p>
       )}
 
       <div className="profile-actions">
         <button type="submit" className="profile-submit" disabled={publishDisabled}>
-          {sending ? t.publishing : t.publish}
+          {sending ? t('publishing') : t('publish')}
         </button>
         <button type="button" className="profile-cancel" disabled={sending} onClick={() => router.push(origin.href)}>
           {origin.cancel}

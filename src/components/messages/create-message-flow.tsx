@@ -1,5 +1,7 @@
 'use client'
 
+import type { Locale } from '@/i18n/locale'
+
 import { useRouter } from 'next/navigation'
 
 import { CreateMessageForm, type CreateMessageSubmit } from './create-message-form'
@@ -9,7 +11,7 @@ export function CreateMessageFlow({
   submitMessage,
   returnTo,
 }: {
-  lang: 'en' | 'es'
+  lang: Locale
   returnTo?: string
   submitMessage?: CreateMessageSubmit
 }) {
@@ -19,9 +21,9 @@ export function CreateMessageFlow({
     window.dispatchEvent(new Event('atiny:message-published'))
     router.refresh()
     if (publicVisible) {
-      router.push(`/${lang}/messages/${publicId}`)
+      router.push(`/messages/${publicId}`)
     } else {
-      router.push(`/${lang}?publication=pending#map`)
+      router.push('/?publication=pending#map')
     }
   }
 

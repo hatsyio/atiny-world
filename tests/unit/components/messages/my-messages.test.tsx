@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent,  screen, within } from '@testing-library/react'
+import { render } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { MessageStatus } from '@/domain/contracts'

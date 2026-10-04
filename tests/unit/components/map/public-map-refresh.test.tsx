@@ -1,7 +1,8 @@
 /** @vitest-environment jsdom */
 
 import { act } from 'react'
-import { cleanup, render, waitFor } from '@testing-library/react'
+import { cleanup,  waitFor } from '@testing-library/react'
+import { render } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { PublicMapController } from '@/components/map/public-map-controller'
@@ -89,8 +90,8 @@ describe('PublicMapController', () => {
     const feedback = container.querySelector('.map-feedback')
     expect(feedback).not.toBeNull()
 
-    await waitFor(() => expect(getByRole('status')).toHaveTextContent('No se pudieron cargar los mensajes del mapa.'))
-    getByRole('button', { name: 'Reintentar' }).click()
+    await waitFor(() => expect(getByRole('status')).toHaveTextContent('The map messages could not be loaded.'))
+    getByRole('button', { name: 'Try again' }).click()
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
     await waitFor(() => expect(queryByRole('status')).toBeNull())
@@ -100,12 +101,12 @@ describe('PublicMapController', () => {
 
 
 it('restores viewport, zoom and filters after map → letter → map, including browser Back', async () => {
-  window.history.replaceState(null, '', '/es')
+  window.history.replaceState(null, '', '/')
   const view = render(<PublicMapController lang="es" />)
   act(() => view.getByRole('button', { name: 'Set view' }).click())
   act(() => view.getByRole('button', { name: 'Set filters' }).click())
   act(() => view.getByRole('button', { name: 'Read letter' }).click())
-  const origin = '/es?mapView=40.5%2C-3.5%2C8&mapCity=Madrid&mapCountry=es#map'
+  const origin = '/?mapView=40.5%2C-3.5%2C8&mapCity=Madrid&mapCountry=es#map'
   expect(window.location.pathname + window.location.search + window.location.hash).toBe(origin)
   const detail = navigation.push.mock.calls[0][0] as string
   expect(new URL(detail, window.location.origin).searchParams.get('returnTo')).toBe(origin)
@@ -115,17 +116,17 @@ it('restores viewport, zoom and filters after map → letter → map, including 
   expect(restored.getByLabelText('Initial view')).toHaveTextContent('{"latitude":40.5,"longitude":-3.5,"zoom":8}')
   expect(restored.getByText(/city=Madrid&country=es&limit=20/)).toBeInTheDocument()
   restored.unmount()
-  window.history.replaceState(null, '', '/es')
+  window.history.replaceState(null, '', '/')
   const fresh = render(<PublicMapController lang="es" />)
   expect(fresh.getByLabelText('Initial view')).toHaveTextContent('{"latitude":20,"longitude":0,"zoom":2}')
   expect(fresh.queryByText(/city=Madrid/)).toBeNull()
 })
 
 it('starts a fresh exploration when navigating to the same home route without saved context', () => {
-  window.history.replaceState(null, '', '/es?mapView=40.5,-3.5,8&mapCity=Madrid&mapCountry=es#map')
+  window.history.replaceState(null, '', '/?mapView=40.5,-3.5,8&mapCity=Madrid&mapCountry=es#map')
   const page = render(<PublicMapController lang="es" />)
   expect(page.getByLabelText('Initial view')).toHaveTextContent('"zoom":8')
-  window.history.replaceState(null, '', '/es#map')
+  window.history.replaceState(null, '', '/#map')
   page.rerender(<PublicMapController lang="es" />)
   expect(page.getByLabelText('Initial view')).toHaveTextContent('"zoom":2')
   expect(page.queryByText(/city=Madrid/)).toBeNull()

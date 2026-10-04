@@ -1,5 +1,9 @@
+vi.mock('@/components/i18n/language-switcher', () => ({LanguageSwitcher: () => null}))
+vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
+import {setServerLocale} from '@/../tests/support/server-intl'
 /** @vitest-environment jsdom */
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, screen } from '@testing-library/react'
+import { render } from '@/../tests/support/intl'
 import { afterEach, expect, it, vi } from 'vitest'
 
 const state = vi.hoisted(() => ({ kind: 'allowed' }))
@@ -18,17 +22,17 @@ vi.mock('@/components/map/public-map-controller', () => ({ PublicMapController: 
 vi.mock('@/components/messages/edit-message-form', () => ({ EditMessageForm: () => null }))
 vi.mock('@/components/messages/create-message-flow', () => ({ CreateMessageFlow: ({ returnTo }: { returnTo: string }) => <span data-testid="form-destination">{returnTo}</span> }))
 
-import SignInPage from '@/app/[lang]/sign-in/[[...sign-in]]/page'
-import SignUpPage from '@/app/[lang]/sign-up/[[...sign-up]]/page'
-import PublicMessagePage from '@/app/[lang]/messages/[publicId]/page'
-import MyMessagesPage from '@/app/[lang]/my-messages/page'
-import NewMessagePage from '@/app/[lang]/messages/new/page'
-import EditOwnMessagePage from '@/app/[lang]/my-messages/[publicId]/edit/page'
+import SignInPage from '@/app/(site)/sign-in/[[...sign-in]]/page'
+import SignUpPage from '@/app/(site)/sign-up/[[...sign-up]]/page'
+import PublicMessagePage from '@/app/(site)/messages/[publicId]/page'
+import MyMessagesPage from '@/app/(site)/my-messages/page'
+import NewMessagePage from '@/app/(site)/messages/new/page'
+import EditOwnMessagePage from '@/app/(site)/my-messages/[publicId]/edit/page'
 
 afterEach(() => { cleanup(); state.kind = 'allowed' })
 
 it.each(['en', 'es'] as const)('returns from direct internal links to the map in %s', async lang => {
-  const params = Promise.resolve({ lang, publicId: 'letter-id' })
+  const params = Promise.resolve({ lang: setServerLocale(lang), publicId: 'letter-id' })
   for (const page of [
     () => SignInPage({ params, searchParams: Promise.resolve({}) }),
     () => SignUpPage({ params, searchParams: Promise.resolve({}) }),
@@ -37,39 +41,39 @@ it.each(['en', 'es'] as const)('returns from direct internal links to the map in
     () => NewMessagePage({ params, searchParams: Promise.resolve({}) }),
   ]) {
     render(await page())
-    expect(screen.getByRole('link', { name: lang === 'es' ? /Volver al mapa/ : /Back to the map/ })).toHaveAttribute('href', `/${lang}#map`)
+    expect(screen.getByRole('link', { name: lang === 'es' ? /Volver al mapa/ : /Back to the map/ })).toHaveAttribute('href', '/#map')
     cleanup()
   }
 })
 
 it.each(['en', 'es'] as const)('returns directly from editing to own letters in %s', async lang => {
-  render(await EditOwnMessagePage({ params: Promise.resolve({ lang, publicId: 'letter-id' }) }))
-  expect(screen.getByRole('link', { name: lang === 'es' ? /Volver a mis cartas/ : /Back to my letters/ })).toHaveAttribute('href', `/${lang}/my-messages`)
+  render(await EditOwnMessagePage({ params: Promise.resolve({ lang: setServerLocale(lang), publicId: 'letter-id' }) }))
+  expect(screen.getByRole('link', { name: lang === 'es' ? /Volver a mis cartas/ : /Back to my letters/ })).toHaveAttribute('href', '/my-messages')
 })
 
 it.each([
-  ['/es', 'Volver al inicio', '/es'],
-  ['/es/my-messages', 'Volver a mis cartas', '/es/my-messages'],
-  ['/en/my-messages', 'Volver a mis cartas', '/es/my-messages'],
-  ['https://evil.example', 'Volver al mapa', '/es#map'],
+  ['/', 'Volver al inicio', '/'],
+  ['/my-messages', 'Volver a mis cartas', '/my-messages'],
+  ['/my-messages', 'Volver a mis cartas', '/my-messages'],
+  ['https://evil.example', 'Volver al mapa', '/#map'],
 ] as const)('uses the same resolved writing destination for back and cancel: %s', async (returnTo, label, href) => {
-  render(await NewMessagePage({ params: Promise.resolve({ lang: 'es' }), searchParams: Promise.resolve({ returnTo }) }))
+  render(await NewMessagePage({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ returnTo }) }))
   expect(screen.getByRole('link', { name: `← ${label}` })).toHaveAttribute('href', href)
   expect(screen.getByTestId('form-destination')).toHaveTextContent(href)
 })
 
 it('keeps the map escape available for an unavailable writing account', async () => {
   state.kind = 'suspended'
-  render(await NewMessagePage({ params: Promise.resolve({ lang: 'es' }), searchParams: Promise.resolve({}) }))
-  expect(screen.getByRole('link', { name: /Volver al mapa/ })).toHaveAttribute('href', '/es#map')
+  render(await NewMessagePage({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({}) }))
+  expect(screen.getByRole('link', { name: /Volver al mapa/ })).toHaveAttribute('href', '/#map')
   expect(screen.queryByTestId('form-destination')).toBeNull()
 })
 
 it.each([
-  ['/es#letters-letter-id', 'Volver a las cartas'],
-  ['/es/my-messages?cursor=older#own-letter-id', 'Volver a mis cartas'],
+  ['/#letters-letter-id', 'Volver a las cartas'],
+  ['/my-messages?cursor=older#own-letter-id', 'Volver a mis cartas'],
   ['https://evil.example', 'Volver al mapa'],
 ] as const)('public detail resolves its reading origin: %s', async (returnTo, label) => {
-  render(await PublicMessagePage({ params: Promise.resolve({ lang: 'es', publicId: 'letter-id' }), searchParams: Promise.resolve({ returnTo }) }))
-  expect(screen.getByRole('link', { name: `← ${label}` })).toHaveAttribute('href', returnTo.startsWith('/es') ? returnTo : '/es#map')
+  render(await PublicMessagePage({ params: Promise.resolve({ lang: setServerLocale('es'), publicId: 'letter-id' }), searchParams: Promise.resolve({ returnTo }) }))
+  expect(screen.getByRole('link', { name: `← ${label}` })).toHaveAttribute('href', returnTo.startsWith('/') ? returnTo : '/#map')
 })

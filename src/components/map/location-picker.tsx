@@ -1,5 +1,9 @@
 'use client'
 
+import type { Locale } from '@/i18n/locale'
+
+import { useFormatter, useLocale, useTranslations } from 'next-intl'
+
 import 'leaflet/dist/leaflet.css'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -12,58 +16,6 @@ import { CARTO_ATTRIBUTION, cartoTileUrl, configureMarkerIcons } from './leaflet
 const MIN_QUERY_LENGTH = 2
 const DEBOUNCE_MS = 400
 
-const copy = {
-  en: {
-    fieldset: 'Publish location',
-    addressLabel: 'Search for a city or area',
-    addressPlaceholder: 'Type a city or area…',
-    loading: 'Searching places…',
-    noResults: 'No places found for this search.',
-    rateLimited: 'The place search is busy right now. Wait a moment and try again.',
-    unavailable: 'The place search is not available right now.',
-    retry: 'Try again',
-    suggestionsLabel: 'Suggested places',
-    selectedLabel: 'Selected place',
-    change: 'Change place',
-    precisionLabel: 'Location precision',
-    approximate: 'Approximate location',
-    approximateHint: 'Shows the area around the chosen place without revealing an exact address.',
-    precise: 'Exact location',
-    preciseHint: 'Lets you place the exact public point on the map.',
-    preciseControls: 'Drag the marker to place the exact public point.',
-    preciseWarning: 'This point will be public: everyone will see it on the map.',
-    preciseConfirm: 'I understand, make this point public',
-    preciseConfirmed: 'Exact point confirmed.',
-    coordinates: 'Public point',
-    attribution: 'Places by Geoapify',
-    mapUnavailable: 'The map preview could not be loaded. Try again.',
-  },
-  es: {
-    fieldset: 'Ubicación de publicación',
-    addressLabel: 'Busca una ciudad o zona',
-    addressPlaceholder: 'Escribe una ciudad o zona…',
-    loading: 'Buscando lugares…',
-    noResults: 'No se encontraron lugares para esta búsqueda.',
-    rateLimited: 'La búsqueda de lugares está saturada. Espera un momento e inténtalo de nuevo.',
-    unavailable: 'La búsqueda de lugares no está disponible ahora mismo.',
-    retry: 'Reintentar',
-    suggestionsLabel: 'Lugares sugeridos',
-    selectedLabel: 'Lugar seleccionado',
-    change: 'Cambiar lugar',
-    precisionLabel: 'Precisión de la ubicación',
-    approximate: 'Ubicación aproximada',
-    approximateHint: 'Muestra la zona alrededor del lugar elegido sin revelar una dirección exacta.',
-    precise: 'Ubicación exacta',
-    preciseHint: 'Te permite colocar el punto público exacto en el mapa.',
-    preciseControls: 'Arrastra el marcador para colocar el punto público exacto.',
-    preciseWarning: 'Este punto será público: todo el mundo lo verá en el mapa.',
-    preciseConfirm: 'Lo entiendo, hacer público este punto',
-    preciseConfirmed: 'Punto exacto confirmado.',
-    coordinates: 'Punto público',
-    attribution: 'Lugares de Geoapify',
-    mapUnavailable: 'No se pudo cargar la vista previa del mapa. Inténtalo de nuevo.',
-  },
-} as const
 
 export type LocationPickerSelection =
   | { selectionId: string; precision: 'approximate' }
@@ -92,7 +44,7 @@ export type LocationSuggestion = {
 }
 
 export interface LocationPickerProps {
-  lang?: 'en' | 'es'
+  lang?: Locale
   onChange: (value: LocationPickerSelection | null) => void
 }
 
@@ -103,15 +55,30 @@ function suggestionLabel(suggestion: LocationSuggestion): string {
 function PreciseMap({
   point,
   onPointChange,
-  lang,
 }: {
   point: PublicPoint
   onPointChange: (point: PublicPoint) => void
-  lang: 'en' | 'es'
 }) {
   const element = useRef<HTMLDivElement>(null)
   const [unavailable, setUnavailable] = useState(false)
-  const t = copy[lang === 'es' ? 'es' : 'en']
+  const t = useTranslations('Forms.location')
+  const controls = useTranslations('Map.controls')
+  const labels = useRef({zoomIn: controls('zoomIn'), zoomOut: controls('zoomOut'), point: t('precisePointLabel')})
+  const preciseMarker = useRef<import('leaflet').Marker | null>(null)
+  useEffect(() => {
+    labels.current = {zoomIn: controls('zoomIn'), zoomOut: controls('zoomOut'), point: t('precisePointLabel')}
+    for (const [selector, title] of [['.leaflet-control-zoom-in', labels.current.zoomIn], ['.leaflet-control-zoom-out', labels.current.zoomOut]]) {
+      element.current?.querySelectorAll<HTMLElement>(selector).forEach((button) => {
+        button.title = title
+        button.setAttribute('aria-label', title)
+      })
+    }
+    const markerElement = preciseMarker.current?.getElement()
+    if (markerElement) {
+      markerElement.setAttribute('alt', labels.current.point)
+      markerElement.title = labels.current.point
+    }
+  }, [controls, t])
 
   useEffect(() => {
     let disposed = false
@@ -125,8 +92,9 @@ function PreciseMap({
         const leaflet = (leafletModule as { default?: LeafletModule }).default ?? leafletModule
         configureMarkerIcons(leaflet)
         instance = leaflet
-          .map(element.current, { attributionControl: true, zoomControl: true })
+          .map(element.current, { attributionControl: true, zoomControl: false })
           .setView([point.latitude, point.longitude], 14)
+        leaflet.control.zoom({zoomInTitle: labels.current.zoomIn, zoomOutTitle: labels.current.zoomOut}).addTo(instance)
 
         const apiKey = process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY
         if (apiKey) {
@@ -136,7 +104,8 @@ function PreciseMap({
           }).addTo(instance)
         }
 
-        const marker = leaflet.marker([point.latitude, point.longitude], { draggable: true }).addTo(instance)
+        const marker = leaflet.marker([point.latitude, point.longitude], { draggable: true, alt: labels.current.point, title: labels.current.point }).addTo(instance)
+        preciseMarker.current = marker
         marker.on('dragend', () => {
           const position = marker.getLatLng()
           onPointChange({ latitude: position.lat, longitude: position.lng })
@@ -150,6 +119,7 @@ function PreciseMap({
 
     return () => {
       disposed = true
+      preciseMarker.current = null
       instance?.remove()
       instance = null
     }
@@ -158,13 +128,15 @@ function PreciseMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (unavailable) return <p role="alert">{t.mapUnavailable}</p>
+  if (unavailable) return <p role="alert">{t('mapUnavailable')}</p>
 
-  return <div ref={element} className="location-picker__precise-map" aria-label={t.preciseControls} />
+  return <div ref={element} className="location-picker__precise-map" aria-label={t('preciseControls')} />
 }
 
-export function LocationPicker({ lang = 'en', onChange }: LocationPickerProps) {
-  const t = copy[lang === 'es' ? 'es' : 'en']
+export function LocationPicker({ onChange }: LocationPickerProps) {
+  const format = useFormatter()
+  const lang = useLocale()
+  const t = useTranslations('Forms.location')
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<LocationSearchStatus>('idle')
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([])
@@ -224,11 +196,12 @@ export function LocationPicker({ lang = 'en', onChange }: LocationPickerProps) {
   }, [])
 
   useEffect(() => {
+    if (selected !== null) return
     const text = query.trim()
     if (text.length < MIN_QUERY_LENGTH) return
     const timer = setTimeout(() => void search(text), DEBOUNCE_MS)
     return () => clearTimeout(timer)
-  }, [query, search])
+  }, [query, search, selected])
 
   useEffect(() => () => controller.current?.abort(), [])
 
@@ -287,34 +260,34 @@ export function LocationPicker({ lang = 'en', onChange }: LocationPickerProps) {
 
   return (
     <fieldset className="location-picker">
-      <legend>{t.fieldset}</legend>
+      <legend>{t('fieldset')}</legend>
 
-      <label htmlFor="location-address">{t.addressLabel}</label>
+      <label htmlFor="location-address">{t('addressLabel')}</label>
       <input
         id="location-address"
         type="text"
         autoComplete="off"
         value={query}
-        placeholder={t.addressPlaceholder}
+        placeholder={t('addressPlaceholder')}
         aria-describedby={selected !== null ? undefined : 'location-search-status'}
         onChange={(event) => handleQueryChange(event.target.value)}
       />
 
       {status === 'loading' && !failure && selected === null && (
-        <p id="location-search-status" role="status">{t.loading}</p>
+        <p id="location-search-status" role="status">{t('loading')}</p>
       )}
       {status === 'empty' && selected === null && (
-        <p id="location-search-status" role="status">{t.noResults}</p>
+        <p id="location-search-status" role="status">{t('noResults')}</p>
       )}
       {failure && selected === null && (
         <div id="location-search-status" role="alert">
-          <p>{status === 'rateLimited' ? t.rateLimited : t.unavailable}</p>
-          <button type="button" onClick={retrySearch}>{t.retry}</button>
+          <p>{status === 'rateLimited' ? t('rateLimited') : t('unavailable')}</p>
+          <button type="button" onClick={retrySearch}>{t('retry')}</button>
         </div>
       )}
 
       {status === 'ready' && selected === null && (
-        <div role="listbox" aria-label={t.suggestionsLabel}>
+        <div role="listbox" aria-label={t('suggestionsLabel')}>
           {suggestions.map((suggestion) => (
             <button
               key={suggestion.selectionToken}
@@ -330,11 +303,11 @@ export function LocationPicker({ lang = 'en', onChange }: LocationPickerProps) {
       )}
 
       {selected !== null && (
-        <section aria-label={t.selectedLabel} className="location-picker__selection">
+        <section aria-label={t('selectedLabel')} className="location-picker__selection">
           <p className="location-picker__selection-label">{suggestionLabel(selected)}</p>
 
           <fieldset>
-            <legend>{t.precisionLabel}</legend>
+            <legend>{t('precisionLabel')}</legend>
             <label>
               <input
                 type="radio"
@@ -342,9 +315,9 @@ export function LocationPicker({ lang = 'en', onChange }: LocationPickerProps) {
                 checked={precision === 'approximate'}
                 onChange={() => handlePrecisionChange('approximate')}
               />
-              <span>{t.approximate}</span>
+              <span>{t('approximate')}</span>
             </label>
-            <p>{t.approximateHint}</p>
+            <p>{t('approximateHint')}</p>
             <label>
               <input
                 type="radio"
@@ -352,41 +325,40 @@ export function LocationPicker({ lang = 'en', onChange }: LocationPickerProps) {
                 checked={precision === 'precise'}
                 onChange={() => handlePrecisionChange('precise')}
               />
-              <span>{t.precise}</span>
+              <span>{t('precise')}</span>
             </label>
-            <p>{t.preciseHint}</p>
+            <p>{t('preciseHint')}</p>
           </fieldset>
 
           {precision === 'precise' && (
             <div className="location-picker__precise">
-              <p className="location-picker__precise-controls">{t.preciseControls}</p>
+              <p className="location-picker__precise-controls">{t('preciseControls')}</p>
               <PreciseMap
                 point={precisePoint ?? selected.point}
                 onPointChange={setPrecisePoint}
-                lang={lang}
               />
               <p className="location-picker__coordinates">
-                {t.coordinates}:{' '}
+                {t('coordinates')}:{' '}
                 {precisePoint === null
                   ? '—'
-                  : `${precisePoint.latitude.toFixed(5)}, ${precisePoint.longitude.toFixed(5)}`}
+                  : `${format.number(precisePoint.latitude, {minimumFractionDigits: 5, maximumFractionDigits: 5, useGrouping: false})}, ${format.number(precisePoint.longitude, {minimumFractionDigits: 5, maximumFractionDigits: 5, useGrouping: false})}`}
               </p>
               {!preciseConfirmed ? (
                 <div className="location-picker__warning">
-                  <p>{t.preciseWarning}</p>
-                  <button type="button" onClick={confirmPrecise}>{t.preciseConfirm}</button>
+                  <p>{t('preciseWarning')}</p>
+                  <button type="button" onClick={confirmPrecise}>{t('preciseConfirm')}</button>
                 </div>
               ) : (
-                <p role="status">{t.preciseConfirmed}</p>
+                <p role="status">{t('preciseConfirmed')}</p>
               )}
             </div>
           )}
 
-          <p className="location-picker__attribution">{t.attribution}</p>
+          <p className="location-picker__attribution">{t('attribution')}</p>
           <button type="button" onClick={() => {
             resetSelection()
             onChange(null)
-          }}>{t.change}</button>
+          }}>{t('change')}</button>
         </section>
       )}
     </fieldset>

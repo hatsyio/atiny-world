@@ -1,0 +1,31 @@
+{
+  "navigation": "Main navigation",
+  "menu": "Menu",
+  "home": "Home",
+  "map": "Map",
+  "letters": "Letters",
+  "write": "Write a letter",
+  "account": "My account",
+  "myLetters": "My letters",
+  "settings": "Account settings",
+  "signOut": "Sign out",
+  "signIn": "Sign in",
+  "signUp": "Sign up",
+  "about": "About the project",
+  "footer": "An independent fan project by ATINY, for ATEEZ. Not affiliated with or endorsed by KQ Entertainment.",
+  "script": "Dear, ATEEZ…",
+  "motto": "DIFFERENT PLACES • SAME SKY • ONE ATEEZ",
+  "backMap": "Back to the map",
+  "backLetters": "Back to letters",
+  "backOwnLetters": "Back to my letters",
+  "targets": {
+    "map": "the map",
+    "home": "home",
+    "letters": "letters",
+    "about": "the project",
+    "ownLetters": "my letters",
+    "letter": "the letter"
+  },
+  "back": "Back to {target}",
+  "cancel": "Cancel and return to {target}"
+}

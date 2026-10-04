@@ -1,0 +1,12 @@
+{
+  "title": "Settings",
+  "description": "Choose the language for the interface. Letters stay in their original language.",
+  "language": "Language",
+  "auto": "Automatic (browser language)",
+  "en": "English",
+  "es": "Español",
+  "saving": "Saving language…",
+  "saved": "Language saved.",
+  "error": "Could not save the language. Try again.",
+  "metadataDescription": "A world of good wishes for ATEEZ."
+}

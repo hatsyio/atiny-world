@@ -53,7 +53,7 @@ Then('la fan puede acceder a la publicación sin volver a estar bloqueada', asyn
 
 Then('se la dirige a reintentar la creación del perfil', function (this: AtinyWorld) {
   assert.ok(this.accountGate)
-  assert.equal(writeLetterRedirect(this.accountGate, 'es'), '/es/profile?next=%2Fes%2Fmessages%2Fnew')
+  assert.equal(writeLetterRedirect(this.accountGate, 'es'), '/profile?next=%2Fmessages%2Fnew')
 })
 
 Then('puede continuar hacia la publicación', function (this: AtinyWorld) {

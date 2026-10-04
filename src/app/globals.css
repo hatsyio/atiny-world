@@ -31,6 +31,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .main-nav .navigation-write { padding: .65rem .9rem; color: #fff0cb; background: #19334b; border: 3px double #d8ae6d; }
 .site-header :focus-visible, .site-footer a:focus-visible { outline: 2px solid #f4dbad; outline-offset: 4px; }
 .site-header .navigation-toggle { display: none; padding: .65rem .9rem; }
+.language-switcher { display: grid; gap: .35rem; min-width: 0; margin: 1rem 0; text-align: left; font-family: var(--font-interface), sans-serif; }
+.language-switcher label { font-weight: 700; font-size: .85rem; }
+.language-switcher select { width: 100%; max-width: 100%; min-height: 44px; padding: .55rem .7rem; border: 1px solid #6b3e20; background: #faf0da; color: #171b20; }
+.language-switcher select:disabled { opacity: .6; }
+.language-switcher [role='status'] { min-height: 1.2em; font-size: .75rem; overflow-wrap: anywhere; }
+.site-header .language-switcher { width: 12rem; max-width: 100%; margin: 0; gap: .15rem; font-size: .75rem; }
+.site-header .language-switcher label { font-size: .7rem; }
+.site-header .language-switcher select { border-color: #756047; background: #181b21; color: #f0d8a9; font-size: .75rem; }
 .account-menu { position: relative; }
 .account-menu > button { padding: .65rem .9rem; }
 .account-links { position: absolute; right: 0; top: calc(100% + .5rem); min-width: 190px; display: grid; gap: .3rem; padding: .6rem; background: #181b21; border: 1px solid #756047; box-shadow: 0 6px 18px #0006; }
@@ -38,7 +46,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .account-links a, .account-links button { text-align: left; padding: .7rem; }
 #map, #letters, #about, [id^="letters-"], [id^="own-"] { scroll-margin-top: 6rem; }
 .site-footer a { color: inherit; width: fit-content; }
-@media (max-width: 950px) {
+@media (max-width: 1120px) {
   .site-header { flex-wrap: wrap; }
   .site-header .navigation-toggle { display: inline-block; }
   .main-nav { display: none; flex-basis: 100%; align-items: stretch; gap: .4rem; padding: .5rem 0; }

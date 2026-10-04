@@ -1,0 +1,45 @@
+{
+  "filters": {
+    "filters": "Filters",
+    "city": "City",
+    "country": "Country",
+    "all": "All"
+  },
+  "cluster": {
+    "loading": "Loading messages…",
+    "unavailable": "The messages could not be loaded.",
+    "retry": "Try again",
+    "empty": "No messages in this area.",
+    "more": "Load more messages"
+  },
+  "public": {
+    "unavailable": "This message is not available.",
+    "label": "Public message"
+  },
+  "controller": {
+    "explore": "Explore messages",
+    "unavailable": "The map messages could not be loaded.",
+    "retry": "Try again"
+  },
+  "leaflet": {
+    "label": "Message map",
+    "world": "World map",
+    "preview": "The interactive map is coming soon.",
+    "unavailable": "The map could not be loaded. Try again.",
+    "loadingMessage": "Loading message…",
+    "messageUnavailable": "The message could not be loaded.",
+    "filters": "Filters",
+    "viewMessages": "{count, plural, one {View # message} other {View # messages}}",
+    "messages": "Map messages",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "closePopup": "Close popup"
+  },
+  "loading": "Loading map…",
+  "controls": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out"
+  }
+}

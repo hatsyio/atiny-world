@@ -1,0 +1,70 @@
+{
+  "home": {
+    "send": "Write a letter",
+    "explore": "Explore the map",
+    "heroScript": "Dear, ATEEZ…",
+    "heroTitle": "Messages across the seas",
+    "heroSub": "From ATINY around the world, to ATEEZ.",
+    "heroText": "Leave a message of love, encouragement, or appreciation and add your voice to our global map.",
+    "mapTitle": "A global ocean of ATINY",
+    "mapNote": "Different lands. Same love. Always ATEEZ.",
+    "mapHint": "Explore the map and find letters from around the world.",
+    "lettersTitle": "Letters from ATINY",
+    "lettersNote": "Recent messages shared publicly by ATINY around the world.",
+    "emptyLetters": "No public letters yet. Be the first to share one.",
+    "letterStat": "{count, plural, one {Letter} other {Letters}}",
+    "countryStat": "{count, plural, one {Country} other {Countries}}",
+    "piratesStat": "Pirates",
+    "bannerTitle": "Send your letter",
+    "bannerText": "Share your message, mark your location, and be part of this journey.",
+    "bannerAction": "Write a letter",
+    "publicationPending": "Your letter was sent. It is pending moderation and will appear on the map once approved.",
+    "motto": "Different places, same sky, one ATEEZ",
+    "places": "Different places",
+    "sky": "Same sky",
+    "oneAteez": "One ATEEZ",
+    "journey": "Our shared journey"
+  },
+  "newLetter": {
+    "script": "Dear, ATEEZ…",
+    "title": "Write a letter",
+    "intro": "Write your letter and choose where it will appear on the map.",
+    "unavailable": "Your account is not available, so you cannot publish a letter right now."
+  },
+  "profile": {
+    "back": "Back to the map",
+    "script": "Dear, ATEEZ…",
+    "title": "Finishing your account",
+    "intro": "We could not create your profile yet. Try again in a moment.",
+    "unavailable": "Your account is not available right now.",
+    "usernameTitle": "Choose a username",
+    "usernameIntro": "Your account needs a username before you can continue. Choose one here to finish setting it up.",
+    "usernameLabel": "Username",
+    "usernameSubmit": "Save username",
+    "usernameInvalid": "Use between 4 and 64 characters.",
+    "usernameUnavailable": "We could not save that username. Try another, or contact support if the problem continues.",
+    "retry": "Try again"
+  },
+  "ownLetters": {
+    "back": "Back to the map",
+    "script": "Dear, ATEEZ…",
+    "title": "My letters",
+    "intro": "See every letter you have sent, including its moderation status.",
+    "next": "Load older letters",
+    "unavailable": "Your account is not available right now."
+  },
+  "editLetter": {
+    "back": "Back to my letters",
+    "script": "Dear, ATEEZ…",
+    "title": "Edit your letter"
+  },
+  "publicLetter": {
+    "title": "A letter from ATINY",
+    "script": "Dear, ATEEZ…"
+  },
+  "settings": {
+    "title": "Account settings",
+    "security": "Profile and security",
+    "intro": "Choose your ATINY World language and manage your account security."
+  }
+}

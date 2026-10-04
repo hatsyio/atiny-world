@@ -1,12 +1,16 @@
 'use client'
 
+import type { Locale } from '@/i18n/locale'
+
+import { useTranslations } from 'next-intl'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import {
   updateMessageAction,
   type UpdateMessageActionResult,
-} from '@/app/[lang]/my-messages/actions'
+} from '@/app/(site)/my-messages/actions'
 import { LocationPicker, type LocationPickerSelection } from '@/components/map/location-picker'
 import { MAX_GRAPHEMES, countGraphemes } from '@/domain/messages/content'
 import type { OwnMessage } from '@/domain/messages/own-message'
@@ -17,61 +21,22 @@ export type EditMessageSubmit = (
 ) => Promise<UpdateMessageActionResult>
 
 export interface EditMessageFormProps {
-  lang?: 'en' | 'es'
+  lang?: Locale
   message: Pick<OwnMessage, 'publicId' | 'version' | 'content' | 'country' | 'precision' | 'locality'>
   submitUpdate?: EditMessageSubmit
 }
 
-const copy = {
-  en: {
-    content: 'Your letter',
-    contentPlaceholder: 'Dear ATEEZ…',
-    characters: 'characters',
-    currentLocation: 'Current location',
-    approximate: 'Approximate point',
-    precise: 'Exact public point',
-    changeLocation: 'Choose a new place (optional)',
-    locationHint: 'Leave this empty to keep the current point.',
-    save: 'Save changes',
-    saving: 'Saving…',
-    cancel: 'Cancel',
-    conflict: 'This letter changed since you opened it. Return to your letters and try again.',
-    unavailable: 'This letter is no longer available to edit.',
-    suspended: 'Your account cannot edit letters right now.',
-    invalid: 'Check the letter and selected place, then try again.',
-    error: 'We could not save your changes. Try again soon.',
-  },
-  es: {
-    content: 'Tu carta',
-    contentPlaceholder: 'Querido ATEEZ…',
-    characters: 'caracteres',
-    currentLocation: 'Ubicación actual',
-    approximate: 'Punto aproximado',
-    precise: 'Punto público exacto',
-    changeLocation: 'Elige otro lugar (opcional)',
-    locationHint: 'Déjalo vacío para conservar el punto actual.',
-    save: 'Guardar cambios',
-    saving: 'Guardando…',
-    cancel: 'Cancelar',
-    conflict: 'La carta cambió desde que la abriste. Vuelve a tus cartas e inténtalo de nuevo.',
-    unavailable: 'Esta carta ya no está disponible para editar.',
-    suspended: 'Tu cuenta no puede editar cartas en este momento.',
-    invalid: 'Revisa la carta y el lugar elegido e inténtalo de nuevo.',
-    error: 'No se pudieron guardar los cambios. Inténtalo de nuevo pronto.',
-  },
-} as const
 
 export function EditMessageForm({
-  lang = 'en',
   message,
   submitUpdate = updateMessageAction,
 }: EditMessageFormProps) {
-  const t = copy[lang]
+  const t = useTranslations('Forms.edit')
   const router = useRouter()
   const [content, setContent] = useState(message.content)
   const [location, setLocation] = useState<LocationPickerSelection | null>(null)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<'conflict' | 'unavailable' | 'suspended' | 'invalid' | 'error' | null>(null)
   const characterCount = countGraphemes(content)
   const invalidContent = characterCount === 0 || characterCount > MAX_GRAPHEMES
 
@@ -89,32 +54,32 @@ export function EditMessageForm({
         ...(location !== null ? { location } : {}),
       })
       if (result.ok) {
-        router.push(`/${lang}/my-messages`)
+        router.push('/my-messages')
         return
       }
 
       switch (result.error.code) {
         case 'MESSAGE_VERSION_CONFLICT':
-          setError(t.conflict)
+          setError('conflict')
           break
         case 'NOT_FOUND':
-          setError(t.unavailable)
+          setError('unavailable')
           break
         case 'ACCOUNT_SUSPENDED':
-          setError(t.suspended)
+          setError('suspended')
           break
         case 'VALIDATION_ERROR':
         case 'LOCATION_SELECTION_REQUIRED':
         case 'LOCATION_SELECTION_EXPIRED':
         case 'LOCATION_SELECTION_INVALID':
-          setError(t.invalid)
+          setError('invalid')
           break
         default:
-          setError(t.error)
+          setError('error')
           break
       }
     } catch {
-      setError(t.error)
+      setError('error')
     } finally {
       setSaving(false)
     }
@@ -122,43 +87,43 @@ export function EditMessageForm({
 
   return (
     <form className="profile-form" onSubmit={(event) => void handleSubmit(event)}>
-      {error ? <p className="profile-error profile-error--general" role="alert">{error}</p> : null}
+      {error ? <p className="profile-error profile-error--general" role="alert">{t(error)}</p> : null}
       <div className="profile-field">
-        <label htmlFor="edit-message-content">{t.content}</label>
+        <label htmlFor="edit-message-content">{t('content')}</label>
         <textarea
           id="edit-message-content"
           name="content"
           rows={8}
           value={content}
-          placeholder={t.contentPlaceholder}
+          placeholder={t('contentPlaceholder')}
           aria-describedby="edit-message-counter"
           onChange={(event) => setContent(event.target.value)}
         />
         <p id="edit-message-counter" className="message-counter" aria-live="polite">
-          {characterCount}/{MAX_GRAPHEMES} {t.characters}
+          {t('counter', {count: characterCount, max: MAX_GRAPHEMES})}
         </p>
       </div>
 
       <p className="profile-note">
-        {t.currentLocation}: {message.locality ? `${message.locality}, ` : ''}{message.country} — {message.precision === 'precise' ? t.precise : t.approximate}
+        {t('currentLocation')}: {message.locality ? `${message.locality}, ` : ''}{message.country} — {message.precision === 'precise' ? t('precise') : t('approximate')}
       </p>
       <fieldset>
-        <legend>{t.changeLocation}</legend>
-        <p className="profile-hint">{t.locationHint}</p>
-        <LocationPicker lang={lang} onChange={setLocation} />
+        <legend>{t('changeLocation')}</legend>
+        <p className="profile-hint">{t('locationHint')}</p>
+        <LocationPicker onChange={setLocation} />
       </fieldset>
 
       <div className="profile-actions">
         <button type="submit" className="profile-submit" disabled={saving || invalidContent}>
-          {saving ? t.saving : t.save}
+          {saving ? t('saving') : t('save')}
         </button>
         <button
           type="button"
           className="profile-cancel"
           disabled={saving}
-          onClick={() => router.push(`/${lang}/my-messages`)}
+          onClick={() => router.push('/my-messages')}
         >
-          {t.cancel}
+          {t('cancel')}
         </button>
       </div>
     </form>
