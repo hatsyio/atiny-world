@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup,  screen, waitFor, within } from '@testing-library/react'
+import { render } from '../../../support/intl'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -88,10 +89,10 @@ describe('MapFilters', () => {
   it('exposes accessible city and country filters without an author filter', () => {
     render(<MapFilters value={defaults} onChange={() => {}} />)
 
-    expect(screen.getByRole('textbox', { name: /ciudad/i })).toBeTruthy()
-    expect(screen.getByRole('combobox', { name: /país/i })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: /city/i })).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: /country/i })).toBeTruthy()
     expect(screen.queryByRole('textbox', { name: /fan|autor|usuario/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('group', { name: /filtros/i })).toBeTruthy()
+    expect(screen.getByRole('group', { name: /filters/i })).toBeTruthy()
   })
 
 })
@@ -100,7 +101,7 @@ describe('PublicMapLoader', () => {
   it('announces that the client-only Leaflet map is loading', () => {
     render(<PublicMapLoader features={[]} onSelect={() => {}} />)
 
-    expect(screen.getByRole('status').textContent).toMatch(/cargando mapa/i)
+    expect(screen.getByRole('status').textContent).toMatch(/loading map/i)
   })
 
   it('offers the group control without an external fullscreen button', () => {
@@ -112,7 +113,7 @@ describe('PublicMapLoader', () => {
       />,
     )
 
-    expect(screen.getByRole('button', { name: /view messages/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /view \d+ messages/i })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Pantalla completa' })).toBeNull()
   })
 })
@@ -136,7 +137,7 @@ describe('PublicMessageCard', () => {
   it('shows a non-disclosing unavailable state', () => {
     render(<PublicMessageCard message={null} />)
 
-    expect(screen.getByRole('status').textContent).toMatch(/no está disponible/i)
+    expect(screen.getByRole('status').textContent).toMatch(/not available/i)
     expect(screen.queryByText(/pendiente|rechazado|oculto/i)).toBeNull()
   })
 })

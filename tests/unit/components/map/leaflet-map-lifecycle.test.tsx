@@ -1,7 +1,8 @@
 /** @vitest-environment jsdom */
 
 import { act } from 'react'
-import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent,  waitFor } from '@testing-library/react'
+import { render, IntlTestProvider } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { PublicMapFeature } from '@/domain/messages/public-message'
@@ -107,9 +108,9 @@ describe('LeafletMap lifecycle', () => {
     expect(fullscreenControlContainer).toHaveClass('leaflet-control-fullscreen', 'leaflet-bar')
     expect(fullscreenControlContainer).not.toBe(leaflet.instance.zoomControl.getContainer())
     expect(leaflet.instance.addControl).toHaveBeenCalledTimes(1)
-    expect(control).toHaveAccessibleName('Entrar en pantalla completa')
-    expect(control.title).toBe('Entrar en pantalla completa')
-    const groupButton = queryByRole('button', { name: /view messages/i })
+    expect(control).toHaveAccessibleName('Enter fullscreen')
+    expect(control.title).toBe('Enter fullscreen')
+    const groupButton = queryByRole('button', { name: /view \d+ messages/i })
     if (!groupButton) throw new Error('group control unavailable')
     const canvas = container.querySelector('.map__canvas')
     if (!canvas) throw new Error('map canvas unavailable')
@@ -121,10 +122,10 @@ describe('LeafletMap lifecycle', () => {
     expect(panel?.closest('.map__overlay')).toBeTruthy()
 
     fireEvent.click(control)
-    await waitFor(() => expect(control).toHaveAccessibleName('Salir de pantalla completa'))
+    await waitFor(() => expect(control).toHaveAccessibleName('Exit fullscreen'))
     expect(leaflet.instance.invalidateSize).toHaveBeenCalled()
     expect(container.querySelector('section')).toHaveClass('map--fullscreen')
-    expect(queryByRole('button', { name: /view messages/i })).toHaveAttribute('aria-expanded', 'true')
+    expect(queryByRole('button', { name: /view \d+ messages/i })).toHaveAttribute('aria-expanded', 'true')
     expect(container.querySelector('.map--fullscreen #map-cluster-list')).toBeTruthy()
 
     fireEvent.click(groupButton)
@@ -133,7 +134,7 @@ describe('LeafletMap lifecycle', () => {
     expect(container.querySelector('.map--fullscreen #map-cluster-list')).toBeTruthy()
 
     fireEvent.keyDown(window, { key: 'Escape' })
-    await waitFor(() => expect(control).toHaveAccessibleName('Entrar en pantalla completa'))
+    await waitFor(() => expect(control).toHaveAccessibleName('Enter fullscreen'))
   })
 
   it('opens the city and country filters inside the map and preserves them in fullscreen', async () => {
@@ -159,7 +160,7 @@ describe('LeafletMap lifecycle', () => {
     fireEvent.change(getByRole('textbox', { name: 'Ciudad' }), { target: { value: 'Madrid' } })
     expect(onFiltersChange).toHaveBeenCalledWith({ city: 'Madrid', country: '' })
 
-    fireEvent.click(getByRole('button', { name: /Ver mensajes/ }))
+    fireEvent.click(getByRole('button', { name: /Ver \d+ mensajes/ }))
     expect(container.querySelector('.map-filters')).toBeNull()
     expect(container.querySelector('#map-cluster-list')).toBeTruthy()
     fireEvent.click(toggle)
@@ -218,4 +219,24 @@ it('initializes the restored map at the saved center and zoom and reports subseq
   await waitFor(() => expect(leaflet.map).toHaveBeenCalledTimes(1))
   expect(leaflet.instance.setView).toHaveBeenCalledWith([40.5, -3.5], 8)
   expect(onViewChange).toHaveBeenCalledWith({ latitude: 40.5, longitude: -3.5, zoom: 8 })
+})
+
+it('updates locale controls without recreating the map, markers, view or open filters', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  const features = [feature]
+  const view = (locale: 'en' | 'es') => <IntlTestProvider locale={locale}><LeafletMap features={features} onSelect={() => {}} filters={{city:'서울',country:'kr'}} onFiltersChange={() => {}} /></IntlTestProvider>
+  const result = render(view('en'))
+  await waitFor(() => expect(leaflet.marker).toHaveBeenCalledTimes(1))
+  fireEvent.click(result.getByRole('button', {name:'Filters (2)'}))
+  const canvas = result.container.querySelector('.map__canvas')
+  const control = leaflet.getFullscreenControlContainer()?.querySelector('button')
+  result.rerender(view('es'))
+  expect(result.getByRole('textbox', {name:'Ciudad'})).toHaveValue('서울')
+  expect(result.getByRole('combobox', {name:'País'})).toHaveValue('kr')
+  expect(control).toHaveAccessibleName('Entrar en pantalla completa')
+  expect(result.container.querySelector('.map__canvas')).toBe(canvas)
+  expect(leaflet.map).toHaveBeenCalledTimes(1)
+  expect(leaflet.marker).toHaveBeenCalledTimes(1)
+  expect(leaflet.instance.setView).toHaveBeenCalledTimes(1)
+  expect(leaflet.instance.remove).not.toHaveBeenCalled()
 })

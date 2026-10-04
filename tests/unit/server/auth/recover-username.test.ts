@@ -27,7 +27,7 @@ describe('recoverUsername', () => {
   it('saves a chosen username for the signed-in Clerk user and retries profile creation', async () => {
     const form = new FormData()
     form.set('username', 'atiny_fan')
-    await expect(recoverUsername('en', form)).rejects.toThrow('redirect:/en/auth/continue')
+    await expect(recoverUsername('en', form)).rejects.toThrow('redirect:/auth/continue')
     expect(state.updateUser).toHaveBeenCalledWith('user_123', { username: 'atiny_fan' })
   })
 
@@ -35,7 +35,7 @@ describe('recoverUsername', () => {
     state.userId = null
     const form = new FormData()
     form.set('username', 'atiny_fan')
-    await expect(recoverUsername('es', form)).rejects.toThrow('redirect:/es/sign-in')
+    await expect(recoverUsername('es', form)).rejects.toThrow('redirect:/sign-in')
     expect(state.updateUser).not.toHaveBeenCalled()
   })
 
@@ -43,24 +43,24 @@ describe('recoverUsername', () => {
     state.updateUser.mockRejectedValueOnce(new Error('username unavailable'))
     const form = new FormData()
     form.set('username', 'atiny_fan')
-    await expect(recoverUsername('en', form)).rejects.toThrow('redirect:/en/profile?error=unavailable')
+    await expect(recoverUsername('en', form)).rejects.toThrow('redirect:/profile?error=unavailable')
   })
 })
 
 it.each(['saved', 'invalid', 'unavailable', 'expired', 'existing'])('preserves the pending action during username recovery: %s', async outcome => {
   const form = new FormData()
   form.set('username', outcome === 'invalid' ? 'a' : 'atiny_fan')
-  form.set('next', '/es/messages/new')
+  form.set('next', '/messages/new')
   if (outcome === 'unavailable') state.updateUser.mockRejectedValueOnce(new Error('unavailable'))
   if (outcome === 'expired') state.userId = null
   if (outcome === 'existing') state.username = 'atiny_fan'
-  const path = outcome === 'expired' ? '/es/sign-in' : outcome === 'invalid' || outcome === 'unavailable' ? `/es/profile?error=${outcome}` : '/es/auth/continue'
-  await expect(recoverUsername('es', form)).rejects.toThrow(`redirect:${path}${path.includes('?') ? '&' : '?'}next=%2Fes%2Fmessages%2Fnew`)
+  const path = outcome === 'expired' ? '/sign-in' : outcome === 'invalid' || outcome === 'unavailable' ? `/profile?error=${outcome}` : '/auth/continue'
+  await expect(recoverUsername('es', form)).rejects.toThrow(`redirect:${path}${path.includes('?') ? '&' : '?'}next=%2Fmessages%2Fnew`)
 })
 
 it('discards a tampered external destination submitted with the recovery form', async () => {
   const form = new FormData()
   form.set('username', 'atiny_fan')
   form.set('next', 'https://evil.test')
-  await expect(recoverUsername('es', form)).rejects.toThrow('redirect:/es/auth/continue')
+  await expect(recoverUsername('es', form)).rejects.toThrow('redirect:/auth/continue')
 })

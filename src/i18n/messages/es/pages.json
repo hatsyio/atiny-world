@@ -1,0 +1,70 @@
+{
+  "home": {
+    "send": "Escribir una carta",
+    "explore": "Explora el mapa",
+    "heroScript": "Querido ATEEZ…",
+    "heroTitle": "Mensajes a través de los mares",
+    "heroSub": "De ATINY de todo el mundo, para ATEEZ.",
+    "heroText": "Deja un mensaje de cariño, ánimo o agradecimiento y suma tu voz a nuestro mapa global.",
+    "mapTitle": "Un océano global de ATINY",
+    "mapNote": "Tierras distintas. El mismo cariño. Siempre ATEEZ.",
+    "mapHint": "Explora el mapa y encuentra cartas de todo el mundo.",
+    "lettersTitle": "Cartas de ATINY",
+    "lettersNote": "Mensajes públicos recientes compartidos por ATINY de todo el mundo.",
+    "emptyLetters": "Todavía no hay cartas públicas. Sé la primera persona en compartir una.",
+    "letterStat": "{count, plural, one {Carta} other {Cartas}}",
+    "countryStat": "{count, plural, one {País} other {Países}}",
+    "piratesStat": "Piratas",
+    "bannerTitle": "Envía tu carta",
+    "bannerText": "Comparte tu mensaje, marca tu lugar y forma parte de este viaje.",
+    "bannerAction": "Escribir una carta",
+    "publicationPending": "Tu carta se ha enviado. Está pendiente de moderación y aparecerá en el mapa en cuanto sea aprobada.",
+    "motto": "Lugares distintos, el mismo cielo, un ATEEZ",
+    "places": "Lugares distintos",
+    "sky": "El mismo cielo",
+    "oneAteez": "Un ATEEZ",
+    "journey": "Nuestro viaje compartido"
+  },
+  "newLetter": {
+    "script": "Querido ATEEZ…",
+    "title": "Escribir una carta",
+    "intro": "Escribe tu carta y elige dónde aparecerá en el mapa.",
+    "unavailable": "Tu cuenta no está disponible, así que no puedes publicar una carta ahora mismo."
+  },
+  "profile": {
+    "back": "Volver al mapa",
+    "script": "Querido ATEEZ…",
+    "title": "Terminando tu cuenta",
+    "intro": "Todavía no hemos podido crear tu perfil. Vuelve a intentarlo en un momento.",
+    "unavailable": "Tu cuenta no está disponible en este momento.",
+    "usernameTitle": "Elige un nombre de usuario",
+    "usernameIntro": "Tu cuenta necesita un nombre de usuario para continuar. Elige uno aquí para terminar la configuración.",
+    "usernameLabel": "Nombre de usuario",
+    "usernameSubmit": "Guardar nombre de usuario",
+    "usernameInvalid": "Usa entre 4 y 64 caracteres.",
+    "usernameUnavailable": "No hemos podido guardar ese nombre. Prueba otro o contacta con soporte si el problema continúa.",
+    "retry": "Reintentar"
+  },
+  "ownLetters": {
+    "back": "Volver al mapa",
+    "script": "Querido ATEEZ…",
+    "title": "Mis cartas",
+    "intro": "Consulta todas las cartas que has enviado, incluido su estado de moderación.",
+    "next": "Ver cartas anteriores",
+    "unavailable": "Tu cuenta no está disponible en este momento."
+  },
+  "editLetter": {
+    "back": "Volver a mis cartas",
+    "script": "Querido ATEEZ…",
+    "title": "Editar tu carta"
+  },
+  "publicLetter": {
+    "title": "Una carta de ATINY",
+    "script": "Querido ATEEZ…"
+  },
+  "settings": {
+    "title": "Ajustes de cuenta",
+    "security": "Perfil y seguridad",
+    "intro": "Elige el idioma de ATINY World y administra la seguridad de tu cuenta."
+  }
+}

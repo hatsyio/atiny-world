@@ -22,7 +22,7 @@ export type AccountGate =
 export function writeLetterRedirect(
   gate: AccountGate,
   lang: 'en' | 'es',
-  next: string = `/${lang}/messages/new`,
+  next: string = '/messages/new',
 ): string | null {
   switch (gate.kind) {
     case 'anonymous':

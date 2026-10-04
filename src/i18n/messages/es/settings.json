@@ -1,0 +1,12 @@
+{
+  "title": "Ajustes",
+  "description": "Elige el idioma de la interfaz. Las cartas mantienen su idioma original.",
+  "language": "Idioma",
+  "auto": "Automático (idioma del navegador)",
+  "en": "English",
+  "es": "Español",
+  "saving": "Guardando idioma…",
+  "saved": "Idioma guardado.",
+  "error": "No se pudo guardar el idioma. Inténtalo de nuevo.",
+  "metadataDescription": "Un mundo de buenos deseos para ATEEZ."
+}

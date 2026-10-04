@@ -20,14 +20,14 @@ export async function recoverUsername(locale: 'en' | 'es', formData: FormData): 
   const value = formData.get('username')
   const username = typeof value === 'string' ? value.trim() : ''
   if (username.length < 4 || username.length > 64) {
-    redirect(`/${locale}/profile?error=invalid${pendingQuery}`)
+    redirect(`/profile?error=invalid${pendingQuery}`)
   }
 
   try {
     const client = await clerkClient()
     await client.users.updateUser(userId, { username })
   } catch {
-    redirect(`/${locale}/profile?error=unavailable${pendingQuery}`)
+    redirect(`/profile?error=unavailable${pendingQuery}`)
   }
 
   redirect(continuation)

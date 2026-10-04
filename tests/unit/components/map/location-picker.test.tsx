@@ -1,7 +1,8 @@
 /** @vitest-environment jsdom */
 
 import { act } from 'react'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent,  screen } from '@testing-library/react'
+import { render, IntlTestProvider } from '../../../support/intl'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LocationPicker, type LocationPickerSelection } from '@/components/map/location-picker'
@@ -12,30 +13,42 @@ const advance = (ms: number) => vi.advanceTimersByTime(ms)
 
 const leafletCallbacks = vi.hoisted(() => {
   const handlers = new Map<string, (...args: unknown[]) => void>()
-  return { handlers }
+  return { handlers, map: vi.fn(), setView: vi.fn(), remove: vi.fn(), marker: vi.fn() }
 })
 
 vi.mock('leaflet', () => {
-  const marker = {
-    on(event: string, handler: (...args: unknown[]) => void) {
-      leafletCallbacks.handlers.set(event, handler)
-    },
-    getLatLng: () => ({ lat: 40.51, lng: -3.72 }),
-    addTo: () => marker,
-  }
   const map = {
-    setView: () => map,
-    remove: () => {},
+    setView: (...args: unknown[]) => { leafletCallbacks.setView(...args); return map },
+    remove: () => leafletCallbacks.remove(),
   }
-  const tileLayer = () => ({ addTo: () => {} })
-  const Icon = { Default: { imagePath: undefined as string | undefined } }
-  return {
-    default: { map: () => map, marker: () => marker, tileLayer, Icon },
-    map: () => map,
-    marker: () => marker,
-    tileLayer,
-    Icon,
+  const mapFactory = () => {
+    leafletCallbacks.map()
+    return map
   }
+  const markerFactory = (_point: unknown, options: {alt?:string;title?:string}) => {
+    leafletCallbacks.marker()
+    const image = document.createElement('img')
+    image.alt = options.alt ?? 'Marker'
+    image.title = options.title ?? ''
+    const marker = {
+      on(event: string, handler: (...args: unknown[]) => void) { leafletCallbacks.handlers.set(event, handler) },
+      getLatLng: () => ({lat:40.51,lng:-3.72}),
+      getElement: () => image,
+      addTo: () => { document.querySelector('.location-picker__precise-map')?.append(image); return marker },
+    }
+    return marker
+  }
+  const control = {zoom: (options: {zoomInTitle:string;zoomOutTitle:string}) => ({addTo: () => {
+    for (const [name,title] of [['in',options.zoomInTitle],['out',options.zoomOutTitle]]) {
+      const button = document.createElement('a')
+      button.className = `leaflet-control-zoom-${name}`
+      button.title = title
+      document.querySelector('.location-picker__precise-map')?.append(button)
+    }
+  }})}
+  const tileLayer = () => ({addTo: () => {}})
+  const Icon = {Default:{imagePath:undefined as string|undefined}}
+  return {default:{map:mapFactory,marker:markerFactory,control,tileLayer,Icon},map:mapFactory,marker:markerFactory,control,tileLayer,Icon}
 })
 
 function deferred<T>() {
@@ -90,6 +103,7 @@ afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
   leafletCallbacks.handlers.clear()
+  vi.clearAllMocks()
 })
 
 describe('LocationPicker', () => {
@@ -253,7 +267,7 @@ describe('LocationPicker', () => {
     await act(async () => {
       leafletCallbacks.handlers.get('dragend')?.()
     })
-    expect(screen.getByText(/40\.51000, -3\.72000/)).toBeVisible()
+    expect(screen.getByText(/40,51000, -3,72000/)).toBeVisible()
     expect(onChange).toHaveBeenLastCalledWith(null)
 
     fireEvent.click(screen.getByRole('button', { name: /lo entiendo/i }))
@@ -283,4 +297,40 @@ describe('LocationPicker', () => {
     expect(onChange).toHaveBeenLastCalledWith(null)
     expect(screen.queryByLabelText(/lugar seleccionado/i)).toBeNull()
   })
+})
+
+it('keeps the chosen place and precise public point when the provider locale changes', async () => {
+  vi.useFakeTimers()
+  const requests: Array<ReturnType<typeof deferred<Response>>> = []
+  const fetchMock = stubFetch(requests)
+  const onChange = vi.fn()
+  const view = (locale:'en'|'es') => <IntlTestProvider locale={locale}><LocationPicker onChange={onChange}/></IntlTestProvider>
+  const result = render(view('en'))
+  fireEvent.change(screen.getByLabelText('Search for a city or area'), {target:{value:'Seoul'}})
+  await act(async () => { await advance(400) })
+  await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
+  fireEvent.click(screen.getByRole('option', {name:'Seoul, South Korea'}))
+  fireEvent.click(screen.getByRole('radio', {name:'Exact location'}))
+  await act(async () => { await Promise.resolve() })
+  expect(result.container.querySelector('.leaflet-control-zoom-in')).toHaveAttribute('title', 'Zoom in')
+  expect(result.container.querySelector('.leaflet-control-zoom-out')).toHaveAttribute('title', 'Zoom out')
+  expect(screen.getByRole('img', {name:'Exact public point'})).toHaveAttribute('title', 'Exact public point')
+  expect(result.container.querySelector('.location-picker__coordinates')).toHaveTextContent('37.56650, 126.97800')
+  fireEvent.click(screen.getByRole('button', {name:'I understand, make this point public'}))
+  const retained = onChange.mock.calls.at(-1)?.[0] as LocationPickerSelection
+  result.rerender(view('es'))
+  expect(screen.getByLabelText('Busca una ciudad o zona')).toHaveValue('Seoul')
+  expect(screen.getByRole('region', {name:'Lugar seleccionado'})).toHaveTextContent('Seoul, South Korea')
+  expect(screen.getByRole('radio', {name:'Ubicación exacta'})).toBeChecked()
+  expect(screen.getByText('Punto exacto confirmado.')).toBeVisible()
+  expect(onChange.mock.calls.at(-1)?.[0]).toEqual(retained)
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+  expect(result.container.querySelector('.leaflet-control-zoom-in')).toHaveAttribute('title', 'Acercar')
+  expect(result.container.querySelector('.leaflet-control-zoom-out')).toHaveAttribute('title', 'Alejar')
+  expect(screen.getByRole('img', {name:'Punto público exacto'})).toHaveAttribute('title', 'Punto público exacto')
+  expect(result.container.querySelector('.location-picker__coordinates')).toHaveTextContent('37,56650, 126,97800')
+  expect(leafletCallbacks.map).toHaveBeenCalledTimes(1)
+  expect(leafletCallbacks.marker).toHaveBeenCalledTimes(1)
+  expect(leafletCallbacks.setView).toHaveBeenCalledTimes(1)
+  expect(leafletCallbacks.remove).not.toHaveBeenCalled()
 })

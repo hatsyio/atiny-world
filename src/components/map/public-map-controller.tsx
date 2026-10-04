@@ -1,5 +1,9 @@
 'use client'
 
+import type { Locale } from '@/i18n/locale'
+
+import { useLocale, useTranslations } from 'next-intl'
+
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -74,10 +78,11 @@ export function buildMessageRequest(
   return `/api/map/messages?${params.toString()}`
 }
 
-export function PublicMapController({ lang = 'en', selectedPublicId }: {
-  lang?: 'en' | 'es'
+export function PublicMapController({ selectedPublicId }: {
+  lang?: Locale
   selectedPublicId?: string
 }) {
+  const lang = useLocale()
   const params = useSearchParams()
   const initialView = selectedPublicId ? DEFAULT_VIEW : readMapView(params) ?? DEFAULT_VIEW
   const initialFilters = selectedPublicId ? { city: '', country: '' } : readMapFilters(params)
@@ -87,11 +92,12 @@ export function PublicMapController({ lang = 'en', selectedPublicId }: {
 }
 
 function MapExploration({ lang, selectedPublicId, initialView, initialFilters }: {
-  lang: 'en' | 'es'
+  lang: Locale
   selectedPublicId?: string
   initialView: MapView
   initialFilters: MapFilterValues
 }) {
+  const t = useTranslations('Map.controller')
   const router = useRouter()
   const view = useRef(initialView)
   const [bounds, setBounds] = useState<MapBounds>(WORLD_BOUNDS)
@@ -124,7 +130,7 @@ function MapExploration({ lang, selectedPublicId, initialView, initialFilters }:
         setFeatures(body.features ?? [])
       } catch {
         if (!controller.signal.aborted) {
-          setError('No se pudieron cargar los mensajes del mapa.')
+          setError('unavailable')
         }
       }
     }
@@ -140,13 +146,13 @@ function MapExploration({ lang, selectedPublicId, initialView, initialFilters }:
   }, [lang, router, filters])
 
   return (
-    <section aria-label="Explorar mensajes">
+    <section aria-label={t('explore')}>
       <div className="map-feedback" aria-live="polite" aria-atomic="true">
         {error ? (
           <div role="status">
-            <p>{error}</p>
+            <p>{t('unavailable')}</p>
             <button type="button" onClick={() => setRetry((current) => current + 1)}>
-              Reintentar
+              {t('retry')}
             </button>
           </div>
         ) : null}

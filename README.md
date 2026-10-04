@@ -25,7 +25,20 @@ mensajes siguen en desarrollo.
 - Leaflet y CARTO: visualización del mapa.
 - Geoapify: búsqueda de ubicaciones.
 
-Interfaz en inglés y español, con mensajes en cualquier idioma, incluido coreano.
+Interfaz en inglés y español con `next-intl`. El idioma se resuelve desde el
+primer HTML: preferencia del perfil → cookie explícita → navegador → inglés.
+El selector público y los ajustes del producto ofrecen Automático, Español e
+Inglés. Automático vuelve a seguir al navegador; cerrar sesión restaura la
+preferencia previa del visitante y cambiar de cuenta no hereda la anterior.
+
+Las rutas (`/messages/{publicId}`, `/my-messages`, `/settings`, etc.) no llevan
+idioma. Los enlaces antiguos `/en/...` y `/es/...` redirigen temporalmente al
+mismo recurso conservando query/hash y respetando el idioma del lector.
+Cambiar idioma conserva borradores y la exploración del mapa. Las fechas de
+publicación se muestran en UTC. Las cartas conservan su contenido original,
+incluidos coreano, emojis y saltos de línea; nunca se traducen automáticamente.
+El origen de canonical usa `SITE_URL` si se configura un dominio propio,
+`VERCEL_PROJECT_PRODUCTION_URL` en Vercel y localhost durante desarrollo.
 
 ## Desarrollo y publicación
 

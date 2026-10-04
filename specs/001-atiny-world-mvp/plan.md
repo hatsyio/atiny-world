@@ -8,11 +8,17 @@
 
 Construir el MVP integral de ATINY World como una aplicación única Next.js 16 con App Router: lectura pública de mensajes sobre Leaflet/CARTO, cuentas Clerk, publicación y gestión de hasta 10 mensajes por cuenta, moderación, acción privada «Pedir revisión», administración, eliminación coordinada e interfaz inglesa/española. El backend Node.js será la única puerta a PostgreSQL 17 en Supabase, concentrará permisos e invariantes en módulos de dominio y servidor, y mantendrá toda dirección, evidencia de revisión e historial administrativo fuera del cliente. La UI conservará filtros, borrador y ubicaciones ya confirmadas ante fallos temporales de mapa o geocodificación, y los recorridos esenciales tendrán medición E2E automatizada sobre la matriz móvil exigida.
 
+## Internacionalización por lector (#67)
+
+`next-intl` resuelve cada petición en servidor: perfil del producto → cookie explícita → `Accept-Language` → inglés. Soporta `en`, `es` y preferencia `auto`, con variantes regionales y prioridades. El selector público y `/settings` persisten la elección; cookies independientes de visitante y cuenta vinculada a Clerk previenen herencia entre cuentas. Automático ignora elecciones explícitas anteriores. `NextIntlClientProvider` comparte catálogos y UTC con Server Components, documento raíz y Clerk; los componentes traducen por clave y formatean fechas/números con esa configuración.
+
+El grupo `(site)` proporciona URLs sin idioma. Redirecciones 307 normalizan prefijos históricos conservando recurso/query/hash, sin imponerlos sobre la preferencia del lector. Auth y enlaces internos comparten validación de retornos. `router.refresh()` actualiza el idioma sin cambiar ruta ni desmontar formulario o mapa. El UGC no se traduce ni migra; canonical de carta sin prefijo/query y sin `hreflang` ficticios.
+
 ## Technical Context
 
 **Language/Version**: TypeScript 5.9.3 sobre Node.js 24.16 o posterior
 
-**Primary Dependencies**: Next.js 16.3.5, React 19.3, Clerk 7.9, Postgres.js 3.4, Leaflet, `leaflet.markercluster`, CARTO Basemaps y Geoapify
+**Primary Dependencies**: Next.js 16.3.5, React 19.3, Clerk 7.9 con localizaciones, next-intl 4.14, Postgres.js 3.4, Leaflet, `leaflet.markercluster`, CARTO Basemaps y Geoapify
 
 **Storage**: PostgreSQL 17.6 administrado por Supabase; esquema privado `app_private`, PostGIS para puntos e índices espaciales, migraciones SQL imperativas en `supabase/migrations`
 
@@ -64,7 +70,7 @@ specs/001-atiny-world-mvp/
 ```text
 src/
 ├── app/
-│   ├── [lang]/
+│   ├── (site)/
 │   │   ├── admin/
 │   │   ├── messages/[publicId]/
 │   │   ├── my-messages/

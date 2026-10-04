@@ -138,9 +138,12 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 
 **Acceptance Scenarios**:
 
-1. **Given** una primera visita, **When** se carga la interfaz, **Then** se muestra en inglés y permite cambiar a español.
-2. **Given** una fan que escribe coreano, emojis y saltos de línea, **When** publica un mensaje válido, **Then** el texto se conserva y muestra sin alteraciones.
-3. **Given** una pantalla móvil, **When** la fan explora o publica, **Then** puede completar ambos recorridos y expandir o cerrar el mapa a pantalla completa.
+1. **Given** una primera visita sin preferencia guardada, **When** se carga la interfaz, **Then** el primer HTML negocia `Accept-Language` (incluidas variantes regionales y prioridades) entre español e inglés, y utiliza inglés si no hay idioma soportado.
+2. **Given** una elección explícita, **When** la visitante vuelve o la fan inicia sesión en otro dispositivo, **Then** prevalece la preferencia del perfil sobre la cookie y el navegador; Automático vuelve a negociar el navegador.
+3. **Given** una carta o formulario abierto y una exploración del mapa, **When** se cambia el idioma, **Then** se conservan ruta, recurso, query/hash, borrador, ubicación y filtros; el contenido de las cartas permanece idéntico.
+4. **Given** un enlace histórico `/en/...` o `/es/...`, **When** se abre, **Then** llega al recurso equivalente sin prefijo y la interfaz usa la preferencia del lector.
+5. **Given** una fan que escribe coreano, emojis y saltos de línea, **When** publica un mensaje válido, **Then** el texto se conserva y muestra sin alteraciones.
+6. **Given** una pantalla móvil, **When** la fan explora o publica, **Then** puede completar ambos recorridos y expandir o cerrar el mapa a pantalla completa.
 
 ### Edge Cases
 
@@ -167,7 +170,7 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 - **FR-002**: La página principal MUST presentar, en este orden, cabecera de cuenta, título e introducción, mapa, formulario de publicación y footer.
 - **FR-003**: La apariencia SHOULD transmitir una sensación cálida y participativa; el mapa MUST ocupar la mayor región de contenido visible antes del formulario, y la interfaz MUST NOT usar fotografías del grupo ni logotipos oficiales.
 - **FR-004**: El footer MUST mostrar un correo de contacto y declarar que el proyecto es una iniciativa de fans sin afiliación oficial con ATEEZ ni su agencia.
-- **FR-005**: La interfaz MUST estar disponible en inglés y español, usar inglés por defecto y permitir cambiar de idioma.
+- **FR-005**: La interfaz MUST estar disponible en inglés y español mediante `next-intl`, con resolución por petición y esta precedencia: preferencia explícita del perfil autenticado → elección explícita en cookie → negociación de `Accept-Language` → inglés como fallback. MUST ofrecer Automático (navegador), Español e Inglés a visitantes y en los ajustes del producto, persistir elecciones autenticadas en el perfil y reconciliar perfil/cookie al iniciar sesión o cambiar idioma. Automático MUST ignorar elecciones explícitas anteriores y seguir el navegador. El cierre de sesión y el cambio de cuenta MUST evitar heredar preferencias de otra cuenta. Las rutas actuales MUST carecer de prefijos de idioma y conservar contexto, con redirección temporal compatible para enlaces históricos. `html lang`, metadatos, autenticación, textos, errores y formatos MUST ser coherentes desde el primer HTML y durante la hidratación. Las fechas de publicación se formatean en UTC; los canonical de cartas no incluyen locale ni variantes `hreflang` de contenido no traducido.
 - **FR-006**: Los mensajes MUST admitir y conservar texto en cualquier idioma, emojis y saltos de línea, sin traducción automática en esta versión.
 - **FR-007**: Una persona MUST poder registrarse con usuario único, correo obligatorio verificado y contraseña, recuperar el acceso por correo y acceder con Google.
 - **FR-008**: Una cuenta creada mediante Google MUST completar los datos obligatorios de perfil antes de publicar.

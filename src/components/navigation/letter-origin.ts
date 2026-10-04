@@ -1,3 +1,5 @@
+import {normalizeInternalDestination} from '@/server/http/locale'
+import {navigationTranslator} from '@/i18n/navigation'
 type Locale = 'en' | 'es'
 
 export interface MapView {
@@ -23,47 +25,45 @@ export function readMapFilters(params: Search) {
   }
 }
 
-export function mapOrigin(lang: Locale, view: MapView, filters: { city?: string; country?: string }): string {
+export function mapOrigin(_lang: Locale, view: MapView, filters: { city?: string; country?: string }): string {
   const longitude = ((view.longitude + 180) % 360 + 360) % 360 - 180
   const params = new URLSearchParams({ mapView: `${view.latitude},${longitude},${view.zoom}` })
   if (filters.city) params.set('mapCity', filters.city)
   if (filters.country) params.set('mapCountry', filters.country)
-  return `/${lang}?${params}#map`
+  return `/?${params}#map`
 }
 
-export function ownLetterOrigin(lang: Locale, publicId: string, cursor?: string): string {
+export function ownLetterOrigin(_lang: Locale, publicId: string, cursor?: string): string {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''
-  return `/${lang}/my-messages${query}#own-${publicId}`
+  return `/my-messages${query}#own-${publicId}`
 }
 
-export function letterHref(lang: Locale, publicId: string, origin: string): string {
-  return `/${lang}/messages/${publicId}?returnTo=${encodeURIComponent(origin)}`
+export function letterHref(_lang: Locale, publicId: string, origin: string): string {
+  return `/messages/${publicId}?returnTo=${encodeURIComponent(origin)}`
 }
 
 /** Reading context is a destination allowlist, never an authorization or redirect. */
 export function letterDestination(lang: Locale, returnTo?: string | string[]) {
-  const fallback = { href: `/${lang}#map`, back: lang === 'es' ? 'Volver al mapa' : 'Back to the map' }
+  const t = navigationTranslator(lang)
+  const fallback = { href: '/#map', back: t('backMap') }
   if (typeof returnTo !== 'string' || returnTo.length > 4096 || /[\\\s]/.test(returnTo)) return fallback
-  // Match the raw path before URL normalization (dot segments and encoded paths are rejected).
-  if (!new RegExp(`^/${lang}(?:[?#]|/my-messages(?:[?#]|$)|$)`).test(returnTo)) return fallback
-  const url = new URL(returnTo, 'https://atiny.invalid')
+  const normalized = normalizeInternalDestination(returnTo)
+  if (!normalized) return fallback
+  const url = new URL(normalized, 'https://atiny.invalid')
   let destination: 'map' | 'letters' | 'ownLetters'
   let allowed: string[]
-  if (url.pathname === `/${lang}` && url.hash === '#map') {
+  if (url.pathname === '/' && url.hash === '#map') {
     destination = 'map'
     allowed = ['mapView', 'mapCity', 'mapCountry']
     if (url.searchParams.has('mapView') && !readMapView(url.searchParams)) return fallback
-  } else if (url.pathname === `/${lang}` && /^#letters(?:-[a-zA-Z0-9-]+)?$/.test(url.hash)) {
+  } else if (url.pathname === '/' && /^#letters(?:-[a-zA-Z0-9-]+)?$/.test(url.hash)) {
     destination = 'letters'
     allowed = []
-  } else if (url.pathname === `/${lang}/my-messages` && /^(?:#own-[a-zA-Z0-9-]+)?$/.test(url.hash)) {
+  } else if (url.pathname === '/my-messages' && /^(?:#own-[a-zA-Z0-9-]+)?$/.test(url.hash)) {
     destination = 'ownLetters'
     allowed = ['cursor']
   } else return fallback
   if ([...url.searchParams.keys()].some(key => !allowed.includes(key) || url.searchParams.getAll(key).length !== 1)) return fallback
-  const labels = {
-    en: { map: 'Back to the map', letters: 'Back to letters', ownLetters: 'Back to my letters' },
-    es: { map: 'Volver al mapa', letters: 'Volver a las cartas', ownLetters: 'Volver a mis cartas' },
-  }
-  return { href: `${url.pathname}${url.search}${url.hash}`, back: labels[lang][destination] }
+  const labels = {map: 'backMap', letters: 'backLetters', ownLetters: 'backOwnLetters'} as const
+  return { href: `${url.pathname}${url.search}${url.hash}`, back: t(labels[destination]) }
 }

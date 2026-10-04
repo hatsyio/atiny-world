@@ -1,0 +1,45 @@
+{
+  "filters": {
+    "filters": "Filtros",
+    "city": "Ciudad",
+    "country": "País",
+    "all": "Todos"
+  },
+  "cluster": {
+    "loading": "Cargando mensajes…",
+    "unavailable": "No se pudieron cargar los mensajes.",
+    "retry": "Reintentar",
+    "empty": "No hay mensajes en esta zona.",
+    "more": "Cargar más mensajes"
+  },
+  "public": {
+    "unavailable": "Este mensaje no está disponible.",
+    "label": "Mensaje público"
+  },
+  "controller": {
+    "explore": "Explorar mensajes",
+    "unavailable": "No se pudieron cargar los mensajes del mapa.",
+    "retry": "Reintentar"
+  },
+  "leaflet": {
+    "label": "Mapa de mensajes",
+    "world": "Mapa del mundo",
+    "preview": "El mapa interactivo estará disponible próximamente.",
+    "unavailable": "No se pudo cargar el mapa. Inténtalo de nuevo.",
+    "loadingMessage": "Cargando mensaje…",
+    "messageUnavailable": "No se pudo cargar el mensaje.",
+    "filters": "Filtros",
+    "viewMessages": "{count, plural, one {Ver # mensaje} other {Ver # mensajes}}",
+    "messages": "Mensajes del mapa",
+    "enterFullscreen": "Entrar en pantalla completa",
+    "exitFullscreen": "Salir de pantalla completa",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "closePopup": "Cerrar ventana"
+  },
+  "loading": "Cargando mapa…",
+  "controls": {
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar"
+  }
+}

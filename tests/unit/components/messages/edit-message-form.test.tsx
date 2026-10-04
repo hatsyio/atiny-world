@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent,  screen, waitFor } from '@testing-library/react'
+import { render } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { okResult } from '@/domain/contracts'
@@ -9,7 +10,7 @@ import { EditMessageForm, type EditMessageSubmit } from '@/components/messages/e
 const { push } = vi.hoisted(() => ({ push: vi.fn() }))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
-vi.mock('@/app/[lang]/my-messages/actions', () => ({ updateMessageAction: vi.fn() }))
+vi.mock('@/app/(site)/my-messages/actions', () => ({ updateMessageAction: vi.fn() }))
 
 vi.mock('@/components/map/location-picker', () => ({
   LocationPicker: ({ onChange }: { onChange: (value: unknown) => void }) => (
@@ -55,7 +56,7 @@ describe('EditMessageForm', () => {
       content: 'Carta corregida',
     })
     expect(submitUpdate.mock.calls[0]?.[0]).not.toHaveProperty('location')
-    expect(push).toHaveBeenCalledWith('/es/my-messages')
+    expect(push).toHaveBeenCalledWith('/my-messages')
   })
 
   it('replaces the point only after a new place is selected', async () => {
@@ -96,6 +97,6 @@ it.each(['en', 'es'] as const)('cancels directly to own letters in %s without su
   const submitUpdate = vi.fn()
   render(<EditMessageForm lang={lang} message={message} submitUpdate={submitUpdate} />)
   fireEvent.click(screen.getByRole('button', { name: lang === 'es' ? 'Cancelar' : 'Cancel' }))
-  expect(push).toHaveBeenCalledWith(`/${lang}/my-messages`)
+  expect(push).toHaveBeenCalledWith('/my-messages')
   expect(submitUpdate).not.toHaveBeenCalled()
 })

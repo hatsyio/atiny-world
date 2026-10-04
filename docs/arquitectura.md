@@ -53,9 +53,29 @@ Se usará el runtime Node.js. No se necesitan microservicios, WebSockets, almace
 - `src/server/messages`: lectura pública, publicación, edición, eliminación y límites.
 - `src/server/moderation`: solicitudes de revisión, decisiones, suspensión, configuración e historial.
 - `src/components/map`: mapa, marcadores, agrupaciones, filtros y selección de ubicación.
-- `src/i18n`: diccionarios inglés/español, incluidos motivos de moderación.
+- `src/i18n`: configuración por petición y catálogos tipados de next-intl en inglés/español, incluidos motivos de moderación; resuelve perfil → cookie → navegador → inglés con fechas UTC.
 
 La UI no decide permisos. Todas las mutaciones comprueban sesión, propietario del recurso, suspensión y rol en el servidor. La lectura pública aplica la misma regla de visibilidad en el mapa, las fichas, los filtros y los enlaces compartidos.
+
+## Idioma de la interfaz
+
+Las rutas de `src/app/(site)` no llevan idioma; el enlace público identifica
+una carta y no la preferencia del lector. `next-intl` comparte el locale del
+servidor con el cliente, `html lang`, metadatos y Clerk. El perfil guarda
+`language_preference` (`en`, `es`, `auto`, o NULL antes de adoptar una elección).
+Las cookies de visitante y cuenta son independientes y la segunda está
+vinculada a Clerk; logout restaura la elección anónima y el cambio directo de
+cuenta no hereda la anterior. Automático negocia `Accept-Language` cada vez.
+El selector refresca la petición sin cambiar URL ni desmontar borrador/mapa.
+
+Los prefijos históricos se eliminan con 307 sin imponer idioma y se preservan
+recurso, query y fragmento. Canonical de carta sin prefijo/query y sin hreflang
+para UGC no traducido. Las fechas se formatean en UTC; cartas y ubicaciones ya
+confirmadas no se traducen ni reescriben.
+
+La migración aditiva `20261004202808_language_preference.sql` debe aplicarse
+antes del código nuevo en el entorno destino. La versión anterior puede seguir
+funcionando con la columna nullable; revertir código no exige eliminarla.
 
 ## Modelo de datos conceptual
 

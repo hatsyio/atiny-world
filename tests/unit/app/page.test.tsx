@@ -1,11 +1,14 @@
+vi.mock('@/components/i18n/language-switcher', () => ({LanguageSwitcher: () => null}))
 /** @vitest-environment jsdom */
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, screen } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
+import { render } from '@/../tests/support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 afterEach(cleanup)
 
+vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
 vi.mock('server-only', () => ({}))
 vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
 
@@ -33,11 +36,12 @@ vi.mock('../../../src/server/messages/latest-public-messages', () => ({
   getHomepageStats: vi.fn(async () => ({ letters: 0, countries: 0 })),
 }))
 
-import Home from '../../../src/app/page'
+import SiteLayout from '@/app/(site)/layout'
+import Home from '../../../src/app/(site)/page'
 
 describe('Home', () => {
   it('renders the public application shell', async () => {
-    render(await Home())
+    render(<SiteLayout>{await Home({searchParams: Promise.resolve({})})}</SiteLayout>)
 
     expect(
       screen.getByRole('heading', {
@@ -49,10 +53,10 @@ describe('Home', () => {
   })
 
   it('declares the account actions for both session states', async () => {
-    render(await Home())
+    render(<SiteLayout>{await Home({searchParams: Promise.resolve({})})}</SiteLayout>)
 
-    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/en/sign-in')
-    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/en/sign-up')
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/sign-in')
+    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/sign-up')
     expect(screen.getByRole('button', { name: 'My account' })).toBeTruthy()
   })
 })

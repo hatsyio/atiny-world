@@ -1,10 +1,11 @@
 /** @vitest-environment jsdom */
 
 import { act } from 'react'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent,  screen } from '@testing-library/react'
+import { render, IntlTestProvider } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type { CreateMessageActionResult } from '@/app/[lang]/actions/create-message'
+import type { CreateMessageActionResult } from '@/app/(site)/actions/create-message'
 import type { CreateMessageActionInput } from '@/server/actions/create-message'
 import {
   CreateMessageForm,
@@ -18,7 +19,7 @@ const picker = vi.hoisted(() => ({
   onChange: null as ((value: unknown) => void) | null,
 }))
 
-vi.mock('@/app/[lang]/actions/create-message', () => ({
+vi.mock('@/app/(site)/actions/create-message', () => ({
   createMessageAction: vi.fn(),
 }))
 
@@ -259,7 +260,7 @@ describe('CreateMessageForm', () => {
     expect(screen.getByText(/2 segundos/)).toBeTruthy()
 
     await act(async () => { vi.advanceTimersByTime(1000) })
-    expect(screen.getByText(/1 segundos/)).toBeTruthy()
+    expect(screen.getByText(/1 segundo/)).toBeTruthy()
 
     await act(async () => { vi.advanceTimersByTime(1000) })
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
@@ -277,7 +278,7 @@ describe('CreateMessageForm', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent(/límite/i)
     const link = screen.getByRole('link', { name: /mis cartas/i })
-    expect(link).toHaveAttribute('href', '/es/my-messages')
+    expect(link).toHaveAttribute('href', '/my-messages')
     expect(screen.getByRole('button', { name: /publicar carta/i })).toBeDisabled()
   })
 
@@ -298,4 +299,23 @@ describe('CreateMessageForm', () => {
     expect(screen.getByLabelText(/your letter/i)).toBeTruthy()
     expect(screen.getByTestId('location-picker')).toBeTruthy()
   })
+})
+
+it('retains exact draft, selected location and submission error through a live locale change', async () => {
+  vi.useRealTimers()
+  const content = '안녕하세요 👩🏽‍🚀\n사랑해요'
+  const location = {selectionId:'retained-location', precision:'approximate' as const}
+  const submitMessage = vi.fn<CreateMessageSubmit>().mockResolvedValue(failResult('INTERNAL_ERROR'))
+  const view = (locale:'en'|'es') => <IntlTestProvider locale={locale}><CreateMessageForm submitMessage={submitMessage}/></IntlTestProvider>
+  const result = render(view('en'))
+  fireEvent.change(screen.getByRole('textbox', {name:'Your letter'}), {target:{value:content}})
+  act(() => picker.onChange?.(location))
+  fireEvent.click(screen.getByRole('button', {name:'Publish letter'}))
+  await screen.findByText('We could not publish your letter. Try again soon.')
+  result.rerender(view('es'))
+  expect(screen.getByRole('textbox', {name:'Tu carta'})).toHaveValue(content)
+  expect(screen.getByText('No pudimos publicar tu carta. Inténtalo pronto de nuevo.')).toBeVisible()
+  await act(async () => { fireEvent.click(screen.getByRole('button', {name:'Publicar carta'})) })
+  await screen.findByText('No pudimos publicar tu carta. Inténtalo pronto de nuevo.')
+  expect(submitMessage).toHaveBeenLastCalledWith({content, location})
 })

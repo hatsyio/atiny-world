@@ -1,11 +1,14 @@
+vi.mock('@/components/i18n/language-switcher', () => ({LanguageSwitcher: () => null}))
 /** @vitest-environment jsdom */
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen } from '@testing-library/react'
+import { render } from '@/../tests/support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const clerkState = vi.hoisted(() => ({ signedIn: true }))
+vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
 vi.mock('server-only', () => ({}))
-vi.mock('next/navigation', () => ({ usePathname: () => '/es' }))
+vi.mock('next/navigation', () => ({ usePathname: () => '' }))
 
 vi.mock('@clerk/nextjs', () => ({
   Show: ({ children, when }: { children: React.ReactNode; when: string }) => (
@@ -21,12 +24,12 @@ vi.mock('../../../src/components/map/public-map-controller', () => ({
   PublicMapController: () => <div aria-label="Mapa de mensajes" />,
 }))
 
-import { PublicHome } from '../../../src/app/[lang]/page'
+import { PublicHome } from '../../../src/app/(site)/page'
 import { SiteHeader } from '@/components/navigation/site-header'
 import { SiteFooter } from '@/components/navigation/site-footer'
 
 function Home(props: React.ComponentProps<typeof PublicHome>) {
-  return <><SiteHeader lang={props.lang} /><PublicHome {...props} /><SiteFooter lang={props.lang} /></>
+  return <><SiteHeader /><PublicHome {...props} /><SiteFooter /></>
 }
 
 afterEach(() => {
@@ -60,15 +63,15 @@ describe('PublicHome', () => {
     expect(screen.getByText('Madrid, España')).toBeInTheDocument()
     expect(screen.queryByText('Dear ATEEZ,')).not.toBeInTheDocument()
     expect(screen.queryByText('♡')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Madrid, España/i })).toHaveAttribute('href', '/en/messages/letter-1?returnTo=%2Fen%23letters-letter-1')
+    expect(screen.getByRole('link', { name: /Madrid, España/i })).toHaveAttribute('href', '/messages/letter-1?returnTo=%2F%23letters-letter-1')
   })
 
   it('shows the localized private letters link separately from the public letters section', () => {
     render(<Home lang="es" />)
     fireEvent.click(screen.getByRole('button', { name: 'Mi cuenta' }))
 
-    expect(screen.getByRole('link', { name: 'Mis cartas' })).toHaveAttribute('href', '/es/my-messages')
-    expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('href', '/es#letters')
+    expect(screen.getByRole('link', { name: 'Mis cartas' })).toHaveAttribute('href', '/my-messages')
+    expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('href', '/#letters')
   })
 
   it('hides the private letters link for signed-out visitors', () => {
@@ -83,7 +86,7 @@ describe('PublicHome', () => {
     render(<Home lang="en" />)
     fireEvent.click(screen.getByRole('button', { name: 'My account' }))
 
-    expect(screen.getByRole('link', { name: 'My letters' })).toHaveAttribute('href', '/en/my-messages')
+    expect(screen.getByRole('link', { name: 'My letters' })).toHaveAttribute('href', '/my-messages')
   })
 
   it('shows the pending publication beside the refreshed map without exposing a message link', () => {
@@ -125,4 +128,9 @@ describe('PublicHome', () => {
     expect(screen.getByText('Países', { selector: 'span' })).toBeInTheDocument()
     expect(screen.getByText('Piratas', { selector: 'span' })).toBeInTheDocument()
   })
+})
+
+it.each([['en', '12,345'], ['es', '12.345']] as const)('formats homepage statistics for the reader in %s', (lang, number) => {
+  render(<Home lang={lang} homepageStats={{letters: 12345, countries: 12345}} />)
+  expect(screen.getAllByText(number, {selector: 'strong'})).toHaveLength(2)
 })

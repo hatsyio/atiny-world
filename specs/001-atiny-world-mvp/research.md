@@ -10,15 +10,21 @@
 
 **Fuentes**: [Server y Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components), [Backend for Frontend](https://nextjs.org/docs/app/guides/backend-for-frontend), [Server Actions](https://nextjs.org/docs/app/getting-started/updating-data), [Route Handlers](https://nextjs.org/docs/app/getting-started/route-handlers).
 
-## 2. Localización y caché
+## 2. Localización por lector y caché (issue #67)
 
-**Decisión**: usar rutas `src/app/[lang]` solo para `en` y `es`; `/` redirige siempre a `/en`. Las APIs quedan fuera del locale y devuelven códigos estables que traduce la UI. El contenido moderable se obtiene en cada lectura, con `Cache-Control: no-store`; no se activan Cache Components, ISR ni caché persistente para mapa, fichas, datos propios o administración. Streaming y Suspense sí se pueden usar.
+**Decisión**: adoptar `next-intl` en App Router sin routing por locale. `src/i18n` centraliza `en`/`es`, negociación regional/prioridades de `Accept-Language`, validación, fallback inglés y catálogos tipados por área. Perfil autenticado → cookie explícita → navegador → inglés; `auto` del perfil sigue al navegador e ignora cookies explícitas anteriores. La configuración por petición proporciona idénticos locale, mensajes y zona horaria UTC al servidor y al cliente, incluidos `html lang`, metadatos y Clerk. Fechas de publicación en UTC y números/plurales con el locale activo.
 
-**Razón**: las URLs compartidas son reproducibles, inglés sigue siendo el valor por defecto y una retirada, suspensión o edición se refleja en la siguiente lectura.
+**Persistencia y cuentas**: la preferencia nullable del perfil del producto distingue una cuenta sin elección de `auto`. Se conserva una cookie de visitante independiente de la cookie de cuenta, vinculada a la identidad Clerk actual. Las elecciones autenticadas no sobreescriben la preferencia previa del visitante: logout vuelve a ésta (o al navegador), y un cambio directo de cuenta no hereda la preferencia de la anterior. En un primer login desde visitante se adopta su elección explícita si el perfil aún no tiene preferencia. Automático del perfil reconcilia la cookie de cuenta, sin bloquear la negociación del dispositivo.
 
-**Alternativas descartadas**: detectar idioma automáticamente por navegador; ocultar locale en cookie; añadir una biblioteca i18n para solo dos diccionarios; invalidación stale-while-revalidate de datos moderables.
+**URLs y contexto**: rutas de `src/app/(site)` sin `/en` ni `/es`, incluidos auth, cuenta y detalle. Los prefijos históricos se eliminan con 307, preservando recurso/query y el fragmento del enlace; no escriben preferencias ni fuerzan su antiguo idioma. Los destinos anidados de retorno se validan y normalizan. Cambiar preferencia actualiza los catálogos sin navegación a otra URL ni key por locale: permanecen borradores, ubicación seleccionada y exploración del mapa. Las cartas conservan exactamente texto, idioma original, emojis y saltos de línea; no se llama a traducción automática.
 
-**Fuentes**: [Internationalization](https://nextjs.org/docs/app/guides/internationalization), [Fetching y streaming](https://nextjs.org/docs/app/getting-started/fetching-data), [`connection()`](https://nextjs.org/docs/app/api-reference/functions/connection).
+**SEO y lecturas**: cada carta tiene canonical sin prefijo ni query de retorno; no hay variantes lingüísticas indexables ni `hreflang` para UGC sin traducir. Futuros documentos públicos realmente traducidos podrán usar URLs por idioma, fuera de #67. Las APIs siguen independientes del idioma y devuelven códigos estables que traduce la UI. El contenido moderable se obtiene en cada lectura con `Cache-Control: no-store`; no se activan Cache Components, ISR ni caché persistente para mapa, fichas, datos propios o administración. Streaming y Suspense sí se pueden usar.
+
+**Razón**: un mismo enlace abre la misma carta con interfaz del lector; idioma, identidad e hidratación tienen una sola autoridad. La política sustituye la decisión anterior de inglés fijo, prefijos y diccionarios locales.
+
+**Alternativas descartadas**: traducir UGC, mantener prefijos para variar sólo la interfaz, decisiones de locale repetidas en componentes, selección sólo en cliente y redirecciones permanentes por preferencia variable; invalidación stale-while-revalidate de datos moderables.
+
+**Fuentes**: [next-intl App Router sin routing](https://next-intl.dev/docs/getting-started/app-router), [configuración por petición](https://next-intl.dev/docs/usage/configuration), [Server y Client Components](https://next-intl.dev/docs/environments/server-client-components), [Internationalization](https://nextjs.org/docs/app/guides/internationalization), [W3C Accept-Language](https://www.w3.org/International/questions/qa-accept-lang-locales), [Google: sitios multilingües](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites).
 
 ## 3. Autenticación, autorización y borrado de cuenta
 

@@ -1,16 +1,25 @@
 'use client'
 
+import type { Locale } from '@/i18n/locale'
+
+import { useTranslations } from 'next-intl'
+
 import dynamic from 'next/dynamic'
 
 import type { MapBounds, PublicMapFeature } from '@/domain/messages/public-message'
 import type { MapView } from '@/components/navigation/letter-origin'
 import type { MapFilterValues } from './map-filters'
 
+function LoadingMap() {
+  const t = useTranslations('Map')
+  return <div className="map"><div className="map__canvas"><p role="status">{t('loading')}</p></div></div>
+}
+
 const LeafletMap = dynamic(
   () => import('./leaflet-map').then((module) => module.LeafletMap),
   {
     ssr: false,
-    loading: () => <div className="map"><div className="map__canvas"><p role="status">Cargando mapa…</p></div></div>,
+    loading: LoadingMap,
   },
 )
 
@@ -19,7 +28,7 @@ interface Props {
   onViewChange?: (view: MapView) => void
   features: PublicMapFeature[]
   onSelect: (publicId: string) => void
-  lang?: 'en' | 'es'
+  lang?: Locale
   onViewportChange?: (bounds: MapBounds) => void
   filters?: MapFilterValues
   onFiltersChange?: (values: MapFilterValues) => void

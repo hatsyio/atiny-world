@@ -1,5 +1,9 @@
 'use client'
 
+import type { Locale } from '@/i18n/locale'
+
+import { useTranslations } from 'next-intl'
+
 import { useEffect, useState } from 'react'
 
 import type { PublicMessageDetail } from '@/domain/messages/public-message'
@@ -7,10 +11,10 @@ import type { PublicMessageDetail } from '@/domain/messages/public-message'
 interface Props {
   requestUrl: string
   onSelect: (publicId: string) => void
-  lang: 'en' | 'es'
+  lang: Locale
 }
 
-export function MessageClusterList({ requestUrl, onSelect, lang }: Props) {
+export function MessageClusterList({ requestUrl, onSelect }: Props) {
   const [page, setPage] = useState<PublicMessageDetail[]>([])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -63,10 +67,7 @@ export function MessageClusterList({ requestUrl, onSelect, lang }: Props) {
     }
   }
 
-  const copy = lang === 'es'
-    ? { loading: 'Cargando mensajes…', unavailable: 'No se pudieron cargar los mensajes.', retry: 'Reintentar', empty: 'No hay mensajes en esta zona.', more: 'Cargar más mensajes' }
-    : { loading: 'Loading messages…', unavailable: 'The messages could not be loaded.', retry: 'Try again', empty: 'No messages in this area.', more: 'Load more messages' }
-
+  const t = useTranslations('Map.cluster')
   function retryLoad() {
     setPage([])
     setNextCursor(null)
@@ -77,9 +78,9 @@ export function MessageClusterList({ requestUrl, onSelect, lang }: Props) {
 
   return (
     <div className="cluster-list-wrap">
-      {isLoading && page.length === 0 ? <p role="status">{copy.loading}</p> : null}
-      {error ? <div role="status"><p>{copy.unavailable}</p><button type="button" onClick={retryLoad}>{copy.retry}</button></div> : null}
-      {!isLoading && !error && page.length === 0 ? <p role="status">{copy.empty}</p> : null}
+      {isLoading && page.length === 0 ? <p role="status">{t('loading')}</p> : null}
+      {error ? <div role="status"><p>{t('unavailable')}</p><button type="button" onClick={retryLoad}>{t('retry')}</button></div> : null}
+      {!isLoading && !error && page.length === 0 ? <p role="status">{t('empty')}</p> : null}
       {page.length > 0 ? (
         <ul className="cluster-list">
           {page.map((message) => (
@@ -92,7 +93,7 @@ export function MessageClusterList({ requestUrl, onSelect, lang }: Props) {
           ))}
         </ul>
       ) : null}
-      {nextCursor && !error ? <button className="cluster-list__more" type="button" disabled={isLoading} onClick={() => void loadMore()}>{copy.more}</button> : null}
+      {nextCursor && !error ? <button className="cluster-list__more" type="button" disabled={isLoading} onClick={() => void loadMore()}>{t('more')}</button> : null}
     </div>
   )
 }

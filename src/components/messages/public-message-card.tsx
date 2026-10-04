@@ -1,3 +1,6 @@
+'use client'
+
+import { useFormatter, useTranslations } from 'next-intl'
 import type { PublicMessageDetail } from '@/domain/messages/public-message'
 
 interface Props {
@@ -9,19 +12,19 @@ function locationLabel(message: PublicMessageDetail): string {
 }
 
 export function PublicMessageCard({ message }: Props) {
+  const t = useTranslations('Map.public')
+  const format = useFormatter()
   if (!message) {
-    return <p role="status">Este mensaje no está disponible.</p>
+    return <p role="status">{t('unavailable')}</p>
   }
 
   return (
-    <article className="public-message-card" aria-label="Mensaje público">
+    <article className="public-message-card" aria-label={t('label')}>
       <p>{message.content}</p>
       <p>{message.author.displayName}</p>
       <p>{locationLabel(message)}</p>
       <time dateTime={message.publishedAt}>
-        {new Intl.DateTimeFormat('en', { dateStyle: 'long' }).format(
-          new Date(message.publishedAt),
-        )}
+        {format.dateTime(new Date(message.publishedAt), { dateStyle: 'long', timeZone: 'UTC' })}
       </time>
     </article>
   )

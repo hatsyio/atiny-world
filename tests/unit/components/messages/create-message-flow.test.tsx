@@ -1,7 +1,8 @@
 /** @vitest-environment jsdom */
 
 import { act } from 'react'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent,  screen } from '@testing-library/react'
+import { render } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { CreateMessageFlow } from '@/components/messages/create-message-flow'
@@ -17,7 +18,7 @@ vi.mock('@/components/map/location-picker', () => ({
     return <div />
   },
 }))
-vi.mock('@/app/[lang]/actions/create-message', () => ({ createMessageAction: vi.fn() }))
+vi.mock('@/app/(site)/actions/create-message', () => ({ createMessageAction: vi.fn() }))
 
 afterEach(() => {
   cleanup()
@@ -48,14 +49,14 @@ describe('CreateMessageFlow', () => {
     const refreshed = await publish(true)
     expect(refreshed).toHaveBeenCalledOnce()
     expect(navigation.refresh).toHaveBeenCalledOnce()
-    expect(navigation.push).toHaveBeenCalledWith('/es/messages/stable-id')
+    expect(navigation.push).toHaveBeenCalledWith('/messages/stable-id')
   })
 
   it('refresca el mapa y muestra el estado pendiente sin abrir el enlace oculto', async () => {
     const refreshed = await publish(false)
     expect(refreshed).toHaveBeenCalledOnce()
     expect(navigation.refresh).toHaveBeenCalledOnce()
-    expect(navigation.push).toHaveBeenCalledWith('/es?publication=pending#map')
+    expect(navigation.push).toHaveBeenCalledWith('/?publication=pending#map')
     expect(screen.queryByRole('link', { name: /stable-id/i })).not.toBeInTheDocument()
   })
 })
@@ -64,18 +65,18 @@ describe('writing cancellation', () => {
   it.each(['en', 'es'] as const)('returns direct visitors to the map in %s', lang => {
     render(<CreateMessageFlow lang={lang} />)
     fireEvent.click(screen.getByRole('button', { name: lang === 'es' ? 'Cancelar y volver al mapa' : 'Cancel and return to the map' }))
-    expect(navigation.push).toHaveBeenCalledWith(`/${lang}#map`)
+    expect(navigation.push).toHaveBeenCalledWith('/#map')
   })
 
   it('returns to a supplied own-letter origin', () => {
-    render(<CreateMessageFlow lang="es" returnTo="/es/my-messages" />)
+    render(<CreateMessageFlow lang="es" returnTo="/my-messages" />)
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar y volver a mis cartas' }))
-    expect(navigation.push).toHaveBeenCalledWith('/es/my-messages')
+    expect(navigation.push).toHaveBeenCalledWith('/my-messages')
   })
 
-  it.each(['https://evil.example', '//evil.example', '/es/messages/new', '/es/sign-in'])('falls back to the map for %s', returnTo => {
+  it.each(['https://evil.example', '//evil.example', '/messages/new', '/es/sign-in'])('falls back to the map for %s', returnTo => {
     render(<CreateMessageFlow lang="es" returnTo={returnTo} />)
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar y volver al mapa' }))
-    expect(navigation.push).toHaveBeenCalledWith('/es#map')
+    expect(navigation.push).toHaveBeenCalledWith('/#map')
   })
 })
