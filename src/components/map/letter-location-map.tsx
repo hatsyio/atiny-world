@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl'
 import type { PublicPoint } from '@/domain/messages/public-message'
 import { CARTO_ATTRIBUTION, cartoTileUrl, createMessageIcon } from './basemap'
 
-export function LetterLocationMap({ point }: { point: PublicPoint }) {
+export function LetterLocationMap({ point, content }: { point: PublicPoint; content: string }) {
   const t = useTranslations('Map.leaflet')
   const element = useRef<HTMLDivElement>(null)
   const [error, setError] = useState(false)
@@ -39,11 +39,28 @@ export function LetterLocationMap({ point }: { point: PublicPoint }) {
           attribution: CARTO_ATTRIBUTION,
           maxZoom: 19,
         }).addTo(map)
-        leaflet.marker([latitude, longitude], {
+        const paragraph = document.createElement('p')
+        paragraph.className = 'map-message-popup'
+        paragraph.textContent = content
+        const marker = leaflet.marker([latitude, longitude], {
           icon: createMessageIcon(leaflet),
-          interactive: false,
-          keyboard: false,
+          title: t('viewMessages', { count: 1 }),
+          autoPanOnFocus: false,
         }).addTo(map)
+        marker.bindPopup(paragraph, {
+          className: 'map-letter-popup',
+          autoPan: false,
+          minWidth: 240,
+          maxWidth: 340,
+          maxHeight: 90,
+        })
+        marker.on('popupopen', () => {
+          const closeButton = marker.getPopup()?.getElement()?.querySelector<HTMLAnchorElement>('.leaflet-popup-close-button')
+          if (closeButton) {
+            closeButton.setAttribute('aria-label', t('closePopup'))
+            closeButton.title = t('closePopup')
+          }
+        })
       } catch {
         if (!disposed) setError(true)
       }
@@ -54,7 +71,7 @@ export function LetterLocationMap({ point }: { point: PublicPoint }) {
       disposed = true
       map?.remove()
     }
-  }, [apiKey, latitude, longitude])
+  }, [apiKey, latitude, longitude, content, t])
 
   return (
     <section className="map map--static" aria-label={t('label')}>
