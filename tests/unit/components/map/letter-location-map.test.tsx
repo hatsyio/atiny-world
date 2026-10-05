@@ -22,7 +22,7 @@ it('keeps the letter pin centered with all navigation disabled and no fullscreen
   const map = mapFactory.mock.results[0].value as leaflet.Map
   expect(map.getCenter().lat).toBeCloseTo(40.4167)
   expect(map.getCenter().lng).toBeCloseTo(-3.7033)
-  expect(map.getZoom()).toBe(14)
+  expect(map.getZoom()).toBe(15)
   for (const handler of [map.dragging, map.touchZoom, map.doubleClickZoom, map.scrollWheelZoom, map.boxZoom, map.keyboard]) {
     expect(handler.enabled()).toBe(false)
   }
@@ -51,7 +51,7 @@ it('recenters on a different letter and removes the previous map', async () => {
   expect(remove).toHaveBeenCalledOnce()
   expect(nextMap.getCenter().lat).toBeCloseTo(37.5665)
   expect(nextMap.getCenter().lng).toBeCloseTo(126.978)
-  expect(nextMap.getZoom()).toBe(14)
+  expect(nextMap.getZoom()).toBe(15)
 })
 
 it('shows an unavailable status when the basemap is not configured', () => {
@@ -76,7 +76,7 @@ it('opens and closes the letter popup without moving or zooming the static map',
   expect(container.querySelector('.leaflet-popup script')).toBeNull()
   expect(map.getCenter().lat).toBeCloseTo(40.4167)
   expect(map.getCenter().lng).toBeCloseTo(-3.7033)
-  expect(map.getZoom()).toBe(14)
+  expect(map.getZoom()).toBe(15)
   fireEvent.click(getByRole('button', { name: 'Close popup' }))
   expect(container.querySelector('.leaflet-popup')).toBeNull()
   fireEvent.keyPress(marker, { key: 'Enter', keyCode: 13 })

@@ -34,7 +34,7 @@ export function LetterLocationMap({ point, content }: { point: PublicPoint; cont
           scrollWheelZoom: false,
           boxZoom: false,
           keyboard: false,
-        }).setView([latitude, longitude], 14)
+        }).setView([latitude, longitude], 15)
         leaflet.tileLayer(cartoTileUrl(key), {
           attribution: CARTO_ATTRIBUTION,
           maxZoom: 19,
