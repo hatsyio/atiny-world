@@ -137,7 +137,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map-letter-popup .leaflet-popup-tip { background: #faf0da; box-shadow: 0 3px 8px #241a1720; }
 .map-letter-popup .leaflet-popup-content { margin: 40px 22px 22px; max-width: min(340px, calc(100vw - 80px), calc(100cqw - 80px)); font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.6; }
 .map-message-letter .map-message-popup { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 7; overflow: hidden; }
-.map-message-read { display: block; margin-top: 16px; min-height: 44px; padding: 8px 12px; border: 1px solid #b88d59; border-radius: 4px; background: transparent; color: var(--ink); font-family: var(--font-interface), sans-serif; font-size: 14px; cursor: pointer; }
+.map-message-read { display: block; margin: 12px 0 0 auto; min-height: 32px; padding: 4px 8px; border: 1px solid #b88d59; border-radius: 4px; background: transparent; color: var(--ink); font-family: var(--font-interface), sans-serif; font-size: 13px; line-height: 1.4; cursor: pointer; }
 .map-message-read:hover { background: #eed4a7; }
 .map-message-read:focus-visible { outline: 2px solid var(--brown); outline-offset: 3px; }
 .leaflet-container .map-letter-popup a.leaflet-popup-close-button { top: 4px; right: 4px; width: 36px; height: 36px; font-size: 22px; line-height: 36px; color: var(--brown); border-radius: 4px; }
