@@ -15,7 +15,7 @@ button, input, select { font: inherit; }
 a { color: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #f4ca77; outline-offset: 3px; }
 
-.voyage { overflow: clip; max-width: 1800px; margin: auto; box-shadow: 0 0 80px #100a08; }
+.voyage { overflow: clip; width: 100%; }
 .site-shell { min-height: 100vh; display: flex; flex-direction: column; }
 .site-shell > .voyage, .site-shell > main { flex: 1; }
 .site-shell > .auth-page, .site-shell > .message-page { min-height: 75vh; }
