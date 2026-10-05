@@ -1,7 +1,7 @@
 vi.mock('@/components/i18n/language-switcher', () => ({LanguageSwitcher: () => null}))
 /** @vitest-environment jsdom */
 
-import { cleanup, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { render } from '@/../tests/support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -14,7 +14,7 @@ vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
 
 vi.mock('@clerk/nextjs', () => ({
   Show: ({ children, when }: PropsWithChildren<{ when: string }>) => (
-    <div data-auth-state={when}>{children}</div>
+    when === 'signed-out' ? children : null
   ),
   SignInButton: ({ children }: PropsWithChildren) => children,
   SignUpButton: ({ children }: PropsWithChildren) => children,
@@ -52,11 +52,12 @@ describe('Home', () => {
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
   })
 
-  it('declares the account actions for both session states', async () => {
+  it('opens visitor account actions from the account button', async () => {
     render(<SiteLayout>{await Home({searchParams: Promise.resolve({})})}</SiteLayout>)
 
+    fireEvent.click(screen.getByRole('button', {name: 'My account'}))
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/sign-in')
-    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/sign-up')
+    expect(screen.getByRole('link', { name: 'Create account' })).toHaveAttribute('href', '/sign-up')
     expect(screen.getByRole('button', { name: 'My account' })).toBeTruthy()
   })
 })

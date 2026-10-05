@@ -44,6 +44,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .account-links { position: absolute; right: 0; top: calc(100% + .5rem); min-width: 190px; display: grid; gap: .3rem; padding: .6rem; background: #181b21; border: 1px solid #756047; box-shadow: 0 6px 18px #0006; }
 .account-links[hidden] { display: none; }
 .account-links a, .account-links button { text-align: left; padding: .7rem; }
+.account-links .account-sign-in { background: #19334b; border: 1px solid #756047; color: #fff0cb; }
+.account-language { padding: .7rem; margin-top: .3rem; border-top: 1px solid #4f3824; }
+.account-language .language-switcher { width: 100%; }
 #map, #letters, #about, [id^="letters-"], [id^="own-"] { scroll-margin-top: 6rem; }
 .site-footer a { color: inherit; width: fit-content; }
 @media (max-width: 1120px) {
@@ -233,3 +236,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .footer-motto { grid-column: 1; grid-row: auto; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .ornate-button { transition: none; } }
+
+.account-settings { width: min(100%, 880px); margin: 2rem auto 0; }
+.account-settings > h1 { margin: 0 0 1.5rem; color: #f0d8a9; font-size: clamp(1.4rem, 3vw, 2rem); }
+.account-preferences { color: #212126; font-family: var(--font-interface), sans-serif; text-align: left; }
+.account-preferences h2 { margin: 0 0 1rem; font-family: inherit; font-size: 1.25rem; font-weight: 700; }
+.account-preferences > p { color: #747479; font-size: .875rem; line-height: 1.5; }
+.account-preferences .language-switcher { margin-top: 1.5rem; }
+.account-preferences .language-switcher label { font-size: .8125rem; font-weight: 500; }
+.account-preferences .language-switcher select { border: 1px solid #d9d9de; border-radius: .375rem; background: white; color: inherit; font-family: inherit; font-size: .875rem; }
+.account-preferences .language-switcher select:focus-visible { outline: 2px solid #6c47ff; outline-offset: 2px; }

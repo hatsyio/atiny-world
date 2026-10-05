@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
-import {LanguageSwitcher} from '@/components/i18n/language-switcher'
 import { AccountMenu } from '@/components/account/account-menu'
 import {useLocale, useTranslations} from 'next-intl'
 import { returnDestination } from './return-destination'
@@ -96,11 +95,8 @@ export function SiteHeader() {
         <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t('letters')}</Link>
         <Link className="navigation-write" href={writeHref} aria-current={writing ? 'page' : undefined}>{t('write')}</Link>
         <Show when="signed-in"><AccountMenu lang={lang} active={Boolean(account)} onNavigate={close} /></Show>
-        <Show when="signed-out">
-          <Link href={'/sign-in'} aria-current={pathname?.startsWith('/sign-in') ? 'page' : undefined}>{t('signIn')}</Link>
-          <Link href={'/sign-up'} aria-current={pathname?.startsWith('/sign-up') ? 'page' : undefined}>{t('signUp')}</Link>
-        </Show>
-      <LanguageSwitcher /></nav>
+        <Show when="signed-out"><AccountMenu visitor active={Boolean(pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up'))} onNavigate={close} /></Show>
+      </nav>
     </header>
   )
 }

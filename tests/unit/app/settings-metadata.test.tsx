@@ -1,27 +1,34 @@
 /** @vitest-environment jsdom */
-import {cleanup, render, screen} from '@testing-library/react'
+import {cleanup, render, screen, within} from '@testing-library/react'
 import {afterEach, expect, it, vi} from 'vitest'
+import {IntlTestProvider} from '@/../tests/support/intl'
 import {setServerLocale} from '@/../tests/support/server-intl'
 
 const session = vi.hoisted(() => ({userId: 'user_1' as string | null}))
 vi.mock('server-only', () => ({}))
 vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
 vi.mock('@clerk/nextjs/server', () => ({auth: async () => session}))
-vi.mock('next/navigation', () => ({redirect: (path: string) => {throw new Error(`redirect:${path}`)}}))
-vi.mock('@/components/i18n/language-switcher', () => ({LanguageSwitcher: () => <select aria-label="Language preference" />}))
-vi.mock('@/components/account/profile-security-link', () => ({ProfileSecurityLink: () => <button>Profile security</button>}))
+vi.mock('next/navigation', () => ({redirect: (path: string) => {throw new Error(`redirect:${path}`)}, useRouter: () => ({refresh: vi.fn()})}))
+vi.mock('@/server/actions/language-preference', () => ({setLanguagePreference: vi.fn()}))
+vi.mock('@clerk/nextjs', () => ({
+  useClerk: () => ({openUserProfile: vi.fn()}),
+  UserProfile: Object.assign(
+    ({children}: {children: React.ReactNode}) => <section aria-label="Clerk profile">{children}</section>,
+    {Page: ({children}: {children: React.ReactNode}) => <>{children}</>},
+  ),
+}))
 vi.mock('@/server/db/client', () => ({getDb: () => ({})}))
 import SettingsPage from '@/app/(site)/settings/page'
 import {generateMetadata} from '@/app/(site)/messages/[publicId]/page'
 
 afterEach(() => {cleanup(); session.userId = 'user_1'})
 
-it.each(['en', 'es'] as const)('provides language and account security in settings in %s', async locale => {
+it.each(['en', 'es'] as const)('embeds the language preference inside the account profile in %s', async locale => {
   setServerLocale(locale)
-  render(await SettingsPage())
+  render(<IntlTestProvider locale={locale}>{await SettingsPage()}</IntlTestProvider>)
   expect(screen.getByRole('heading', {name: locale === 'es' ? 'Ajustes de cuenta' : 'Account settings'})).toBeInTheDocument()
-  expect(screen.getByRole('combobox', {name: 'Language preference'})).toBeInTheDocument()
-  expect(screen.getByRole('button', {name: 'Profile security'})).toBeInTheDocument()
+  expect(within(screen.getByRole('region', {name: 'Clerk profile'})).getByRole('combobox', {name: locale === 'es' ? 'Idioma' : 'Language'})).toBeInTheDocument()
+  expect(screen.getByRole('heading', {name: locale === 'es' ? 'Preferencias' : 'Preferences'})).toBeInTheDocument()
 })
 
 it('requires a session before account settings', async () => {
