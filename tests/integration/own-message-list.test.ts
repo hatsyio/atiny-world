@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { getVisibleMessage, pagePublicMessages } from '../../src/server/messages/public-repository'
 import { pageOwnMessages } from '../../src/server/messages/own-message-repository'
@@ -13,7 +13,11 @@ const db = createTestDb()
 
 beforeEach(async () => {
   await truncateProductTables(db)
-  await db`update app_private.settings set message_limit = 10, cooldown_seconds = 10 where id = 1`
+  await db`update app_private.settings set message_limit = 10, cooldown_seconds = 10, premoderation_enabled = false where id = 1`
+})
+
+afterEach(async () => {
+  await db`update app_private.settings set premoderation_enabled = false where id = 1`
 })
 
 afterAll(async () => {
