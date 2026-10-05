@@ -89,6 +89,9 @@
     "coordinates": "Public point",
     "attribution": "Places by Geoapify",
     "mapUnavailable": "The map preview could not be loaded. Try again.",
-    "precisePointLabel": "Exact public point"
+    "precisePointLabel": "Exact public point",
+    "mapEmpty": "Choose a place to see it on the map.",
+    "keepLocation": "Keep the current place or search for a place to change the location or precision.",
+    "chooseLocation": "Choose a place to enable precision controls."
   }
 }

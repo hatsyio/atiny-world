@@ -111,6 +111,13 @@ describe('LocationPicker', () => {
     vi.useFakeTimers()
   })
 
+  it('shows precision and a map placeholder before choosing a place', () => {
+    render(<LocationPicker lang="es" onChange={() => {}} />)
+    expect(screen.getByRole('radio', { name: 'Ubicación aproximada' })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: 'Ubicación exacta' })).toBeDisabled()
+    expect(screen.getByText('Elige un lugar para verlo en el mapa.')).toBeVisible()
+  })
+
   it('debounces typing and sends one search with the latest text', async () => {
     const requests: Array<ReturnType<typeof deferred<Response>>> = []
     const fetchMock = stubFetch(requests)

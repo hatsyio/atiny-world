@@ -261,3 +261,49 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .account-preferences .language-switcher label { font-size: .8125rem; font-weight: 500; }
 .account-preferences .language-switcher select { border: 1px solid #d9d9de; border-radius: .375rem; background: white; color: inherit; font-family: inherit; font-size: .875rem; }
 .account-preferences .language-switcher select:focus-visible { outline: 2px solid #6c47ff; outline-offset: 2px; }
+
+/* A letter stays on the same desk when switching between reading and writing. */
+.letter-panel { width: min(100%, 1100px); }
+.letter-workspace { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: start; }
+.letter-workspace__paper { min-width: 0; padding: clamp(1rem, 2vw, 1.8rem); background: #faf0da; box-shadow: 2px 4px 8px #6e462640; text-align: left; }
+.letter-workspace__paper textarea { min-height: 460px; background: transparent; border: 0; padding: .8rem 0; line-height: 1.65; resize: vertical; }
+.letter-workspace__paper textarea:focus-visible { outline: 2px solid #6b3e20; outline-offset: 4px; }
+.letter-workspace__properties { min-width: 0; text-align: left; }
+.letter-reading { min-height: 500px; display: flex; flex-direction: column; justify-content: space-between; line-height: 1.65; }
+.letter-reading__content { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1.15rem; }
+.letter-reading footer { margin-top: 2rem; font-size: .9rem; }
+.letter-reading footer p { font-style: italic; }
+.letter-properties h2, .letter-properties h3 { font-size: 1rem; margin: 0 0 .6rem; }
+.letter-properties h3 { margin-top: 1.5rem; }
+.letter-workspace__feedback { min-height: 1.5rem; }
+.location-picker { position: relative; padding: 0; border: 0; min-width: 0; margin: 0; }
+.location-picker > legend { font-weight: 700; margin-bottom: .75rem; }
+.location-picker > label { display: block; font-size: .9rem; margin-bottom: .3rem; }
+.location-picker > input { width: 100%; padding: .65rem .8rem; border: 1px solid #6b3e20; background: #faf0da; color: #171b20; font: inherit; }
+.location-picker__search-feedback { position: relative; z-index: 500; }
+.location-picker__search-feedback > * { position: absolute; inset: 0 0 auto; margin: 0; padding: .65rem; background: #faf0da; border: 1px solid #6b3e20; box-shadow: 0 5px 12px #34221540; }
+.location-picker__search-feedback [role='listbox'] { max-height: 230px; overflow-y: auto; display: grid; gap: .3rem; }
+.location-picker button { padding: .5rem .65rem; font: inherit; border: 1px solid #6b3e20; background: #faf0da; color: #4a2a13; cursor: pointer; }
+.location-picker button:focus-visible, .profile-actions button:focus-visible { outline: 2px solid #171b20; outline-offset: 3px; }
+.location-picker__summary { min-height: 3.6rem; padding-top: .6rem; }
+.location-picker__selection { display: flex; gap: .5rem; justify-content: space-between; align-items: center; font-size: .85rem; }
+.location-picker__selection button { flex-shrink: 0; font-size: .8rem; }
+.location-picker__precision { border: 0; padding: 0; margin: 0; }
+.location-picker__precision legend { font-weight: 700; margin-bottom: .6rem; }
+.location-picker__precision label { display: flex; gap: .5rem; align-items: center; }
+.location-picker__precision p { font-size: .82rem; line-height: 1.4; margin: .3rem 0 .7rem 1.5rem; }
+.location-picker__precision:disabled { opacity: .6; }
+.location-picker__map-frame { height: 260px; margin-top: .8rem; border: 1px solid #9a6139; overflow: hidden; }
+.location-picker__map-frame .map, .location-picker__map-frame .map__canvas, .location-picker__precise-map { height: 100%; min-height: 0; }
+.location-picker__map-empty { height: 100%; display: grid; place-items: center; padding: 2rem; text-align: center; background: #d4b47d; color: #4a2a13; line-height: 1.5; }
+.location-picker__map-help { min-height: 185px; padding-top: .7rem; font-size: .82rem; line-height: 1.4; }
+.location-picker__map-help p { margin: 0 0 .5rem; }
+.location-picker__attribution { font-size: .72rem; margin: 0; opacity: .75; }
+@media (max-width: 760px) {
+  .letter-workspace { grid-template-columns: minmax(0, 1fr); }
+  .letter-workspace__paper textarea { min-height: 300px; }
+  .letter-reading { min-height: 330px; }
+  .profile-actions { flex-wrap: wrap; }
+}
+.letter-workspace__property-feedback { min-height: 2.6rem; padding-top: .5rem; }
+.letter-workspace__paper textarea { font-family: inherit; }

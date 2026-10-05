@@ -89,6 +89,9 @@
     "coordinates": "Punto público",
     "attribution": "Lugares de Geoapify",
     "mapUnavailable": "No se pudo cargar la vista previa del mapa. Inténtalo de nuevo.",
-    "precisePointLabel": "Punto público exacto"
+    "precisePointLabel": "Punto público exacto",
+    "mapEmpty": "Elige un lugar para verlo en el mapa.",
+    "keepLocation": "Conserva el lugar actual o busca otro para cambiar la ubicación o la precisión.",
+    "chooseLocation": "Elige un lugar para activar la precisión."
   }
 }

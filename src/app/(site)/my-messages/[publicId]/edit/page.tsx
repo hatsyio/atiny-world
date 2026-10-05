@@ -39,7 +39,7 @@ export default async function EditOwnMessagePage({
   return (
     <main className="auth-page">
       <Link className="auth-back" href={'/my-messages'}>← {t('back')}</Link>
-      <div className="auth-panel my-messages-panel">
+      <div className="auth-panel letter-panel">
         <p className="auth-script">{t('script')}</p>
         <h1>{t('title')}</h1>
         <EditMessageForm lang={locale} message={message} />

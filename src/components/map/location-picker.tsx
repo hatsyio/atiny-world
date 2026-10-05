@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PublicPoint } from '@/domain/location/public-point'
 import type { LocationPrecision } from '@/domain/contracts'
 
+import { LetterLocationMap } from './letter-location-map'
 import { CARTO_ATTRIBUTION, cartoTileUrl, configureMarkerIcons } from './leaflet-map'
 
 const MIN_QUERY_LENGTH = 2
@@ -46,6 +47,10 @@ export type LocationSuggestion = {
 export interface LocationPickerProps {
   lang?: Locale
   onChange: (value: LocationPickerSelection | null) => void
+  initialLocation?: { point?: PublicPoint; precision: LocationPrecision; locality: string | null; country: string }
+  readOnly?: boolean
+  content?: string
+  onPendingChange?: (pending: boolean) => void
 }
 
 function suggestionLabel(suggestion: LocationSuggestion): string {
@@ -133,7 +138,7 @@ function PreciseMap({
   return <div ref={element} className="location-picker__precise-map" aria-label={t('preciseControls')} />
 }
 
-export function LocationPicker({ onChange }: LocationPickerProps) {
+export function LocationPicker({ onChange, initialLocation, onPendingChange, readOnly = false, content = '' }: LocationPickerProps) {
   const format = useFormatter()
   const lang = useLocale()
   const t = useTranslations('Forms.location')
@@ -141,7 +146,7 @@ export function LocationPicker({ onChange }: LocationPickerProps) {
   const [status, setStatus] = useState<LocationSearchStatus>('idle')
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([])
   const [selected, setSelected] = useState<LocationSuggestion | null>(null)
-  const [precision, setPrecision] = useState<LocationPrecision>('approximate')
+  const [precision, setPrecision] = useState<LocationPrecision>(initialLocation?.precision ?? 'approximate')
   const [precisePoint, setPrecisePoint] = useState<PublicPoint | null>(null)
   const [preciseConfirmed, setPreciseConfirmed] = useState(false)
 
@@ -190,10 +195,10 @@ export function LocationPicker({ onChange }: LocationPickerProps) {
 
   const resetSelection = useCallback(() => {
     setSelected(null)
-    setPrecision('approximate')
+    setPrecision(initialLocation?.precision ?? 'approximate')
     setPrecisePoint(null)
     setPreciseConfirmed(false)
-  }, [])
+  }, [initialLocation?.precision])
 
   useEffect(() => {
     if (selected !== null) return
@@ -207,6 +212,7 @@ export function LocationPicker({ onChange }: LocationPickerProps) {
 
   function handleQueryChange(next: string) {
     setQuery(next)
+    onPendingChange?.(next.trim().length > 0)
     if (selected !== null) {
       resetSelection()
       onChange(null)
@@ -221,6 +227,7 @@ export function LocationPicker({ onChange }: LocationPickerProps) {
 
   function selectSuggestion(suggestion: LocationSuggestion) {
     setSelected(suggestion)
+    onPendingChange?.(false)
     setPrecision('approximate')
     setPrecisePoint(null)
     setPreciseConfirmed(false)
@@ -230,6 +237,7 @@ export function LocationPicker({ onChange }: LocationPickerProps) {
   function handlePrecisionChange(next: LocationPrecision) {
     if (selected === null) return
     setPrecision(next)
+    onPendingChange?.(next === 'precise')
     if (next === 'approximate') {
       setPrecisePoint(null)
       setPreciseConfirmed(false)
@@ -244,6 +252,7 @@ export function LocationPicker({ onChange }: LocationPickerProps) {
   function confirmPrecise() {
     if (selected === null || precisePoint === null) return
     setPreciseConfirmed(true)
+    onPendingChange?.(false)
     onChange({
       selectionId: selected.selectionToken,
       precision: 'precise',
@@ -256,6 +265,8 @@ export function LocationPicker({ onChange }: LocationPickerProps) {
     void search(query.trim())
   }
 
+  const previewPoint = selected?.point ?? initialLocation?.point
+  const displayedPrecision = selected !== null ? precision : initialLocation?.precision ?? precision
   const failure = status === 'rateLimited' || status === 'unavailable'
 
   return (
@@ -267,100 +278,100 @@ export function LocationPicker({ onChange }: LocationPickerProps) {
         id="location-address"
         type="text"
         autoComplete="off"
-        value={query}
+        value={readOnly ? [initialLocation?.locality, initialLocation?.country].filter(Boolean).join(', ') : query}
+        readOnly={readOnly}
         placeholder={t('addressPlaceholder')}
-        aria-describedby={selected !== null ? undefined : 'location-search-status'}
+        aria-describedby={status !== 'idle' && selected === null ? 'location-search-status' : undefined}
         onChange={(event) => handleQueryChange(event.target.value)}
       />
 
-      {status === 'loading' && !failure && selected === null && (
-        <p id="location-search-status" role="status">{t('loading')}</p>
-      )}
-      {status === 'empty' && selected === null && (
-        <p id="location-search-status" role="status">{t('noResults')}</p>
-      )}
-      {failure && selected === null && (
-        <div id="location-search-status" role="alert">
-          <p>{status === 'rateLimited' ? t('rateLimited') : t('unavailable')}</p>
-          <button type="button" onClick={retrySearch}>{t('retry')}</button>
-        </div>
-      )}
+      <div className="location-picker__search-feedback">
+        {status === 'loading' && !failure && selected === null && (
+          <p id="location-search-status" role="status">{t('loading')}</p>
+        )}
+        {status === 'empty' && selected === null && (
+          <p id="location-search-status" role="status">{t('noResults')}</p>
+        )}
+        {failure && selected === null && (
+          <div id="location-search-status" role="alert">
+            <p>{status === 'rateLimited' ? t('rateLimited') : t('unavailable')}</p>
+            <button type="button" onClick={retrySearch}>{t('retry')}</button>
+          </div>
+        )}
 
-      {status === 'ready' && selected === null && (
-        <div role="listbox" aria-label={t('suggestionsLabel')}>
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.selectionToken}
-              type="button"
-              role="option"
-              aria-selected={false}
-              onClick={() => selectSuggestion(suggestion)}
-            >
-              {suggestionLabel(suggestion)}
-            </button>
-          ))}
-        </div>
-      )}
+        {status === 'ready' && selected === null && (
+          <div role="listbox" aria-label={t('suggestionsLabel')}>
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion.selectionToken}
+                type="button"
+                role="option"
+                aria-selected={false}
+                onClick={() => selectSuggestion(suggestion)}
+              >
+                {suggestionLabel(suggestion)}
+              </button>
+            ))}
+          </div>
+        )}
 
-      {selected !== null && (
-        <section aria-label={t('selectedLabel')} className="location-picker__selection">
-          <p className="location-picker__selection-label">{suggestionLabel(selected)}</p>
-
-          <fieldset>
-            <legend>{t('precisionLabel')}</legend>
-            <label>
-              <input
-                type="radio"
-                name="location-precision"
-                checked={precision === 'approximate'}
-                onChange={() => handlePrecisionChange('approximate')}
-              />
-              <span>{t('approximate')}</span>
-            </label>
-            <p>{t('approximateHint')}</p>
-            <label>
-              <input
-                type="radio"
-                name="location-precision"
-                checked={precision === 'precise'}
-                onChange={() => handlePrecisionChange('precise')}
-              />
-              <span>{t('precise')}</span>
-            </label>
-            <p>{t('preciseHint')}</p>
-          </fieldset>
-
-          {precision === 'precise' && (
-            <div className="location-picker__precise">
-              <p className="location-picker__precise-controls">{t('preciseControls')}</p>
-              <PreciseMap
-                point={precisePoint ?? selected.point}
-                onPointChange={setPrecisePoint}
-              />
-              <p className="location-picker__coordinates">
-                {t('coordinates')}:{' '}
-                {precisePoint === null
-                  ? '—'
-                  : `${format.number(precisePoint.latitude, {minimumFractionDigits: 5, maximumFractionDigits: 5, useGrouping: false})}, ${format.number(precisePoint.longitude, {minimumFractionDigits: 5, maximumFractionDigits: 5, useGrouping: false})}`}
-              </p>
-              {!preciseConfirmed ? (
-                <div className="location-picker__warning">
-                  <p>{t('preciseWarning')}</p>
-                  <button type="button" onClick={confirmPrecise}>{t('preciseConfirm')}</button>
-                </div>
-              ) : (
-                <p role="status">{t('preciseConfirmed')}</p>
-              )}
-            </div>
-          )}
-
-          <p className="location-picker__attribution">{t('attribution')}</p>
-          <button type="button" onClick={() => {
-            resetSelection()
+      </div>
+      <div className="location-picker__summary">
+        {selected !== null ? (
+          <section aria-label={t('selectedLabel')} className="location-picker__selection">
+            <span>{suggestionLabel(selected)}</span>
+            <button type="button" onClick={() => {
+              resetSelection()
+              setQuery('')
+              setStatus('idle')
+              onPendingChange?.(false)
+              onChange(null)
+            }}>{t('change')}</button>
+          </section>
+        ) : <p className="profile-hint">{initialLocation ? [initialLocation.locality, initialLocation.country].filter(Boolean).join(', ') : t('chooseLocation')}</p>}
+      </div>
+      <fieldset className="location-picker__precision" disabled={selected === null}>
+        <legend>{t('precisionLabel')}</legend>
+        <label>
+          <input type="radio" name="location-precision" checked={displayedPrecision === 'approximate'} onChange={() => handlePrecisionChange('approximate')} />
+          <span>{t('approximate')}</span>
+        </label>
+        <p>{t('approximateHint')}</p>
+        <label>
+          <input type="radio" name="location-precision" checked={displayedPrecision === 'precise'} onChange={() => handlePrecisionChange('precise')} />
+          <span>{t('precise')}</span>
+        </label>
+        <p>{t('preciseHint')}</p>
+      </fieldset>
+      <div className="location-picker__map-frame message-map">
+        {selected !== null && precision === 'precise' ? (
+          <PreciseMap point={precisePoint ?? selected.point} onPointChange={(point) => {
+            setPrecisePoint(point)
+            setPreciseConfirmed(false)
+            onPendingChange?.(true)
             onChange(null)
-          }}>{t('change')}</button>
-        </section>
-      )}
+          }} />
+        ) : previewPoint ? (
+          <LetterLocationMap point={previewPoint} content={content} />
+        ) : <div className="location-picker__map-empty">{t('mapEmpty')}</div>}
+      </div>
+      <div className="location-picker__map-help">
+        {selected !== null && precision === 'precise' ? (
+          <div className="location-picker__precise">
+            <p className="location-picker__precise-controls">{t('preciseControls')}</p>
+            <p className="location-picker__coordinates">
+              {t('coordinates')}: {precisePoint === null ? '—' : `${format.number(precisePoint.latitude, {minimumFractionDigits: 5, maximumFractionDigits: 5, useGrouping: false})}, ${format.number(precisePoint.longitude, {minimumFractionDigits: 5, maximumFractionDigits: 5, useGrouping: false})}`}
+            </p>
+            {!preciseConfirmed ? (
+              <div className="location-picker__warning">
+                <p>{t('preciseWarning')}</p>
+                <button type="button" onClick={confirmPrecise}>{t('preciseConfirm')}</button>
+              </div>
+            ) : <p role="status">{t('preciseConfirmed')}</p>}
+          </div>
+        ) : <p className="profile-hint">{readOnly ? t(displayedPrecision === 'precise' ? 'preciseHint' : 'approximateHint') : initialLocation ? t('keepLocation') : t('approximateHint')}</p>}
+      </div>
+      <p className="location-picker__attribution">{t('attribution')}</p>
     </fieldset>
   )
 }
