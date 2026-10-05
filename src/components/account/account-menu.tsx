@@ -2,15 +2,18 @@
 
 import { useClerk } from '@clerk/nextjs'
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
+import {LanguageSwitcher} from '@/components/i18n/language-switcher'
 import {useTranslations} from 'next-intl'
 
-export function AccountMenu({ active = false, onNavigate }: {
+export function AccountMenu({ active = false, visitor = false, onNavigate }: {
   lang?: 'en' | 'es'
+  visitor?: boolean
   active?: boolean
   onNavigate?: () => void
 }) {
+  const linksId = useId()
   const t = useTranslations('Navigation')
   const { signOut } = useClerk()
   const [expanded, setExpanded] = useState(false)
@@ -37,11 +40,17 @@ export function AccountMenu({ active = false, onNavigate }: {
         toggle.current?.focus()
       }
     }}>
-      <button type="button" ref={toggle} aria-expanded={expanded} aria-controls="account-links" aria-current={active ? 'page' : undefined} onClick={() => setExpanded(!expanded)}>{t('account')}</button>
-      <div id="account-links" className="account-links" hidden={!expanded}>
-        <Link href={'/my-messages'} onClick={close}>{t('myLetters')}</Link>
-        <Link href="/settings" onClick={close}>{t('settings')}</Link>
-        <button type="button" onClick={() => { close(); void signOut({ redirectUrl: '/' }) }}>{t('signOut')}</button>
+      <button type="button" ref={toggle} aria-expanded={expanded} aria-controls={linksId} aria-current={active ? 'page' : undefined} onClick={() => setExpanded(!expanded)}>{t('account')}</button>
+      <div id={linksId} className="account-links" hidden={!expanded}>
+        {visitor ? <>
+          <Link className="account-sign-in" href="/sign-in" onClick={close}>{t('signIn')}</Link>
+          <Link href="/sign-up" onClick={close}>{t('signUp')}</Link>
+          <div className="account-language"><LanguageSwitcher /></div>
+        </> : <>
+          <Link href="/my-messages" onClick={close}>{t('myLetters')}</Link>
+          <Link href="/settings" onClick={close}>{t('settings')}</Link>
+          <button type="button" onClick={() => { close(); void signOut({ redirectUrl: '/' }) }}>{t('signOut')}</button>
+        </>}
       </div>
     </div>
   )

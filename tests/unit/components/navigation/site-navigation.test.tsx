@@ -1,5 +1,5 @@
 import {IntlTestProvider} from '@/../tests/support/intl'
-vi.mock('@/components/i18n/language-switcher', () => ({LanguageSwitcher: () => null}))
+vi.mock('@/server/actions/language-preference', () => ({setLanguagePreference: vi.fn()}))
 vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
 /** @vitest-environment jsdom */
 import { act, cleanup, fireEvent, render as testingRender, screen, within } from '@testing-library/react'
@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const state = vi.hoisted(() => ({ pathname: '/', signedIn: false, openUserProfile: vi.fn(), signOut: vi.fn() }))
-vi.mock('next/navigation', () => ({ usePathname: () => state.pathname }))
+vi.mock('next/navigation', () => ({ usePathname: () => state.pathname, useRouter: () => ({refresh: vi.fn()}) }))
 vi.mock('@clerk/nextjs', () => ({
   Show: ({ when, children }: { when: string; children: React.ReactNode }) => state.signedIn === (when === 'signed-in') ? children : null,
   useClerk: () => ({ openUserProfile: state.openUserProfile, signOut: state.signOut }),
@@ -26,7 +26,7 @@ describe('shared navigation', () => {
     render(<SiteHeader />)
     const links = within(screen.getByRole('navigation', { name: 'Navegación principal' })).getAllByRole('link')
     expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual([
-      ['Inicio', '/'], ['Mapa', '/#map'], ['Cartas', '/#letters'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/messages/new?returnTo=${encodeURIComponent(suffix)}` : '/messages/new'], ['Entrar', '/sign-in'], ['Registrarse', '/sign-up'],
+      ['Inicio', '/'], ['Mapa', '/#map'], ['Cartas', '/#letters'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/messages/new?returnTo=${encodeURIComponent(suffix)}` : '/messages/new'],
     ])
     expect(screen.getByRole('link', { name: 'ATINY World' })).toHaveAttribute('href', '/')
     expect(screen.getAllByRole('link').filter(link => link.hasAttribute('aria-current')).length).toBeLessThanOrEqual(1)
@@ -36,6 +36,25 @@ describe('shared navigation', () => {
     render(<SiteHeader />)
     expect(screen.getByText(label)).toHaveAttribute('aria-current', 'page')
     expect(document.querySelectorAll('[aria-current]')).toHaveLength(1)
+  })
+  it.each(['en', 'es'] as const)('groups visitor access and language under one account button in %s', async locale => {
+    testLocale = locale
+    render(<SiteHeader />)
+    const user = userEvent.setup()
+    const account = screen.getByRole('button', {name: locale === 'es' ? 'Mi cuenta' : 'My account'})
+    expect(screen.queryByRole('link', {name: locale === 'es' ? 'Entrar' : 'Sign in'})).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    await user.click(account)
+    expect(screen.getByRole('link', {name: locale === 'es' ? 'Entrar' : 'Sign in'})).toHaveAttribute('href', '/sign-in')
+    expect(screen.getByRole('link', {name: locale === 'es' ? 'Crear cuenta' : 'Create account'})).toHaveAttribute('href', '/sign-up')
+    const language = screen.getByRole('combobox', {name: locale === 'es' ? 'Idioma' : 'Language'})
+    language.focus()
+    await user.keyboard('{Escape}')
+    expect(account).toHaveFocus()
+    expect(account).toHaveAttribute('aria-expanded', 'false')
+    await user.click(account)
+    fireEvent.pointerDown(document.body)
+    expect(account).toHaveAttribute('aria-expanded', 'false')
   })
   it('groups localized own letters, existing account settings and sign out', async () => {
     testLocale = 'en'
