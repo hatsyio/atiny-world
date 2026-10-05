@@ -1,5 +1,6 @@
 'use client'
 
+import { LetterWorkspace } from './letter-workspace'
 import type { Locale } from '@/i18n/locale'
 
 import { useLocale, useTranslations } from 'next-intl'
@@ -173,69 +174,77 @@ export function CreateMessageForm({
         </p>
       )}
 
-      <div className="profile-field">
-        <label htmlFor="message-content">{t('contentLabel')}</label>
-        <textarea
-          id="message-content"
-          name="content"
-          rows={8}
-          value={content}
-          placeholder={t('contentPlaceholder')}
-          aria-invalid={contentAlert !== null}
-          aria-describedby={descriptionId}
-          onChange={(event) => {
-            setContent(event.target.value)
-            setFieldErrors((errors) => (errors.content === undefined ? errors : { ...errors, content: undefined }))
-          }}
-        />
-        <p id="message-counter" className="message-counter" aria-live="polite">
-          {t('counter', {count: graphemeCount, max: MAX_GRAPHEMES})}
-        </p>
-        {contentAlert !== null && (
-          <p id="message-content-error" className="profile-error" role="alert">
-            {contentAlert}
+      <LetterWorkspace content={
+        <div className="profile-field">
+          <label htmlFor="message-content">{t('contentLabel')}</label>
+          <textarea
+            id="message-content"
+            name="content"
+            rows={8}
+            value={content}
+            placeholder={t('contentPlaceholder')}
+            aria-invalid={contentAlert !== null}
+            aria-describedby={descriptionId}
+            onChange={(event) => {
+              setContent(event.target.value)
+              setFieldErrors((errors) => (errors.content === undefined ? errors : { ...errors, content: undefined }))
+            }}
+          />
+          <p id="message-counter" className="message-counter" aria-live="polite">
+            {t('counter', {count: graphemeCount, max: MAX_GRAPHEMES})}
+          </p>
+          {contentAlert !== null && (
+            <p id="message-content-error" className="profile-error" role="alert">
+              {contentAlert}
+            </p>
+          )}
+        </div>
+
+      } properties={<>
+        <LocationPicker key={pickerResetKey} lang={lang} onChange={handleLocationChange} />
+        <div className="letter-workspace__property-feedback">
+        {locationAlert !== null && (
+          <p className="profile-error" role="alert">
+            {locationAlert}
           </p>
         )}
-      </div>
-
-      <LocationPicker key={pickerResetKey} lang={lang} onChange={handleLocationChange} />
-      {locationAlert !== null && (
-        <p className="profile-error" role="alert">
-          {locationAlert}
-        </p>
-      )}
-      {location === null && locationAlert === null && graphemeCount > 0 && (
-        <p className="profile-hint" role="note">
-          {t('locationMissing')}
-        </p>
-      )}
-
-      {cooldownActive && (
-        <p className="profile-note" role="status">
-          {t('cooldown', {seconds: cooldownRemaining})}
-        </p>
-      )}
-
-      {limitBlocked && (
-        <div className="profile-error" role="alert">
-          <p>
-            <strong>{t('limitTitle')}</strong> {t('limitText')}
+        {location === null && locationAlert === null && graphemeCount > 0 && (
+          <p className="profile-hint" role="note">
+            {t('locationMissing')}
           </p>
-          <Link href={'/my-messages'}>{t('myMessages')}</Link>
+        )}
+
         </div>
-      )}
+      </>} />
 
-      {accountError && (
-        <p className="profile-error profile-error--general" role="alert">
-          {t('accountUnavailable')}
-        </p>
-      )}
-      {genericError && (
-        <p className="profile-error profile-error--general" role="alert">
-          {t('genericError')}
-        </p>
-      )}
+      <div className="letter-workspace__feedback">
+        {cooldownActive && (
+          <p className="profile-note" role="status">
+            {t('cooldown', {seconds: cooldownRemaining})}
+          </p>
+        )}
 
+        {limitBlocked && (
+          <div className="profile-error" role="alert">
+            <p>
+              <strong>{t('limitTitle')}</strong> {t('limitText')}
+            </p>
+            <Link href={'/my-messages'}>{t('myMessages')}</Link>
+          </div>
+        )}
+
+        {accountError && (
+          <p className="profile-error profile-error--general" role="alert">
+            {t('accountUnavailable')}
+          </p>
+        )}
+        {genericError && (
+          <p className="profile-error profile-error--general" role="alert">
+            {t('genericError')}
+          </p>
+        )}
+
+      </div>
       <div className="profile-actions">
         <button type="submit" className="profile-submit" disabled={publishDisabled}>
           {sending ? t('publishing') : t('publish')}

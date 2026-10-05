@@ -1,5 +1,6 @@
 'use client'
 
+import { LetterWorkspace } from './letter-workspace'
 import type { Locale } from '@/i18n/locale'
 
 import { useTranslations } from 'next-intl'
@@ -22,19 +23,24 @@ export type EditMessageSubmit = (
 
 export interface EditMessageFormProps {
   lang?: Locale
-  message: Pick<OwnMessage, 'publicId' | 'version' | 'content' | 'country' | 'precision' | 'locality'>
+  message: Pick<OwnMessage, 'publicId' | 'version' | 'content' | 'country' | 'precision' | 'locality'> & Partial<Pick<OwnMessage, 'point'>>
+  onSaved?: () => void
+  onCancel?: () => void
   submitUpdate?: EditMessageSubmit
 }
 
 
 export function EditMessageForm({
   message,
+  onSaved,
+  onCancel,
   submitUpdate = updateMessageAction,
 }: EditMessageFormProps) {
   const t = useTranslations('Forms.edit')
   const router = useRouter()
   const [content, setContent] = useState(message.content)
   const [location, setLocation] = useState<LocationPickerSelection | null>(null)
+  const [locationPending, setLocationPending] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<'conflict' | 'unavailable' | 'suspended' | 'invalid' | 'error' | null>(null)
   const characterCount = countGraphemes(content)
@@ -42,7 +48,7 @@ export function EditMessageForm({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (saving || invalidContent) return
+    if (saving || invalidContent || locationPending) return
 
     setSaving(true)
     setError(null)
@@ -54,7 +60,8 @@ export function EditMessageForm({
         ...(location !== null ? { location } : {}),
       })
       if (result.ok) {
-        router.push('/my-messages')
+        if (onSaved) onSaved()
+        else router.push('/my-messages')
         return
       }
 
@@ -87,41 +94,40 @@ export function EditMessageForm({
 
   return (
     <form className="profile-form" onSubmit={(event) => void handleSubmit(event)}>
-      {error ? <p className="profile-error profile-error--general" role="alert">{t(error)}</p> : null}
-      <div className="profile-field">
-        <label htmlFor="edit-message-content">{t('content')}</label>
-        <textarea
-          id="edit-message-content"
-          name="content"
-          rows={8}
-          value={content}
-          placeholder={t('contentPlaceholder')}
-          aria-describedby="edit-message-counter"
-          onChange={(event) => setContent(event.target.value)}
-        />
-        <p id="edit-message-counter" className="message-counter" aria-live="polite">
-          {t('counter', {count: characterCount, max: MAX_GRAPHEMES})}
-        </p>
+      <LetterWorkspace content={
+        <div className="profile-field">
+          <label htmlFor="edit-message-content">{t('content')}</label>
+          <textarea
+            id="edit-message-content"
+            name="content"
+            rows={8}
+            value={content}
+            placeholder={t('contentPlaceholder')}
+            aria-describedby="edit-message-counter"
+            aria-invalid={invalidContent}
+            onChange={(event) => setContent(event.target.value)}
+          />
+          <p id="edit-message-counter" className="message-counter" aria-live="polite">
+            {t('counter', {count: characterCount, max: MAX_GRAPHEMES})}
+          </p>
+        </div>
+
+      } properties={
+        <LocationPicker initialLocation={message} onChange={setLocation} onPendingChange={setLocationPending} />
+      } />
+
+      <div className="letter-workspace__feedback">
+        {error ? <p className="profile-error profile-error--general" role="alert">{t(error)}</p> : null}
       </div>
-
-      <p className="profile-note">
-        {t('currentLocation')}: {message.locality ? `${message.locality}, ` : ''}{message.country} — {message.precision === 'precise' ? t('precise') : t('approximate')}
-      </p>
-      <fieldset>
-        <legend>{t('changeLocation')}</legend>
-        <p className="profile-hint">{t('locationHint')}</p>
-        <LocationPicker onChange={setLocation} />
-      </fieldset>
-
       <div className="profile-actions">
-        <button type="submit" className="profile-submit" disabled={saving || invalidContent}>
+        <button type="submit" className="profile-submit" disabled={saving || invalidContent || locationPending}>
           {saving ? t('saving') : t('save')}
         </button>
         <button
           type="button"
           className="profile-cancel"
           disabled={saving}
-          onClick={() => router.push('/my-messages')}
+          onClick={() => onCancel ? onCancel() : router.push('/my-messages')}
         >
           {t('cancel')}
         </button>

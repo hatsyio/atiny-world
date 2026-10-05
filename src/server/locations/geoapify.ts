@@ -14,6 +14,7 @@ export type GeoapifyLocationQuery = {
 }
 
 export type GeoapifyLocationSuggestion = {
+  displayLabel?: string
   locality: string
   country: string
   countryCode: string
@@ -29,6 +30,7 @@ export class GeoapifyProviderError extends Error {
 }
 
 type GeoapifyResult = {
+  formatted?: unknown
   city?: unknown
   town?: unknown
   village?: unknown
@@ -52,7 +54,7 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 ? value : null
 }
 
-function normalizeResult(result: GeoapifyResult): GeoapifyLocationSuggestion | null {
+function normalizeResult(result: GeoapifyResult, includeDisplayLabel = false): GeoapifyLocationSuggestion | null {
   const country = readString(result.country)
   const countryCode = readString(result.country_code)?.toLowerCase()
   const locality = [result.city, result.town, result.village, result.municipality, result.county]
@@ -65,7 +67,9 @@ function normalizeResult(result: GeoapifyResult): GeoapifyLocationSuggestion | n
     return null
   }
 
+  const displayLabel = includeDisplayLabel ? readString(result.formatted)?.trim() : undefined
   return {
+    ...(displayLabel ? { displayLabel } : {}),
     locality,
     country,
     countryCode,
@@ -101,7 +105,7 @@ export async function searchGeoapifyLocations(
     if (!Array.isArray(payload.results)) throw new GeoapifyProviderError('unavailable')
 
     return payload.results
-      .map((result) => normalizeResult(result as GeoapifyResult))
+      .map((result) => normalizeResult(result as GeoapifyResult, true))
       .filter((result): result is GeoapifyLocationSuggestion => result !== null)
   } catch (error) {
     if (error instanceof GeoapifyProviderError) throw error
@@ -111,10 +115,10 @@ export async function searchGeoapifyLocations(
   }
 }
 
-export async function reverseGeoapifyLocality(
+export async function reverseGeoapifyLocation(
   point: PublicPoint,
-  dependencies: GeoapifyDependencies = {},
-): Promise<string | null> {
+  dependencies: GeoapifyDependencies & { language?: 'en' | 'es' | 'ko' } = {},
+): Promise<GeoapifyLocationSuggestion | null> {
   const parameters = new URLSearchParams({
     lat: String(point.latitude),
     lon: String(point.longitude),
@@ -122,6 +126,7 @@ export async function reverseGeoapifyLocality(
     format: 'json',
     limit: '1',
   })
+  if (dependencies.language) parameters.set('lang', dependencies.language)
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), dependencies.timeoutMs ?? PROVIDER_TIMEOUT_MS)
 
@@ -140,11 +145,18 @@ export async function reverseGeoapifyLocality(
     const result = payload.results
       .map((value) => normalizeResult(value as GeoapifyResult))
       .find((value) => value !== null)
-    return result?.locality ?? null
+    return result ?? null
   } catch (error) {
     if (error instanceof GeoapifyProviderError) throw error
     throw new GeoapifyProviderError('unavailable')
   } finally {
     clearTimeout(timeout)
   }
+}
+
+export async function reverseGeoapifyLocality(
+  point: PublicPoint,
+  dependencies: GeoapifyDependencies = {},
+): Promise<string | null> {
+  return (await reverseGeoapifyLocation(point, dependencies))?.locality ?? null
 }

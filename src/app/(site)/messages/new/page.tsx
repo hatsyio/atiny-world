@@ -28,7 +28,7 @@ export default async function NewMessagePage({
     return (
       <main className="auth-page">
         {back}
-        <div className="auth-panel">
+        <div className="auth-panel letter-panel">
           <p className="auth-script">{t('script')}</p>
           <h1>{t('title')}</h1>
           <p className="profile-intro">{t('unavailable')}</p>
@@ -40,7 +40,7 @@ export default async function NewMessagePage({
   return (
     <main className="auth-page">
       {back}
-      <div className="auth-panel">
+      <div className="auth-panel letter-panel">
         <p className="auth-script">{t('script')}</p>
         <h1>{t('title')}</h1>
         <p className="profile-intro">{t('intro')}</p>

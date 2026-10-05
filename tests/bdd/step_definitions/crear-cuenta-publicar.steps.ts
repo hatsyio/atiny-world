@@ -48,10 +48,13 @@ async function selectLocation(world: AtinyWorld) {
     body: JSON.stringify(query),
   }))
   assert.equal(response.status, 200)
-  const body = await response.json() as { suggestions: Array<{ selectionToken: string; locality: string }> }
+  const body = await response.json() as { suggestions: Array<{ selectionToken: string; locality: string; displayLabel?: string }> }
   assert.equal(body.suggestions.length, 1)
   assert.equal(body.suggestions[0].locality, 'Seoul')
-  assert.ok(!JSON.stringify(body).includes(address))
+  assert.equal(body.suggestions[0].displayLabel, address)
+  const verified = verifyLocationSelectionResult(body.suggestions[0].selectionToken, selectionSecret)
+  assert.ok(verified.ok)
+  assert.ok(!JSON.stringify(verified.selection).includes(address))
   world.locationSelectionId = body.suggestions[0].selectionToken
   world.selectedAddress = address
 }

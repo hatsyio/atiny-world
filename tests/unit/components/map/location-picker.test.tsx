@@ -20,6 +20,11 @@ vi.mock('leaflet', () => {
   const map = {
     setView: (...args: unknown[]) => { leafletCallbacks.setView(...args); return map },
     remove: () => leafletCallbacks.remove(),
+    on: (event: string, handler: (...args: unknown[]) => void) => leafletCallbacks.handlers.set(event, handler),
+    getCenter: () => ({ lat: 37.5665, lng: 126.978 }),
+    getBounds: () => ({ contains: () => true }),
+    panTo: vi.fn(),
+    getZoom: () => 14,
   }
   const mapFactory = () => {
     leafletCallbacks.map()
@@ -32,6 +37,8 @@ vi.mock('leaflet', () => {
     image.title = options.title ?? ''
     const marker = {
       on(event: string, handler: (...args: unknown[]) => void) { leafletCallbacks.handlers.set(event, handler) },
+      setLatLng: vi.fn(),
+      remove: vi.fn(),
       getLatLng: () => ({lat:40.51,lng:-3.72}),
       getElement: () => image,
       addTo: () => { document.querySelector('.location-picker__precise-map')?.append(image); return marker },
@@ -102,13 +109,135 @@ afterEach(() => {
   cleanup()
   vi.useRealTimers()
   vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
   leafletCallbacks.handlers.clear()
   vi.clearAllMocks()
 })
 
 describe('LocationPicker', () => {
   beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-map-key')
     vi.useFakeTimers()
+  })
+
+  it('shows precision and a map placeholder before choosing a place', () => {
+    render(<LocationPicker lang="es" onChange={() => {}} />)
+    expect(screen.getByRole('radio', { name: 'Ubicación aproximada' })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: 'Ubicación exacta' })).toBeDisabled()
+    expect(screen.getByLabelText('Pincha o toca el mapa para elegir un lugar. También puedes arrastrar el marcador.')).toBeVisible()
+  })
+
+  it('selects a place by clicking the map without typing', async () => {
+    const requests: Array<ReturnType<typeof deferred<Response>>> = []
+    const fetchMock = stubFetch(requests)
+    const onChange = vi.fn()
+    render(<LocationPicker onChange={onChange} />)
+    await act(async () => {})
+    expect(leafletCallbacks.handlers.has('click')).toBe(true)
+    await act(async () => { leafletCallbacks.handlers.get('click')?.({ latlng: { lat: 37.5665, lng: 126.978 } }) })
+    expect(onChange).toHaveBeenLastCalledWith(null)
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({ point: { latitude: 37.5665, longitude: 126.978 }, language: 'en' })
+    await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
+    expect(screen.getByRole('region', { name: 'Selected place' })).toHaveTextContent('Seoul, South Korea')
+    expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-1', precision: 'approximate' })
+    expect(screen.getByRole('textbox')).toHaveValue('Seoul, South Korea')
+  })
+
+  it('ignores an older map lookup after a second click', async () => {
+    const requests: Array<ReturnType<typeof deferred<Response>>> = []
+    stubFetch(requests)
+    const onChange = vi.fn()
+    render(<LocationPicker onChange={onChange} />)
+    await act(async () => {})
+    const click = leafletCallbacks.handlers.get('click')
+    expect(click).toBeDefined()
+    await act(async () => { click?.({ latlng: { lat: 37.5665, lng: 126.978 } }) })
+    await act(async () => { click?.({ latlng: { lat: 40.4167, lng: -3.7033 } }) })
+    await resolveSearch(requests[1], suggestionsResponse([madridSuggestion]))
+    await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
+    expect(screen.getByRole('region', { name: 'Selected place' })).toHaveTextContent('Madrid, España')
+    expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-2', precision: 'approximate' })
+  })
+
+  it('selects the map center with a keyboard-accessible button', async () => {
+    const requests: Array<ReturnType<typeof deferred<Response>>> = []
+    const fetchMock = stubFetch(requests)
+    render(<LocationPicker onChange={() => {}} />)
+    await act(async () => {})
+    fireEvent.click(screen.getByRole('button', { name: 'Choose the map center' }))
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({ point: { latitude: 37.5665, longitude: 126.978 }, language: 'en' })
+    await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
+    expect(screen.getByRole('region', { name: 'Selected place' })).toBeVisible()
+  })
+
+  it('confirms the clicked point rather than the returned city center and invalidates it on another click', async () => {
+    const requests: Array<ReturnType<typeof deferred<Response>>> = []
+    stubFetch(requests)
+    const onChange = vi.fn()
+    const onPendingChange = vi.fn()
+    render(<LocationPicker onChange={onChange} onPendingChange={onPendingChange} />)
+    await act(async () => {})
+    const click = leafletCallbacks.handlers.get('click')!
+    await act(async () => { click({ latlng: { lat: 37.58, lng: 126.99 } }) })
+    await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
+    fireEvent.click(screen.getByRole('radio', { name: 'Exact location' }))
+    expect(onChange).toHaveBeenLastCalledWith(null)
+    fireEvent.click(screen.getByRole('button', { name: 'I understand, make this point public' }))
+    expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-1', precision: 'precise', confirmedPublicPoint: { latitude: 37.58, longitude: 126.99 }, preciseLocationConfirmed: true })
+    await act(async () => { click({ latlng: { lat: 40.5, lng: -3.8 } }) })
+    expect(onChange).toHaveBeenLastCalledWith(null)
+    expect(onPendingChange).toHaveBeenLastCalledWith(true)
+    await resolveSearch(requests[1], suggestionsResponse([madridSuggestion]))
+    expect(screen.queryByText('Exact point confirmed.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'I understand, make this point public' }))
+    expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-2', precision: 'precise', confirmedPublicPoint: { latitude: 40.5, longitude: -3.8 }, preciseLocationConfirmed: true })
+  })
+
+  it('retries a failed map lookup using the point rather than an empty query', async () => {
+    const requests: Array<ReturnType<typeof deferred<Response>>> = []
+    const fetchMock = stubFetch(requests)
+    const onChange = vi.fn()
+    render(<LocationPicker onChange={onChange} />)
+    await act(async () => {})
+    await act(async () => { leafletCallbacks.handlers.get('click')?.({ latlng: { lat: 37.5665, lng: 126.978 } }) })
+    await resolveSearch(requests[0], new Response(null, { status: 502 }))
+    expect(onChange).toHaveBeenLastCalledWith(null)
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(JSON.parse(fetchMock.mock.calls[1][1]!.body as string)).toEqual({ point: { latitude: 37.5665, longitude: 126.978 }, language: 'en' })
+    await resolveSearch(requests[1], suggestionsResponse([seoulSuggestion]))
+    expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-1', precision: 'approximate' })
+  })
+
+  it('zooms to a searched place without remounting when precision changes', async () => {
+    const requests: Array<ReturnType<typeof deferred<Response>>> = []
+    stubFetch(requests)
+    render(<LocationPicker onChange={() => {}} />)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Seoul' } })
+    await act(async () => { advance(400) })
+    await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
+    fireEvent.click(screen.getByRole('option', { name: 'Seoul, South Korea' }))
+    expect(leafletCallbacks.setView).toHaveBeenLastCalledWith([37.5665, 126.978], 14)
+    const viewCount = leafletCallbacks.setView.mock.calls.length
+    fireEvent.click(screen.getByRole('radio', { name: 'Exact location' }))
+    expect(leafletCallbacks.map).toHaveBeenCalledTimes(1)
+    expect(leafletCallbacks.setView).toHaveBeenCalledTimes(viewCount)
+  })
+
+  it('shows distinct full descriptions and selects the intended place when city labels match', async () => {
+    const requests: Array<ReturnType<typeof deferred<Response>>> = []
+    stubFetch(requests)
+    const onChange = vi.fn()
+    render(<LocationPicker lang="es" onChange={onChange} />)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'torrejon de ard' } })
+    await act(async () => { advance(400) })
+    await resolveSearch(requests[0], suggestionsResponse([
+      { ...madridSuggestion, locality: 'Torrejón de Ardoz', displayLabel: '28850 Torrejón de Ardoz, España', selectionToken: 'city-token' },
+      { ...madridSuggestion, locality: 'Torrejón de Ardoz', displayLabel: 'Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España', selectionToken: 'sports-token' },
+    ]))
+    expect(screen.getByRole('option', { name: '28850 Torrejón de Ardoz, España' })).toBeVisible()
+    fireEvent.click(screen.getByRole('option', { name: 'Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España' }))
+    expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'sports-token', precision: 'approximate' })
+    expect(screen.getByRole('region', { name: 'Lugar seleccionado' })).toHaveTextContent('Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España')
   })
 
   it('debounces typing and sends one search with the latest text', async () => {
@@ -267,12 +396,13 @@ describe('LocationPicker', () => {
     await act(async () => {
       leafletCallbacks.handlers.get('dragend')?.()
     })
+    await resolveSearch(requests[1], suggestionsResponse([madridSuggestion]))
     expect(screen.getByText(/40,51000, -3,72000/)).toBeVisible()
     expect(onChange).toHaveBeenLastCalledWith(null)
 
     fireEvent.click(screen.getByRole('button', { name: /lo entiendo/i }))
     expect(onChange).toHaveBeenLastCalledWith({
-      selectionId: 'opaque-selection-1',
+      selectionId: 'opaque-selection-2',
       precision: 'precise',
       confirmedPublicPoint: { latitude: 40.51, longitude: -3.72 },
       preciseLocationConfirmed: true,
@@ -300,6 +430,7 @@ describe('LocationPicker', () => {
 })
 
 it('keeps the chosen place and precise public point when the provider locale changes', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-map-key')
   vi.useFakeTimers()
   const requests: Array<ReturnType<typeof deferred<Response>>> = []
   const fetchMock = stubFetch(requests)
@@ -331,6 +462,6 @@ it('keeps the chosen place and precise public point when the provider locale cha
   expect(result.container.querySelector('.location-picker__coordinates')).toHaveTextContent('37,56650, 126,97800')
   expect(leafletCallbacks.map).toHaveBeenCalledTimes(1)
   expect(leafletCallbacks.marker).toHaveBeenCalledTimes(1)
-  expect(leafletCallbacks.setView).toHaveBeenCalledTimes(1)
+  expect(leafletCallbacks.setView).toHaveBeenCalledTimes(2)
   expect(leafletCallbacks.remove).not.toHaveBeenCalled()
 })

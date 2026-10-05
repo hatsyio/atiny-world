@@ -1,9 +1,11 @@
+import type { PublicPoint } from '@/domain/location/public-point'
 import { z } from 'zod'
 
 import { createProblem, toProblemEnvelope } from '@/domain/contracts'
 import {
   GeoapifyProviderError,
   searchGeoapifyLocations,
+  reverseGeoapifyLocation,
   type GeoapifyLocationQuery,
   type GeoapifyLocationSuggestion,
 } from '@/server/locations/geoapify'
@@ -21,15 +23,25 @@ const GEOAPIFY_ATTRIBUTION = {
   url: 'https://www.geoapify.com/',
 } as const
 
-const locationSuggestionRequestSchema = z.object({
+const locationTextRequestSchema = z.object({
   query: z.string().min(2).max(200),
   language: z.enum(['en', 'es', 'ko']),
   limit: z.number().int().min(1).max(8).default(DEFAULT_LIMIT),
 }).strict()
 
+const locationPointRequestSchema = z.object({
+  point: z.object({
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+  }).strict(),
+  language: z.enum(['en', 'es', 'ko']),
+}).strict()
+const locationSuggestionRequestSchema = z.union([locationTextRequestSchema, locationPointRequestSchema])
+
 type LocationSuggestionRequest = z.infer<typeof locationSuggestionRequestSchema>
 
 type LocationSuggestionsDependencies = {
+  reverse?: (point: PublicPoint, language: 'en' | 'es' | 'ko') => Promise<GeoapifyLocationSuggestion | null>
   search?: (query: GeoapifyLocationQuery) => Promise<GeoapifyLocationSuggestion[]>
   signSelection?: (selection: LocationSelection) => string
   clientKey?: (request: Request) => string
@@ -98,6 +110,7 @@ function providerUnavailableProblem(): Response {
 
 function publicSuggestion(suggestion: GeoapifyLocationSuggestion, selectionToken: string) {
   return {
+    ...(suggestion.displayLabel ? { displayLabel: suggestion.displayLabel } : {}),
     locality: suggestion.locality,
     country: suggestion.country,
     countryCode: suggestion.countryCode,
@@ -110,6 +123,7 @@ function publicSuggestion(suggestion: GeoapifyLocationSuggestion, selectionToken
 export function createLocationSuggestionsPostHandler(
   dependencies: LocationSuggestionsDependencies = {},
 ): (request: Request) => Promise<Response> {
+  const reverse = dependencies.reverse ?? ((point, language) => reverseGeoapifyLocation(point, { language }))
   const search = dependencies.search ?? searchGeoapifyLocations
   const signSelection = dependencies.signSelection ?? ((selection) => (
     signLocationSelection(selection, getLocationSelectionSecret())
@@ -127,11 +141,19 @@ export function createLocationSuggestionsPostHandler(
 
     const input: LocationSuggestionRequest = parsed.data
     try {
-      const suggestions = await search(input)
+      const resolved = 'point' in input ? await reverse(input.point, input.language) : null
+      const suggestions = 'point' in input ? (resolved ? [resolved] : []) : await search(input)
+      const limit = 'limit' in input ? input.limit : 1
       return Response.json({
-        suggestions: suggestions.slice(0, input.limit).map((suggestion) => publicSuggestion(
+        suggestions: suggestions.slice(0, limit).map((suggestion) => publicSuggestion(
           suggestion,
-          signSelection(suggestion),
+          signSelection({
+            locality: suggestion.locality,
+            country: suggestion.country,
+            countryCode: suggestion.countryCode,
+            point: suggestion.point,
+            attribution: suggestion.attribution,
+          }),
         )),
         providerAttribution: GEOAPIFY_ATTRIBUTION,
       }, { headers: { 'cache-control': 'no-store' } })

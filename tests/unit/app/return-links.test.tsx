@@ -12,6 +12,8 @@ vi.mock('@/server/auth/account-gate', () => ({
   resolveAccountGate: async () => ({ kind: state.kind }),
   writeLetterRedirect: () => null,
 }))
+vi.mock('@/server/auth/authorize', () => ({ authorizeSession: async () => ({ ok: false }) }))
+vi.mock('@/components/messages/letter-detail', () => ({ LetterDetail: () => null }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: async () => ({ clerkUserId: 'user' }) }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 vi.mock('@/server/messages/own-message-repository', () => ({ pageOwnMessages: async () => ({ items: [{ publicId: 'letter-id' }], nextCursor: null }) }))

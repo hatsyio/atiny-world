@@ -43,7 +43,6 @@ describe('EditMessageForm', () => {
       okResult({ publicId: input.publicId, version: input.expectedVersion + 1, status: 'pending' as const }))
     render(<EditMessageForm lang="es" message={message} submitUpdate={submitUpdate} />)
 
-    expect(screen.getByText(/España/)).toBeVisible()
     fireEvent.change(screen.getByRole('textbox', { name: /carta/i }), {
       target: { value: 'Carta corregida' },
     })
@@ -99,4 +98,25 @@ it.each(['en', 'es'] as const)('cancels directly to own letters in %s without su
   fireEvent.click(screen.getByRole('button', { name: lang === 'es' ? 'Cancelar' : 'Cancel' }))
   expect(push).toHaveBeenCalledWith('/my-messages')
   expect(submitUpdate).not.toHaveBeenCalled()
+})
+
+it('returns to reading in place after saving when embedded in the detail', async () => {
+  const onSaved = vi.fn()
+  const onCancel = vi.fn()
+  const submitUpdate = vi.fn<EditMessageSubmit>(async input =>
+    okResult({ publicId: input.publicId, version: input.expectedVersion + 1, status: 'pending' as const }))
+  render(<EditMessageForm message={message} submitUpdate={submitUpdate} onSaved={onSaved} onCancel={onCancel} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+  await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1))
+  expect(push).not.toHaveBeenCalled()
+})
+
+it('cancels an embedded edit without navigating or saving', () => {
+  const onCancel = vi.fn()
+  const submitUpdate = vi.fn()
+  render(<EditMessageForm message={message} submitUpdate={submitUpdate} onCancel={onCancel} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+  expect(onCancel).toHaveBeenCalledTimes(1)
+  expect(submitUpdate).not.toHaveBeenCalled()
+  expect(push).not.toHaveBeenCalled()
 })
