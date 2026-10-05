@@ -214,10 +214,21 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
         markerLayers.current.delete(publicId)
       }
 
+      const messageIcon = leaflet.divIcon({
+        html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>',
+        className: 'map-message-marker',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -15],
+      })
+
       for (const feature of features) {
         let marker = markerLayers.current.get(feature.publicId)
         if (!marker) {
-          marker = leaflet.marker([feature.point.latitude, feature.point.longitude])
+          marker = leaflet.marker([feature.point.latitude, feature.point.longitude], {
+            icon: messageIcon,
+            title: translations.current('viewMessages', { count: 1 }),
+          })
           const currentMarker = marker
           const publicId = feature.publicId
 
