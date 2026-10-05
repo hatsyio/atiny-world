@@ -1,4 +1,5 @@
 {
+  "preferences": "Preferences",
   "title": "Settings",
   "description": "Choose the language for the interface. Letters stay in their original language.",
   "language": "Language",

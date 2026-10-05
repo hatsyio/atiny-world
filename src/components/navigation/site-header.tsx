@@ -100,7 +100,7 @@ export function SiteHeader() {
           <Link href={'/sign-in'} aria-current={pathname?.startsWith('/sign-in') ? 'page' : undefined}>{t('signIn')}</Link>
           <Link href={'/sign-up'} aria-current={pathname?.startsWith('/sign-up') ? 'page' : undefined}>{t('signUp')}</Link>
         </Show>
-      <LanguageSwitcher /></nav>
+      <Show when="signed-out"><LanguageSwitcher /></Show></nav>
     </header>
   )
 }

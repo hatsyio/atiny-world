@@ -233,3 +233,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .footer-motto { grid-column: 1; grid-row: auto; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .ornate-button { transition: none; } }
+
+.account-settings { width: min(100%, 880px); margin: 2rem auto 0; }
+.account-settings > h1 { margin: 0 0 1.5rem; color: #f0d8a9; font-size: clamp(1.4rem, 3vw, 2rem); }
+.account-preferences { color: #212126; font-family: var(--font-interface), sans-serif; text-align: left; }
+.account-preferences h2 { margin: 0 0 1rem; font-family: inherit; font-size: 1.25rem; font-weight: 700; }
+.account-preferences > p { color: #747479; font-size: .875rem; line-height: 1.5; }
+.account-preferences .language-switcher { margin-top: 1.5rem; }
+.account-preferences .language-switcher label { font-size: .8125rem; font-weight: 500; }
+.account-preferences .language-switcher select { border: 1px solid #d9d9de; border-radius: .375rem; background: white; color: inherit; font-family: inherit; font-size: .875rem; }
+.account-preferences .language-switcher select:focus-visible { outline: 2px solid #6c47ff; outline-offset: 2px; }
