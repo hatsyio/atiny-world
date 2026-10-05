@@ -78,22 +78,25 @@ export function buildMessageRequest(
   return `/api/map/messages?${params.toString()}`
 }
 
-export function PublicMapController({ selectedPublicId }: {
+export function PublicMapController({ selectedPublicId: requestedPublicId, selectedMessage }: {
   lang?: Locale
   selectedPublicId?: string
+  selectedMessage?: PublicMapFeature
 }) {
   const lang = useLocale()
   const params = useSearchParams()
-  const initialView = selectedPublicId ? DEFAULT_VIEW : readMapView(params) ?? DEFAULT_VIEW
+  const selectedPublicId = selectedMessage?.publicId ?? requestedPublicId
+  const initialView = selectedMessage ? { ...selectedMessage.point, zoom: 8 } : selectedPublicId ? DEFAULT_VIEW : readMapView(params) ?? DEFAULT_VIEW
   const initialFilters = selectedPublicId ? { city: '', country: '' } : readMapFilters(params)
   // Next can retain a page between visits. A different URL context is a different exploration.
   const contextKey = JSON.stringify([selectedPublicId, initialView, initialFilters])
-  return <MapExploration key={contextKey} lang={lang} selectedPublicId={selectedPublicId} initialView={initialView} initialFilters={initialFilters} />
+  return <MapExploration key={contextKey} lang={lang} selectedPublicId={selectedPublicId} selectedMessage={selectedMessage} initialView={initialView} initialFilters={initialFilters} />
 }
 
-function MapExploration({ lang, selectedPublicId, initialView, initialFilters }: {
+function MapExploration({ lang, selectedPublicId, selectedMessage, initialView, initialFilters }: {
   lang: Locale
   selectedPublicId?: string
+  selectedMessage?: PublicMapFeature
   initialView: MapView
   initialFilters: MapFilterValues
 }) {
@@ -102,7 +105,7 @@ function MapExploration({ lang, selectedPublicId, initialView, initialFilters }:
   const view = useRef(initialView)
   const [bounds, setBounds] = useState<MapBounds>(WORLD_BOUNDS)
   const [filters, setFilters] = useState<MapFilterValues>(initialFilters)
-  const [features, setFeatures] = useState<PublicMapFeature[]>([])
+  const [features, setFeatures] = useState<PublicMapFeature[]>(selectedMessage ? [selectedMessage] : [])
   const [error, setError] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
   const hasBasemap = Boolean(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY)
@@ -127,7 +130,9 @@ function MapExploration({ lang, selectedPublicId, initialView, initialFilters }:
         if (!response.ok) throw new Error('map features unavailable')
 
         const body = (await response.json()) as { features?: PublicMapFeature[] }
-        setFeatures(body.features ?? [])
+        const viewportFeatures = body.features ?? []
+        setFeatures(selectedMessage && !filters.city && !filters.country && !viewportFeatures.some(feature => feature.publicId === selectedMessage.publicId)
+          ? [selectedMessage, ...viewportFeatures] : viewportFeatures)
       } catch {
         if (!controller.signal.aborted) {
           setError('unavailable')
@@ -137,7 +142,7 @@ function MapExploration({ lang, selectedPublicId, initialView, initialFilters }:
 
     void loadFeatures()
     return () => controller.abort()
-  }, [bounds, filters, retry, hasBasemap])
+  }, [bounds, filters, retry, hasBasemap, selectedMessage])
 
   const selectMessage = useCallback((publicId: string) => {
     const origin = mapOrigin(lang, view.current, filters)

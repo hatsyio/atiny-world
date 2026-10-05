@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, fireEvent,  screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { render } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -17,6 +17,8 @@ interface OwnMessageListItem {
   moderationReasonCode: string | null
   moderationNote: string | null
   content: string
+  publicVisible?: boolean
+  point?: { latitude: number; longitude: number }
 }
 
 const statusLabels = {
@@ -100,6 +102,36 @@ function entry(name: string | RegExp) {
 afterEach(cleanup)
 
 describe('MyMessageList presenta estado y motivo', () => {
+  it('permite leer y compartir una carta pendiente que ya es pública', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    renderList({ messages: [message({ status: 'pending', publicVisible: true, point: { latitude: 40.4, longitude: -3.7 } })] })
+    expect(screen.getByRole('link', { name: 'View letter' })).toHaveAttribute('href', expect.stringContaining('/messages/msg-1?returnTo='))
+    expect(screen.getByRole('link', { name: 'View on map' })).toHaveAttribute('href', '/?letter=msg-1#map')
+    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }))
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/messages/msg-1`))
+    expect(screen.getByRole('status')).toHaveTextContent('Link copied')
+  })
+
+  it.each(['pending', 'rejected', 'withdrawn'] as const)('conserva la lectura privada sin compartir una carta %s', status => {
+    renderList({ messages: [message({ status, publicVisible: false })] })
+    expect(screen.getByRole('link', { name: 'View letter' })).toBeVisible()
+    expect(screen.queryByRole('link', { name: 'View on map' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull()
+  })
+
+  it('no ofrece compartir cartas de una cuenta suspendida', () => {
+    renderList({ accountSuspended: true, messages: [message({ publicVisible: false })] })
+    expect(screen.getByRole('link', { name: 'View letter' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull()
+  })
+
+  it('explica el fallo del portapapeles sin afirmar que se copió', async () => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } })
+    renderList({ messages: [message({ publicVisible: true })] })
+    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Could not copy the link')
+  })
   it('muestra a la autora el estado y el motivo traducido de un mensaje rechazado', () => {
     renderList({
       lang: 'es',

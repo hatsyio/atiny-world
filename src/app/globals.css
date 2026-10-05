@@ -207,8 +207,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .my-message-content { margin-top: 0; white-space: pre-wrap; }
 .my-message-item p { line-height: 1.45; }
 .my-message-links, .my-message-actions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
-.my-message-links a, .my-message-actions button { padding: .45rem .7rem; border: 1px solid #6b3e20; color: #4a2a13; background: transparent; cursor: pointer; }
-.my-message-links a:hover, .my-message-actions button:hover { background: #e4c18e; }
+.my-message-links a, .my-message-links button, .my-message-actions button { padding: .45rem .7rem; border: 1px solid #6b3e20; color: #4a2a13; background: transparent; cursor: pointer; }
+.my-message-links a:hover, .my-message-links button:hover, .my-message-actions button:hover { background: #e4c18e; }
 .my-message-actions [role='group'] { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
 .my-message-actions [role='group'] p { flex-basis: 100%; margin: 0; }
 

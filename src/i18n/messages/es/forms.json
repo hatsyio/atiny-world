@@ -63,7 +63,15 @@
     "keep": "Conservar carta",
     "confirmHint": "Esta carta se eliminará de forma permanente. Libera un hueco de tu límite y no se puede deshacer.",
     "deleteError": "No se pudo eliminar la carta. Inténtalo de nuevo.",
-    "empty": "Todavía no tienes cartas."
+    "empty": "Todavía no tienes cartas.",
+    "view": "Ver carta",
+    "viewMap": "Ver en el mapa",
+    "copyLink": "Copiar enlace",
+    "copied": "Enlace copiado",
+    "copyError": "No se pudo copiar el enlace. Inténtalo de nuevo.",
+    "privatePending": "Pendiente de revisión. Podrás compartirla cuando sea aprobada.",
+    "privateHidden": "Esta carta no es pública. Puedes verla y consultar el motivo de moderación.",
+    "privateSuspended": "Tus cartas no son públicas mientras tu cuenta esté suspendida."
   },
   "location": {
     "fieldset": "Ubicación de publicación",

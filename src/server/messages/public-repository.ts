@@ -74,7 +74,7 @@ type FeatureRow = {
   content: string | null
 }
 
-function visibilityCondition(sql: Sql): Fragment {
+export function visibilityCondition(sql: Sql): Fragment {
   return sql`
     p.account_state = 'active'
     and p.suspended_at is null
