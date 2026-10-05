@@ -18,7 +18,7 @@ vi.mock('@/server/messages/own-message-repository', () => ({ pageOwnMessages: as
 vi.mock('@/server/messages/public-repository', () => ({ getVisibleMessage: async () => ({ publicId: 'letter-id' }) }))
 vi.mock('@/components/messages/my-message-list', () => ({ MyMessageList: () => null }))
 vi.mock('@/components/messages/public-message-card', () => ({ PublicMessageCard: () => null }))
-vi.mock('@/components/map/public-map-controller', () => ({ PublicMapController: () => null }))
+vi.mock('@/components/map/letter-location-map', () => ({ LetterLocationMap: () => null }))
 vi.mock('@/components/messages/edit-message-form', () => ({ EditMessageForm: () => null }))
 vi.mock('@/components/messages/create-message-flow', () => ({ CreateMessageFlow: ({ returnTo }: { returnTo: string }) => <span data-testid="form-destination">{returnTo}</span> }))
 
