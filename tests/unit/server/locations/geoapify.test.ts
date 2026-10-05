@@ -63,6 +63,7 @@ describe('Geoapify location autocomplete', () => {
     expect(request.url).toBe('https://api.geoapify.com/v1/geocode/autocomplete?text=Calle+de+Alcal%C3%A1&lang=es&limit=1&format=json&bias=countrycode%3Anone')
     expect(request.headers.get('x-api-key')).toBe('test-server-key')
     expect(suggestions).toEqual([{
+      displayLabel: 'Calle de Alcalá, Madrid, España',
       locality: 'Madrid',
       country: 'Spain',
       countryCode: 'es',
@@ -71,6 +72,18 @@ describe('Geoapify location autocomplete', () => {
     }])
     expect(suggestions[0]).not.toHaveProperty('formatted')
     expect(suggestions[0]).not.toHaveProperty('address_line1')
+  })
+
+  it('preserves the full description so different places in the same city can be distinguished', async () => {
+    const providerFetch = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ results: [
+      { ...providerPayload.results[0], formatted: '28850 Torrejón de Ardoz, España', city: 'Torrejón de Ardoz' },
+      { ...providerPayload.results[0], formatted: 'Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España', city: 'Torrejón de Ardoz', lat: 40.46, lon: -3.45 },
+    ] }), { status: 200 }))
+    const suggestions = await searchGeoapifyLocations({ query: 'torrejon de ard', language: 'es', limit: 5 }, { apiKey: 'test-key', fetch: providerFetch })
+    expect(suggestions.map(place => place.displayLabel)).toEqual([
+      '28850 Torrejón de Ardoz, España',
+      'Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España',
+    ])
   })
 
   it('maps quota exhaustion to the stable rate-limited provider outcome', async () => {

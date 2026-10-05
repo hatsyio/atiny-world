@@ -88,6 +88,15 @@ describe('POST /api/locations/suggestions', () => {
     })
   })
 
+  it('returns the full display label without adding it to the signed publication location', async () => {
+    const place = { locality: 'Torrejón de Ardoz', country: 'España', countryCode: 'es', point: { latitude: 40.46, longitude: -3.45 }, attribution: 'Geoapify' as const }
+    const signSelection = vi.fn(() => 'label-token')
+    const handler = createLocationSuggestionsPostHandler({ search: async () => [{ ...place, displayLabel: 'Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España' }], signSelection })
+    const response = await handler(request({ query: 'torrejon de ard', language: 'es' }))
+    expect(await response.json()).toMatchObject({ suggestions: [{ displayLabel: 'Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España' }] })
+    expect(signSelection).toHaveBeenCalledWith(place)
+  })
+
   it('maps provider quota and availability failures to stable, non-sensitive errors', async () => {
     const limited = createLocationSuggestionsPostHandler({
       search: async () => { throw new GeoapifyProviderError('rate_limited') },

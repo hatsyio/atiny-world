@@ -110,6 +110,7 @@ function providerUnavailableProblem(): Response {
 
 function publicSuggestion(suggestion: GeoapifyLocationSuggestion, selectionToken: string) {
   return {
+    ...(suggestion.displayLabel ? { displayLabel: suggestion.displayLabel } : {}),
     locality: suggestion.locality,
     country: suggestion.country,
     countryCode: suggestion.countryCode,
@@ -146,7 +147,13 @@ export function createLocationSuggestionsPostHandler(
       return Response.json({
         suggestions: suggestions.slice(0, limit).map((suggestion) => publicSuggestion(
           suggestion,
-          signSelection(suggestion),
+          signSelection({
+            locality: suggestion.locality,
+            country: suggestion.country,
+            countryCode: suggestion.countryCode,
+            point: suggestion.point,
+            attribution: suggestion.attribution,
+          }),
         )),
         providerAttribution: GEOAPIFY_ATTRIBUTION,
       }, { headers: { 'cache-control': 'no-store' } })

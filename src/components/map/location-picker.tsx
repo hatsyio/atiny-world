@@ -36,6 +36,7 @@ export type LocationSearchStatus =
   | 'unavailable'
 
 export type LocationSuggestion = {
+  displayLabel?: string
   locality: string
   country: string
   countryCode: string
@@ -54,7 +55,7 @@ export interface LocationPickerProps {
 }
 
 function suggestionLabel(suggestion: LocationSuggestion): string {
-  return `${suggestion.locality}, ${suggestion.country}`
+  return suggestion.displayLabel || `${suggestion.locality}, ${suggestion.country}`
 }
 
 export function LocationPicker({ onChange, initialLocation, onPendingChange, readOnly = false, content = '' }: LocationPickerProps) {

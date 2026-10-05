@@ -310,3 +310,5 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .location-selection-map { position: relative; height: 100%; }
 .location-selection-map .location-selection-map__center { position: absolute; bottom: 1.5rem; left: .5rem; z-index: 800; font-size: .75rem; padding: .45rem .6rem; box-shadow: 0 2px 5px #34221530; }
 .location-selection-map__unavailable { position: absolute; top: .5rem; left: 3rem; right: .5rem; z-index: 800; margin: 0; padding: .5rem; background: #faf0da; font-size: .8rem; pointer-events: none; }
+.location-picker__search-feedback [role='option'] { min-width: 0; text-align: left; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
+.location-picker__selection > span { min-width: 0; max-height: 3rem; overflow: auto; overflow-wrap: anywhere; }

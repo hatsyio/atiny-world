@@ -223,6 +223,23 @@ describe('LocationPicker', () => {
     expect(leafletCallbacks.setView).toHaveBeenCalledTimes(viewCount)
   })
 
+  it('shows distinct full descriptions and selects the intended place when city labels match', async () => {
+    const requests: Array<ReturnType<typeof deferred<Response>>> = []
+    stubFetch(requests)
+    const onChange = vi.fn()
+    render(<LocationPicker lang="es" onChange={onChange} />)
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'torrejon de ard' } })
+    await act(async () => { advance(400) })
+    await resolveSearch(requests[0], suggestionsResponse([
+      { ...madridSuggestion, locality: 'Torrejón de Ardoz', displayLabel: '28850 Torrejón de Ardoz, España', selectionToken: 'city-token' },
+      { ...madridSuggestion, locality: 'Torrejón de Ardoz', displayLabel: 'Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España', selectionToken: 'sports-token' },
+    ]))
+    expect(screen.getByRole('option', { name: '28850 Torrejón de Ardoz, España' })).toBeVisible()
+    fireEvent.click(screen.getByRole('option', { name: 'Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España' }))
+    expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'sports-token', precision: 'approximate' })
+    expect(screen.getByRole('region', { name: 'Lugar seleccionado' })).toHaveTextContent('Gran Ciudad Deportiva, Paseo de los Cipreses, 28850 Torrejón de Ardoz, España')
+  })
+
   it('debounces typing and sends one search with the latest text', async () => {
     const requests: Array<ReturnType<typeof deferred<Response>>> = []
     const fetchMock = stubFetch(requests)
