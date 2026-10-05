@@ -22,14 +22,16 @@ it('keeps the letter pin centered with all navigation disabled and no fullscreen
   const map = mapFactory.mock.results[0].value as leaflet.Map
   expect(map.getCenter().lat).toBeCloseTo(40.4167)
   expect(map.getCenter().lng).toBeCloseTo(-3.7033)
-  expect(map.getZoom()).toBe(10)
+  expect(map.getZoom()).toBe(13)
   for (const handler of [map.dragging, map.touchZoom, map.doubleClickZoom, map.scrollWheelZoom, map.boxZoom, map.keyboard]) {
     expect(handler.enabled()).toBe(false)
   }
   expect(container.querySelector('.leaflet-control-zoom')).toBeNull()
   expect(container.querySelector('.leaflet-control-fullscreen')).toBeNull()
   const marker = container.querySelector('.leaflet-marker-icon')
-  expect(marker).toBeTruthy()
+  expect(marker).toHaveClass('map-message-marker')
+  expect(marker?.querySelector('svg')).toBeTruthy()
+  expect(marker?.tagName).toBe('DIV')
   expect(marker).not.toHaveAttribute('tabindex')
   const remove = vi.spyOn(map, 'remove')
   unmount()
@@ -49,7 +51,7 @@ it('recenters on a different letter and removes the previous map', async () => {
   expect(remove).toHaveBeenCalledOnce()
   expect(nextMap.getCenter().lat).toBeCloseTo(37.5665)
   expect(nextMap.getCenter().lng).toBeCloseTo(126.978)
-  expect(nextMap.getZoom()).toBe(10)
+  expect(nextMap.getZoom()).toBe(13)
 })
 
 it('shows an unavailable status when the basemap is not configured', () => {

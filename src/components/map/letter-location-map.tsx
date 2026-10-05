@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 
 import type { PublicPoint } from '@/domain/messages/public-message'
-import { CARTO_ATTRIBUTION, cartoTileUrl, configureMarkerIcons } from './basemap'
+import { CARTO_ATTRIBUTION, cartoTileUrl, createMessageIcon } from './basemap'
 
 export function LetterLocationMap({ point }: { point: PublicPoint }) {
   const t = useTranslations('Map.leaflet')
@@ -25,7 +25,6 @@ export function LetterLocationMap({ point }: { point: PublicPoint }) {
         const leafletModule = await import('leaflet')
         if (disposed || !element.current) return
         const leaflet = leafletModule.default ?? leafletModule
-        configureMarkerIcons(leaflet)
         map = leaflet.map(element.current, {
           attributionControl: true,
           zoomControl: false,
@@ -35,12 +34,13 @@ export function LetterLocationMap({ point }: { point: PublicPoint }) {
           scrollWheelZoom: false,
           boxZoom: false,
           keyboard: false,
-        }).setView([latitude, longitude], 10)
+        }).setView([latitude, longitude], 13)
         leaflet.tileLayer(cartoTileUrl(key), {
           attribution: CARTO_ATTRIBUTION,
           maxZoom: 19,
         }).addTo(map)
         leaflet.marker([latitude, longitude], {
+          icon: createMessageIcon(leaflet),
           interactive: false,
           keyboard: false,
         }).addTo(map)
