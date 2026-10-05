@@ -5,6 +5,7 @@ import type { Locale } from '@/i18n/locale'
 import { useLocale, useTranslations } from 'next-intl'
 
 import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
 
 import { useEffect, useRef, useState } from 'react'
 
@@ -186,7 +187,18 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
       const leafletModule = await import('leaflet')
       if (!active) return
       const leaflet = (leafletModule as { default?: typeof import('leaflet') }).default ?? leafletModule
-      const markers = cluster.current ?? leaflet.markerClusterGroup()
+      const markers = cluster.current ?? leaflet.markerClusterGroup({
+        iconCreateFunction: (group) => {
+          const count = group.getChildCount()
+          const size = count < 10 ? 36 : count < 100 ? 40 : 44
+          return leaflet.divIcon({
+            html: `<span>${count}</span>`,
+            className: 'map-message-cluster',
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size / 2],
+          })
+        },
+      })
       if (!cluster.current) {
         cluster.current = markers
         currentInstance.addLayer(markers)
@@ -202,10 +214,21 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
         markerLayers.current.delete(publicId)
       }
 
+      const messageIcon = leaflet.divIcon({
+        html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>',
+        className: 'map-message-marker',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -15],
+      })
+
       for (const feature of features) {
         let marker = markerLayers.current.get(feature.publicId)
         if (!marker) {
-          marker = leaflet.marker([feature.point.latitude, feature.point.longitude])
+          marker = leaflet.marker([feature.point.latitude, feature.point.longitude], {
+            icon: messageIcon,
+            title: translations.current('viewMessages', { count: 1 }),
+          })
           const currentMarker = marker
           const publicId = feature.publicId
 

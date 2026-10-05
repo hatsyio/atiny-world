@@ -45,6 +45,7 @@ const leaflet = vi.hoisted(() => {
     map: vi.fn(() => instance),
     tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
     markerClusterGroup: vi.fn(() => cluster),
+    divIcon: vi.fn((options) => ({ options })),
     marker: vi.fn(() => markerInstance),
     Icon: { Default: { imagePath: undefined as string | undefined } },
     Control: class {
