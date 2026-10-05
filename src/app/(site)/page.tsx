@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { LetterLink } from '@/components/navigation/letter-link'
 
 import { PublicMapController } from '@/components/map/public-map-controller'
-import type { PublicMessageDetail } from '@/domain/messages/public-message'
+import type { PublicMapFeature, PublicMessageDetail } from '@/domain/messages/public-message'
+import { getVisibleMessage } from '@/server/messages/public-repository'
 import { getDb } from '@/server/db/client'
 import {
   getHomepageStats,
@@ -33,11 +34,13 @@ export function PublicHome({
   publicationPending = false,
   latestLetters = [],
   homepageStats = { letters: 0, countries: 0 },
+  selectedMessage,
 }: {
   lang?: 'en' | 'es'
   publicationPending?: boolean
   latestLetters?: PublicMessageDetail[]
   homepageStats?: PublicMessageStats
+  selectedMessage?: PublicMapFeature
 }) {
   const lang = useLocale()
   const t = useTranslations('Pages.home')
@@ -73,7 +76,7 @@ export function PublicHome({
             <div className="map-heading"><h2 id="map-title">{t('mapTitle')}</h2><p>{t('mapNote')}</p></div>
             {publicationPending && <p className="profile-note" role="status">{t('publicationPending')}</p>}
             <p className="map-hint">{t('mapHint')}</p>
-            <div className="live-map-frame"><PublicMapController lang={lang} /></div>
+            <div className="live-map-frame"><PublicMapController lang={lang} selectedMessage={selectedMessage} /></div>
           </section>
 
           <section className="letters-section" id="letters" tabIndex={-1} aria-labelledby="letters-title">
@@ -100,14 +103,20 @@ export function PublicHome({
 
 export default async function Page({ searchParams }: {
   params?: Promise<{lang?: string}>
-  searchParams: Promise<{ publication?: string }>
+  searchParams: Promise<{ publication?: string; letter?: string }>
 }) {
-  const { publication } = await searchParams
+  const { publication, letter } = await searchParams
   const locale = await getLocale()
   const db = getDb()
-  const [latestLetters, homepageStats] = await Promise.all([
+  const [latestLetters, homepageStats, selectedLetter] = await Promise.all([
     listLatestHomepageMessages(db),
     getHomepageStats(db),
+    typeof letter === 'string' && /^[a-zA-Z0-9-]{1,100}$/.test(letter) ? getVisibleMessage(db, letter) : Promise.resolve(null),
   ])
-  return <PublicHome lang={locale} latestLetters={latestLetters} homepageStats={homepageStats} publicationPending={publication === 'pending'} />
+  const selectedMessage = selectedLetter ? {
+    publicId: selectedLetter.publicId, point: selectedLetter.point, precision: selectedLetter.precision,
+    locality: selectedLetter.locality, country: selectedLetter.country, countryCode: selectedLetter.countryCode,
+    publishedAt: selectedLetter.publishedAt, author: selectedLetter.author,
+  } : undefined
+  return <PublicHome lang={locale} latestLetters={latestLetters} homepageStats={homepageStats} selectedMessage={selectedMessage} publicationPending={publication === 'pending'} />
 }

@@ -5,11 +5,12 @@ import {
   type OwnMessage,
 } from '@/domain/messages/own-message'
 import { signCursor, verifyCursor } from './cursor'
+import { visibilityCondition } from './public-repository'
 
 export type { OwnMessage } from '@/domain/messages/own-message'
 
 export interface OwnMessagePage {
-  items: OwnMessage[]
+  items: (OwnMessage & { publicVisible: boolean })[]
   nextCursor: string | null
 }
 
@@ -28,6 +29,7 @@ type OwnMessageRow = {
   country: string
   created_at: string
   published_at: string
+  public_visible: boolean
 }
 
 // Por unidad de cuenta el límite y el cooldown mantienen el volumen en el rango
@@ -51,7 +53,8 @@ export async function pageOwnMessages(
            st_y(m.public_point::geometry) as latitude,
            st_x(m.public_point::geometry) as longitude,
            m.location_precision, m.locality, m.country,
-           m.created_at, m.published_at
+           m.created_at, m.published_at,
+           (${visibilityCondition(sql)}) as public_visible
       from app_private.messages m
       join app_private.profiles p on p.id = m.author_id
      where p.clerk_user_id = ${args.clerkUserId}
@@ -65,7 +68,7 @@ export async function pageOwnMessages(
   const last = page[page.length - 1]
 
   return {
-    items: page.map(projectOwnMessage),
+    items: page.map(row => ({ ...projectOwnMessage(row), publicVisible: row.public_visible })),
     nextCursor: hasMore && last ? signCursor({ id: last.id }) : null,
   }
 }

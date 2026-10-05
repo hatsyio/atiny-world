@@ -13,7 +13,8 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
 }))
 vi.mock('@/components/map/public-map-loader', () => ({
-  PublicMapLoader: ({ onViewportChange, onFiltersChange, groupRequestUrl, onSelect, onViewChange, initialView }: {
+  PublicMapLoader: ({ onViewportChange, onFiltersChange, groupRequestUrl, onSelect, onViewChange, initialView, features }: {
+    features: { publicId: string }[]
     onSelect: (id: string) => void
     onViewChange: (view: { latitude: number; longitude: number; zoom: number }) => void
     initialView?: { latitude: number; longitude: number; zoom: number }
@@ -23,6 +24,7 @@ vi.mock('@/components/map/public-map-loader', () => ({
   }) => (
     <div>
       <span aria-label="Initial view">{JSON.stringify(initialView)}</span>
+      <span aria-label="Visible markers">{features.map(feature => feature.publicId).join(',')}</span>
       <button onClick={() => onViewChange({ latitude: 40.5, longitude: -3.5, zoom: 8 })}>Set view</button>
       <button onClick={() => onSelect('letter-1')}>Read letter</button>
       <button type="button" onClick={() => onViewportChange({ west: -4, south: 40, east: -3, north: 41 })}>Set viewport</button>
@@ -41,6 +43,30 @@ afterEach(() => {
 })
 
 describe('PublicMapController', () => {
+  it('respects filters after locating a selected letter', async () => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ features: [] }))))
+    const selectedMessage = {
+      publicId: 'seoul-letter', point: { latitude: 37.5, longitude: 127 },
+      precision: 'approximate' as const, locality: 'Seoul', country: 'Korea', countryCode: 'kr',
+      publishedAt: '2026-10-06T10:00:00Z', author: { publicId: 'author', displayName: 'ATINY' },
+    }
+    const { getByLabelText, getByRole } = render(<PublicMapController selectedMessage={selectedMessage} />)
+    expect(getByLabelText('Visible markers')).toHaveTextContent('seoul-letter')
+    act(() => getByRole('button', { name: 'Set filters' }).click())
+    await waitFor(() => expect(getByLabelText('Visible markers')).toBeEmptyDOMElement())
+  })
+
+  it('centers a selected public letter even before loading viewport markers', () => {
+    const selectedMessage = {
+      publicId: 'selected-letter', point: { latitude: 40.4, longitude: -3.7 },
+      precision: 'approximate' as const, locality: 'Madrid', country: 'España', countryCode: 'es',
+      publishedAt: '2026-10-06T10:00:00Z', author: { publicId: 'author', displayName: 'ATINY' },
+    }
+    const { getByLabelText } = render(<PublicMapController selectedMessage={selectedMessage} />)
+    expect(getByLabelText('Initial view')).toHaveTextContent('{"latitude":40.4,"longitude":-3.7,"zoom":8}')
+  })
+
   it('passes map filters to both feature and message requests', async () => {
     vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
     const fetch = vi.fn<typeof globalThis.fetch>(async () =>

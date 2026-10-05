@@ -1,6 +1,7 @@
 'use client'
 
 import { useLocale, useTranslations } from 'next-intl'
+import Link from 'next/link'
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
@@ -15,7 +16,7 @@ export type OwnMessageListItem = Pick<
   OwnMessage,
   'publicId' | 'version' | 'status' | 'moderationReasonCode' | 'moderationNote' | 'content'
 > &
-  Partial<Pick<OwnMessage, 'point' | 'precision' | 'locality' | 'country' | 'publishedAt'>>
+  Partial<Pick<OwnMessage, 'point' | 'precision' | 'locality' | 'country' | 'publishedAt'>> & { publicVisible?: boolean }
 
 type Props = {
   lang?: string
@@ -56,6 +57,17 @@ export function MyMessageList({
   const [confirming, setConfirming] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [copyFeedback, setCopyFeedback] = useState<{ publicId: string; key: 'copied' | 'copyError' } | null>(null)
+
+  async function copyLink(publicId: string) {
+    setCopyFeedback(null)
+    try {
+      await navigator.clipboard.writeText(new URL(`/messages/${encodeURIComponent(publicId)}`, window.location.origin).href)
+      setCopyFeedback({ publicId, key: 'copied' })
+    } catch {
+      setCopyFeedback({ publicId, key: 'copyError' })
+    }
+  }
 
   function edit(item: OwnMessageListItem) {
     if (onEdit) {
@@ -97,6 +109,7 @@ export function MyMessageList({
             const reason = item.moderationReasonCode ? (item.moderationReasonCode === 'spam' || item.moderationReasonCode === 'conduct' ? t(`reasons.${item.moderationReasonCode}`) : t('reasonFallback')) : null
             const isConfirming = confirming === item.publicId
             const origin = ownLetterOrigin(locale, item.publicId, cursor)
+            const publicVisible = item.publicVisible === true && !accountSuspended
 
             return (
               <li id={`own-${item.publicId}`} className="my-message-item" key={`${item.publicId}-${index}`} aria-label={item.content}>
@@ -105,12 +118,14 @@ export function MyMessageList({
                 {reason ? <p><span>{reason}</span></p> : null}
                 {item.moderationNote ? <p><small><span>{t('moderationNote')}: </span><span>{item.moderationNote}</span></small></p> : null}
                 <p className="my-message-links">
-                  {item.status === 'approved' ? (
-                    <LetterLink lang={locale} publicId={item.publicId} origin={origin}>{t('locate')}</LetterLink>
-                  ) : (
-                    <LetterLink lang={locale} publicId={item.publicId} origin={origin}>{t('unavailable')}</LetterLink>
-                  )}
+                  <LetterLink lang={locale} publicId={item.publicId} origin={origin}>{t('view')}</LetterLink>
+                  {publicVisible ? <>
+                    <Link href={`/?letter=${encodeURIComponent(item.publicId)}#map`}>{t('viewMap')}</Link>
+                    <button type="button" onClick={() => void copyLink(item.publicId)}>{t('copyLink')}</button>
+                  </> : null}
                 </p>
+                {!publicVisible ? <p className="profile-note">{t(accountSuspended ? 'privateSuspended' : item.status === 'pending' ? 'privatePending' : 'privateHidden')}</p> : null}
+                {copyFeedback?.publicId === item.publicId ? <p role="status">{t(copyFeedback.key)}</p> : null}
                 <div className="my-message-actions">
                   {!accountSuspended ? (
                     onEdit ? (

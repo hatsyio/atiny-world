@@ -63,7 +63,15 @@
     "keep": "Keep letter",
     "confirmHint": "This letter will be deleted permanently. This frees one slot of your limit and cannot be undone.",
     "deleteError": "The letter could not be deleted. Please try again.",
-    "empty": "You do not have any letters yet."
+    "empty": "You do not have any letters yet.",
+    "view": "View letter",
+    "viewMap": "View on map",
+    "copyLink": "Copy link",
+    "copied": "Link copied",
+    "copyError": "Could not copy the link. Try again.",
+    "privatePending": "Pending review. You can share it once it is approved.",
+    "privateHidden": "This letter is not public. You can read it and check the moderation reason.",
+    "privateSuspended": "Your letters are not public while your account is suspended."
   },
   "location": {
     "fieldset": "Publish location",

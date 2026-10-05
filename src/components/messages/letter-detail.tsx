@@ -9,13 +9,13 @@ import { LocationPicker } from '@/components/map/location-picker'
 import { EditMessageForm } from './edit-message-form'
 import { LetterWorkspace } from './letter-workspace'
 
-export function LetterDetail({ message, ownMessage }: { message: PublicMessageDetail; ownMessage?: OwnMessage }) {
+export function LetterDetail({ message, ownMessage, canEdit = true }: { message: PublicMessageDetail; ownMessage?: OwnMessage; canEdit?: boolean }) {
   const [editing, setEditing] = useState(false)
   const router = useRouter()
   const t = useTranslations('Forms')
   const format = useFormatter()
 
-  if (editing && ownMessage) {
+  if (editing && ownMessage && canEdit) {
     return <EditMessageForm message={ownMessage} onCancel={() => setEditing(false)} onSaved={() => {
       setEditing(false)
       router.refresh()
@@ -39,7 +39,7 @@ export function LetterDetail({ message, ownMessage }: { message: PublicMessageDe
         </>
       } />
       <div className="letter-workspace__feedback" />
-      {ownMessage ? <div className="profile-actions"><button className="profile-submit" type="button" onClick={() => setEditing(true)}>{t('own.edit')}</button></div> : null}
+      {ownMessage && canEdit ? <div className="profile-actions"><button className="profile-submit" type="button" onClick={() => setEditing(true)}>{t('own.edit')}</button></div> : null}
     </div>
   )
 }

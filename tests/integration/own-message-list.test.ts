@@ -1,6 +1,6 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { pagePublicMessages } from '../../src/server/messages/public-repository'
+import { getVisibleMessage, pagePublicMessages } from '../../src/server/messages/public-repository'
 import { pageOwnMessages } from '../../src/server/messages/own-message-repository'
 import {
   createTestDb,
@@ -13,7 +13,11 @@ const db = createTestDb()
 
 beforeEach(async () => {
   await truncateProductTables(db)
-  await db`update app_private.settings set message_limit = 10, cooldown_seconds = 10 where id = 1`
+  await db`update app_private.settings set message_limit = 10, cooldown_seconds = 10, premoderation_enabled = false where id = 1`
+})
+
+afterEach(async () => {
+  await db`update app_private.settings set premoderation_enabled = false where id = 1`
 })
 
 afterAll(async () => {
@@ -22,6 +26,27 @@ afterAll(async () => {
 })
 
 describe('pageOwnMessages lists every owned message privately', () => {
+  it.each([false, true])('matches public visibility with premoderation=%s', async premoderation => {
+    await db`update app_private.settings set premoderation_enabled = ${premoderation} where id = 1`
+    const profile = await insertProfile(db, 'own-list-visibility')
+    for (const status of ['pending', 'approved', 'rejected', 'withdrawn'] as const) {
+      await insertMessage(db, profile.id, {
+        status,
+        moderation_reason_code: status === 'rejected' || status === 'withdrawn' ? 'conduct' : null,
+      })
+    }
+    const page = await pageOwnMessages(db, { clerkUserId: 'own-list-visibility' })
+    for (const item of page.items) {
+      const expected = item.status === 'approved' || (item.status === 'pending' && !premoderation)
+      expect(item).toMatchObject({ publicVisible: expected })
+      expect(Boolean(await getVisibleMessage(db, item.publicId))).toBe(expected)
+    }
+    await db`update app_private.profiles set suspended_at = now(), suspension_reason_code = 'conduct' where id = ${profile.id}`
+    const suspended = await pageOwnMessages(db, { clerkUserId: 'own-list-visibility' })
+    expect(suspended.items).toHaveLength(4)
+    for (const item of suspended.items) expect(item).toMatchObject({ publicVisible: false })
+  })
+
   it('returns the four states and a moderation reason only when it exists', async () => {
     const profile = await insertProfile(db, 'own-list-states')
     const rejected = await insertMessage(db, profile.id, {

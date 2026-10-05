@@ -16,7 +16,7 @@ vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
 vi.mock('server-only', () => ({}))
 vi.mock('@/components/map/public-map-controller', () => ({ PublicMapController: () => null }))
 vi.mock('@/server/messages/public-repository', () => ({ getVisibleMessage: vi.fn(async () => null) }))
-vi.mock('@/server/auth/authorize', () => ({ authorizeSession: vi.fn(async () => ({ ok: false })) }))
+vi.mock('@/server/auth/authorize', () => ({ authorizeSession: vi.fn(async () => ({ ok: false, error: { code: 'NOT_FOUND', messageKey: 'auth.unauthenticated' } })) }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 
 import { PublicHome } from '@/app/(site)/page'
@@ -63,7 +63,7 @@ it.each(['en', 'es'] as const)('returns My letters → public letter → My lett
   window.history.replaceState(null, '', '/my-messages?cursor=older%2Bpage')
   const router = { push: vi.fn(), prefetch: vi.fn() } as unknown as NextRouter
   const list = render(<RouterContext.Provider value={router}><MyMessageList lang={lang} cursor="older+page" messages={[letter]} onEdit={() => {}} /></RouterContext.Provider>)
-  const link = screen.getByRole('link', { name: lang === 'es' ? 'Localizar carta' : 'Locate letter' })
+  const link = screen.getByRole('link', { name: lang === 'es' ? 'Ver carta' : 'View letter' })
   const detail = new URL(link.getAttribute('href')!, window.location.origin)
   const origin = '/my-messages?cursor=older%2Bpage#own-letter-1'
   expect(detail.searchParams.get('returnTo')).toBe(origin)
