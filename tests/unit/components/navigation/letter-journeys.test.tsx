@@ -14,10 +14,11 @@ import type { NextRouter } from 'next/router'
 vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
 vi.mock('server-only', () => ({}))
 vi.mock('@/components/map/public-map-controller', () => ({ PublicMapController: () => null }))
-vi.mock('@/server/messages/public-repository', () => ({ getVisibleMessage: async () => null }))
+vi.mock('@/server/messages/public-repository', () => ({ getVisibleMessage: vi.fn(async () => null) }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 
 import { PublicHome } from '@/app/(site)/page'
+import { getVisibleMessage } from '@/server/messages/public-repository'
 import PublicMessagePage from '@/app/(site)/messages/[publicId]/page'
 import { MyMessageList } from '@/components/messages/my-message-list'
 
@@ -77,4 +78,13 @@ it.each(['en', 'es'] as const)('direct access after another exploration returns 
   window.history.replaceState(null, '', '/messages/letter-1')
   render(await PublicMessagePage({ params: Promise.resolve({ lang: setServerLocale(lang), publicId: 'letter-1' }) }))
   expect(screen.getByRole('link', { name: lang === 'es' ? /Volver al mapa/ : /Back to the map/ })).toHaveAttribute('href', '/#map')
+})
+
+it('renders the location of the visible letter without exploration controls', async () => {
+  vi.mocked(getVisibleMessage).mockResolvedValueOnce(letter)
+  testLocale = 'en'
+  setServerLocale('en')
+  const { container } = render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }) }))
+  expect(container.querySelector('.message-map .map--static')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /fullscreen/i })).toBeNull()
 })
