@@ -90,8 +90,11 @@
     "attribution": "Lugares de Geoapify",
     "mapUnavailable": "No se pudo cargar la vista previa del mapa. Inténtalo de nuevo.",
     "precisePointLabel": "Punto público exacto",
-    "mapEmpty": "Elige un lugar para verlo en el mapa.",
-    "keepLocation": "Conserva el lugar actual o busca otro para cambiar la ubicación o la precisión.",
-    "chooseLocation": "Elige un lugar para activar la precisión."
+    "mapEmpty": "Pincha en el mapa para elegir un lugar.",
+    "keepLocation": "Conserva el lugar actual o elige otro desde el mapa o el buscador.",
+    "chooseLocation": "Elige un lugar desde el mapa o el buscador.",
+    "mapPointLabel": "Lugar elegido",
+    "mapSelectHint": "Pincha o toca el mapa para elegir un lugar. También puedes arrastrar el marcador.",
+    "useMapCenter": "Elegir el centro del mapa"
   }
 }

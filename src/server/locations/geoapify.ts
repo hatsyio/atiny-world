@@ -111,10 +111,10 @@ export async function searchGeoapifyLocations(
   }
 }
 
-export async function reverseGeoapifyLocality(
+export async function reverseGeoapifyLocation(
   point: PublicPoint,
-  dependencies: GeoapifyDependencies = {},
-): Promise<string | null> {
+  dependencies: GeoapifyDependencies & { language?: 'en' | 'es' | 'ko' } = {},
+): Promise<GeoapifyLocationSuggestion | null> {
   const parameters = new URLSearchParams({
     lat: String(point.latitude),
     lon: String(point.longitude),
@@ -122,6 +122,7 @@ export async function reverseGeoapifyLocality(
     format: 'json',
     limit: '1',
   })
+  if (dependencies.language) parameters.set('lang', dependencies.language)
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), dependencies.timeoutMs ?? PROVIDER_TIMEOUT_MS)
 
@@ -140,11 +141,18 @@ export async function reverseGeoapifyLocality(
     const result = payload.results
       .map((value) => normalizeResult(value as GeoapifyResult))
       .find((value) => value !== null)
-    return result?.locality ?? null
+    return result ?? null
   } catch (error) {
     if (error instanceof GeoapifyProviderError) throw error
     throw new GeoapifyProviderError('unavailable')
   } finally {
     clearTimeout(timeout)
   }
+}
+
+export async function reverseGeoapifyLocality(
+  point: PublicPoint,
+  dependencies: GeoapifyDependencies = {},
+): Promise<string | null> {
+  return (await reverseGeoapifyLocation(point, dependencies))?.locality ?? null
 }

@@ -90,8 +90,11 @@
     "attribution": "Places by Geoapify",
     "mapUnavailable": "The map preview could not be loaded. Try again.",
     "precisePointLabel": "Exact public point",
-    "mapEmpty": "Choose a place to see it on the map.",
-    "keepLocation": "Keep the current place or search for a place to change the location or precision.",
-    "chooseLocation": "Choose a place to enable precision controls."
+    "mapEmpty": "Click the map to choose a place.",
+    "keepLocation": "Keep the current place or choose another using the map or search.",
+    "chooseLocation": "Choose a place using the map or search.",
+    "mapPointLabel": "Chosen place",
+    "mapSelectHint": "Click or tap the map to choose a place. You can also drag the marker.",
+    "useMapCenter": "Choose the map center"
   }
 }
