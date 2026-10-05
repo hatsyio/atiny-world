@@ -101,6 +101,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map--preview .map__canvas { position: relative; }
 .map--preview .map__canvas::after { content: '✧'; position: absolute; right: 3%; top: 3%; font-size: clamp(3rem, 7vw, 7rem); color: #6a3b20; }
 .map--fullscreen .map__canvas { height: 100%; }
+.map-message-cluster { display: grid; place-items: center; border: 2px solid var(--gold); border-radius: 50%; background: var(--navy); color: #fff0cb; box-shadow: 0 2px 6px #241a1766; font-family: var(--font-interface), sans-serif; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.map-message-cluster:hover { background: #213c55; }
+.map-message-cluster:focus-visible { outline: 3px solid #fff0cb; outline-offset: 3px; }
 .map__filters { position: absolute; z-index: 500; top: 1rem; right: 1rem; width: min(280px, calc(100% - 2rem)); display: grid; justify-items: end; gap: .5rem; }
 .map__filters-toggle, .map__filters-panel { box-shadow: 0 3px 14px #241a1766; }
 .map__filters-toggle { cursor: pointer; background: var(--navy); color: #f4dab0; border: 1px solid var(--gold); padding: .65rem 1rem; }

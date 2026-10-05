@@ -5,6 +5,7 @@ import type { Locale } from '@/i18n/locale'
 import { useLocale, useTranslations } from 'next-intl'
 
 import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
 
 import { useEffect, useRef, useState } from 'react'
 
@@ -186,7 +187,18 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
       const leafletModule = await import('leaflet')
       if (!active) return
       const leaflet = (leafletModule as { default?: typeof import('leaflet') }).default ?? leafletModule
-      const markers = cluster.current ?? leaflet.markerClusterGroup()
+      const markers = cluster.current ?? leaflet.markerClusterGroup({
+        iconCreateFunction: (group) => {
+          const count = group.getChildCount()
+          const size = count < 10 ? 36 : count < 100 ? 40 : 44
+          return leaflet.divIcon({
+            html: `<span>${count}</span>`,
+            className: 'map-message-cluster',
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size / 2],
+          })
+        },
+      })
       if (!cluster.current) {
         cluster.current = markers
         currentInstance.addLayer(markers)
