@@ -97,7 +97,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map-feedback p { margin: 0; }
 .map { min-height: 390px; position: relative; }
 .map--fullscreen { position: fixed; inset: 0; min-height: 0; padding: 0; z-index: 1000; background: #e0bb83; }
-.map__canvas { height: clamp(360px, 43vw, 540px); width: 100%; background: transparent url('/images/world-silhouette.svg') center / contain no-repeat; filter: sepia(.42) contrast(.94); }
+.map__canvas { container-type: inline-size; height: clamp(360px, 43vw, 540px); width: 100%; background: transparent url('/images/world-silhouette.svg') center / contain no-repeat; filter: sepia(.42) contrast(.94); }
 .map--preview .map__canvas { position: relative; }
 .map--preview .map__canvas::after { content: '✧'; position: absolute; right: 3%; top: 3%; font-size: clamp(3rem, 7vw, 7rem); color: #6a3b20; }
 .map--fullscreen .map__canvas { height: 100%; }
@@ -133,6 +133,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .leaflet-touch .leaflet-control-fullscreen .leaflet-control-zoom-fullscreen { width: 30px; height: 30px; font-size: 22px; line-height: 30px; border-radius: 2px; }
 .map p[role='status'] { padding: .3rem 1rem; margin: 0; text-align: center; font-style: italic; }
 .leaflet-popup-content .map-message-popup { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.map-letter-popup .leaflet-popup-content-wrapper { background: #faf0da; color: var(--ink); border: 1px solid #b88d59; border-radius: 8px; padding: 0; box-shadow: 0 5px 18px #241a1730; }
+.map-letter-popup .leaflet-popup-tip { background: #faf0da; box-shadow: 0 3px 8px #241a1720; }
+.map-letter-popup .leaflet-popup-content { margin: 40px 22px 22px; max-width: min(340px, calc(100vw - 80px), calc(100cqw - 80px)); font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.6; }
+.map-message-letter .map-message-popup { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 7; overflow: hidden; }
+.map-message-read { display: block; margin: 12px 0 0 auto; min-height: 32px; padding: 4px 8px; border: 1px solid #b88d59; border-radius: 4px; background: transparent; color: var(--ink); font-family: var(--font-interface), sans-serif; font-size: 13px; line-height: 1.4; cursor: pointer; }
+.map-message-read:hover { background: #eed4a7; }
+.map-message-read:focus-visible { outline: 2px solid var(--brown); outline-offset: 3px; }
+.leaflet-container .map-letter-popup a.leaflet-popup-close-button { top: 4px; right: 4px; width: 36px; height: 36px; font-size: 22px; line-height: 36px; color: var(--brown); border-radius: 4px; }
+.leaflet-container .map-letter-popup a.leaflet-popup-close-button:hover { background: #eed4a7; color: var(--ink); }
+
 
 .letters-section { max-width: 1400px; margin: 0 auto; scroll-margin-top: 1rem; }
 .section-heading { display: flex; align-items: center; gap: 1rem; }
@@ -227,6 +237,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .map-heading p { max-width: none; text-align: center; margin: .5rem 0; }
   .live-map-frame { margin-bottom: 3rem; }
   .map__canvas { height: 310px; }
+  .map-message-letter .map-message-popup { -webkit-line-clamp: 5; }
   .map__filters { top: .5rem; right: .5rem; width: min(250px, calc(100% - 1rem)); }
   .map__overlay { right: .5rem; bottom: .5rem; width: min(350px, calc(100% - 1rem)); }
   .map__message-panel { max-height: 220px; }

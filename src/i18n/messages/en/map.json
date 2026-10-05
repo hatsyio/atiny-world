@@ -35,6 +35,7 @@
     "exitFullscreen": "Exit fullscreen",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
+    "readFullMessage": "Read full message",
     "closePopup": "Close popup"
   },
   "loading": "Loading map…",

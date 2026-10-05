@@ -40,11 +40,21 @@ export function configureMarkerIcons(leaflet: typeof import('leaflet')): void {
   leaflet.Icon.Default.imagePath = '/images/leaflet/'
 }
 
-function popupContent(content: string): HTMLElement {
+function popupContent(content: string, reading?: { label: string; onRead: () => void }): HTMLElement {
   const paragraph = document.createElement('p')
   paragraph.className = 'map-message-popup'
   paragraph.textContent = content
-  return paragraph
+  if (!reading) return paragraph
+
+  const letter = document.createElement('div')
+  letter.className = 'map-message-letter'
+  const readButton = document.createElement('button')
+  readButton.type = 'button'
+  readButton.className = 'map-message-read'
+  readButton.textContent = reading.label
+  readButton.addEventListener('click', reading.onRead)
+  letter.append(paragraph, readButton)
+  return letter
 }
 
 function updateFullscreenControl(button: HTMLButtonElement, isFullscreen: boolean, enter: string, exit: string): void {
@@ -82,6 +92,7 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
   const messageRequests = useRef(new Map<string, AbortController>())
   const centeredPublicId = useRef<string | null>(null)
   const initialViewRef = useRef(initialView)
+  const onSelectRef = useRef(onSelect)
   const onViewChangeRef = useRef(onViewChange)
   const onViewportChangeRef = useRef(onViewportChange)
   const fullscreenButton = useRef<HTMLButtonElement | null>(null)
@@ -93,9 +104,10 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
   const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY
 
   useEffect(() => {
+    onSelectRef.current = onSelect
     onViewportChangeRef.current = onViewportChange
     onViewChangeRef.current = onViewChange
-  }, [onViewportChange, onViewChange])
+  }, [onSelect, onViewportChange, onViewChange])
 
   useEffect(() => {
     const apiKey = cartoApiKey
@@ -234,10 +246,12 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
 
           popupStates.current.set(publicId, 'loadingMessage')
           marker.bindPopup(popupContent(translations.current('loadingMessage')), {
-            autoClose: false,
-            closeOnClick: false,
-            maxWidth: 320,
-            maxHeight: 240,
+            className: 'map-letter-popup',
+            autoClose: true,
+            closeOnClick: true,
+            minWidth: 340,
+            maxWidth: 340,
+            autoPanPadding: [16, 16],
           })
 
           const loadMessage = async () => {
@@ -255,7 +269,10 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
               const message = await response.json() as PublicMessageDetail
               if (!request.signal.aborted && markerLayers.current.get(publicId) === currentMarker) {
                 popupStates.current.set(publicId, 'content')
-                currentMarker.setPopupContent(popupContent(message.content))
+                currentMarker.setPopupContent(popupContent(message.content, {
+                  label: translations.current('readFullMessage'),
+                  onRead: () => onSelectRef.current(publicId),
+                }))
               }
             } catch {
               if (!request.signal.aborted && markerLayers.current.get(publicId) === currentMarker) {
@@ -319,6 +336,9 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
         button.title = t(key)
       })
     }
+    element.current?.querySelectorAll<HTMLButtonElement>('.map-message-read').forEach((button) => {
+      button.textContent = t('readFullMessage')
+    })
     for (const [publicId, state] of popupStates.current) {
       if (state !== 'content') markerLayers.current.get(publicId)?.setPopupContent(popupContent(t(state)))
     }
