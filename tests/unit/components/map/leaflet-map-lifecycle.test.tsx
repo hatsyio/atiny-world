@@ -74,6 +74,7 @@ const feature: PublicMapFeature = {
 afterEach(() => {
   cleanup()
   vi.unstubAllEnvs()
+  vi.unstubAllGlobals()
   vi.clearAllMocks()
   leaflet.instance.zoomControl.getContainer().replaceChildren()
   leaflet.resetFullscreenControlContainer()
@@ -182,7 +183,29 @@ describe('LeafletMap lifecycle', () => {
     expect(leaflet.Icon.Default.imagePath).toBe('/images/leaflet/')
   })
 
-  it('shows the letter in a persistent popup without navigating', async () => {
+  it('opens the full letter from its popup using the current selection callback', async () => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+      ...feature, content: 'Una carta larga. '.repeat(80),
+    }))))
+    const onSelect = vi.fn()
+    const result = render(<LeafletMap features={[feature]} onSelect={onSelect} lang="es" />)
+    await waitFor(() => expect(leaflet.markerHandlers.has('click')).toBe(true))
+    act(() => leaflet.markerHandlers.get('click')?.())
+    await waitFor(() => {
+      const popup = leaflet.markerInstance.setPopupContent.mock.calls.at(-1)?.[0] as HTMLElement
+      expect(popup.querySelector('button')?.textContent).toBe('Leer completo')
+    })
+    expect(onSelect).not.toHaveBeenCalled()
+    const nextSelect = vi.fn()
+    result.rerender(<LeafletMap features={[feature]} onSelect={nextSelect} lang="es" />)
+    const popup = leaflet.markerInstance.setPopupContent.mock.calls.at(-1)?.[0] as HTMLElement
+    fireEvent.click(popup.querySelector('button')!)
+    expect(nextSelect).toHaveBeenCalledWith(feature.publicId)
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  it('shows the letter in a single popup without navigating', async () => {
     vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
     const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(JSON.stringify({
       ...feature,
@@ -199,11 +222,11 @@ describe('LeafletMap lifecycle', () => {
     expect(fetch).toHaveBeenCalledWith(`/api/messages/${feature.publicId}`, expect.objectContaining({ cache: 'no-store' }))
     expect(onSelect).not.toHaveBeenCalled()
     const popup = leaflet.markerInstance.setPopupContent.mock.calls.at(-1)?.[0] as HTMLElement
-    expect(popup.textContent).toBe('Gracias por estar aquí\nSiempre contigo <script>alert(1)</script>')
+    expect(popup.querySelector('p')?.textContent).toBe('Gracias por estar aquí\nSiempre contigo <script>alert(1)</script>')
     expect(popup.querySelector('script')).toBeNull()
     expect(leaflet.markerInstance.bindPopup).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ autoClose: false, closeOnClick: false }),
+      expect.objectContaining({ autoClose: true, closeOnClick: true }),
     )
 
     rerender(<LeafletMap features={[{ ...feature }]} onSelect={onSelect} lang="es" />)

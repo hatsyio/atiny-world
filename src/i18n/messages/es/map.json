@@ -35,6 +35,7 @@
     "exitFullscreen": "Salir de pantalla completa",
     "zoomIn": "Acercar",
     "zoomOut": "Alejar",
+    "readFullMessage": "Leer completo",
     "closePopup": "Cerrar ventana"
   },
   "loading": "Cargando mapa…",
