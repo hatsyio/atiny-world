@@ -1,4 +1,4 @@
-import type { Fragment, Sql } from 'postgres'
+import type { Fragment, Sql, TransactionSql } from 'postgres'
 
 import {
   type MapBounds,
@@ -74,7 +74,7 @@ type FeatureRow = {
   content: string | null
 }
 
-export function visibilityCondition(sql: Sql): Fragment {
+export function visibilityCondition(sql: Sql | TransactionSql): Fragment {
   return sql`
     p.account_state = 'active'
     and p.suspended_at is null

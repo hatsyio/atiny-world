@@ -99,6 +99,40 @@
       "active": "Active",
       "suspended": "Suspended",
       "deletion_pending": "Deletion pending"
+    },
+    "messages": "Message moderation",
+    "moderation": {
+      "title": "Message moderation",
+      "intro": "Review letters without changing their text. Each decision is recorded privately.",
+      "searchLabel": "Search by letter text, author name or letter ID",
+      "state": "State",
+      "all": "All states",
+      "pagination": "Letter result pages",
+      "empty": "No letters match these filters.",
+      "letterBy": "Letter by {name}",
+      "version": "Version {version}",
+      "public": "Visible on the public map",
+      "hidden": "Hidden from the public map",
+      "letterId": "Letter ID",
+      "decision": "Decision",
+      "reason": "Reason",
+      "chooseReason": "Choose a reason",
+      "note": "Private note (optional, shared with the author)",
+      "apply": "Apply decision",
+      "saving": "Saving…",
+      "saved": "Decision saved.",
+      "denied": "You no longer have permission to moderate this letter.",
+      "invalid": "Check the filters, version, reason and note before trying again.",
+      "conflict": "This letter has changed. Reload and review the current version.",
+      "transition": "This decision is no longer available. Reload and review the letter.",
+      "error": "Could not save the decision. Try again.",
+      "reload": "Reload letters",
+      "noDecisions": "No decisions are available for this state.",
+      "decisions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "withdraw": "Withdraw"
+      }
     }
   }
 }

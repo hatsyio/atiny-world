@@ -81,7 +81,8 @@ Transiciones:
 ```text
 crear -> pending v1
 pending -> approved | rejected
-approved -> withdrawn
+pending público (moderación previa desactivada) -> withdrawn
+approved público -> withdrawn
 editar cualquier estado -> pending v+1
 eliminar cualquier estado -> borrado físico
 ```

@@ -51,7 +51,9 @@
     },
     "reasons": {
       "spam": "Spam or unsolicited content",
-      "conduct": "Harassment or misconduct"
+      "conduct": "Harassment or misconduct",
+      "privacy": "Personal data or private information",
+      "community_guidelines": "Community guidelines violation"
     },
     "reasonFallback": "Moderation reason",
     "moderationNote": "Private moderation note",

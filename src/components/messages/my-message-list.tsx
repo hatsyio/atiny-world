@@ -10,6 +10,7 @@ import { LetterLink } from '@/components/navigation/letter-link'
 import { ownLetterOrigin } from '@/components/navigation/letter-origin'
 import type { MessageStatus } from '@/domain/contracts'
 import type { OwnMessage } from '@/domain/messages/own-message'
+import { isModerationReasonCode } from '@/i18n/moderation-reasons'
 import { deleteMessageAction } from '@/app/(site)/my-messages/delete-action'
 
 export type OwnMessageListItem = Pick<
@@ -106,7 +107,7 @@ export function MyMessageList({
       {messages.length > 0 ? (
         <ul className="my-message-list">
           {messages.map((item, index) => {
-            const reason = item.moderationReasonCode ? (item.moderationReasonCode === 'spam' || item.moderationReasonCode === 'conduct' ? t(`reasons.${item.moderationReasonCode}`) : t('reasonFallback')) : null
+            const reason = item.moderationReasonCode ? (isModerationReasonCode(item.moderationReasonCode) ? t(`reasons.${item.moderationReasonCode}`) : t('reasonFallback')) : null
             const isConfirming = confirming === item.publicId
             const origin = ownLetterOrigin(locale, item.publicId, cursor)
             const publicVisible = item.publicVisible === true && !accountSuspended

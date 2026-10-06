@@ -51,7 +51,9 @@
     },
     "reasons": {
       "spam": "Contenido no deseado",
-      "conduct": "Acoso o mala conducta"
+      "conduct": "Acoso o mala conducta",
+      "privacy": "Datos personales o información privada",
+      "community_guidelines": "Incumplimiento de las normas de la comunidad"
     },
     "reasonFallback": "Motivo de moderación",
     "moderationNote": "Nota privada de moderación",

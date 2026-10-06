@@ -10,7 +10,7 @@ La sesión de Clerk identifica al usuario. `app_private.profiles.role` es la fue
 - La acción toma la identidad de la sesión, valida los valores, bloquea actor y destinatario en orden estable y vuelve a comprobar sus roles vigentes. Un trigger aumenta `role_version` en cada cambio y permite rechazar formularios antiguos incluso después de conceder y retirar el mismo rol.
 - El cambio y su auditoría se guardan en una transacción. El runtime puede leer e insertar auditoría, pero no modificarla ni borrarla. La base de datos privada sigue inaccesible desde las credenciales públicas y las vistas previas.
 
-Esta entrega cubre la base del panel y la gestión de roles. Las pantallas de moderación, solicitudes, suspensión, configuración y consulta del historial siguen pendientes en US5. No se marca US5 completa.
+Esta entrega cubre la base del panel y la gestión de roles. La moderación de mensajes se entrega en la siguiente iteración, documentada en `docs/admin-moderation.md`. Las pantallas de solicitudes, suspensión, configuración y consulta del historial siguen pendientes en US5. No se marca US5 completa.
 
 ## Primer propietario
 
@@ -33,7 +33,7 @@ Preview y producción comparten la base remota, aunque sus instancias de Clerk t
 - Producción: `hachikisu`, rol `owner`.
 - Preview/desarrollo contra la base remota: `tavivito93`, rol `owner`; coexistencia verificada con la identidad de producción.
 - Las dos migraciones están aplicadas en Compose y en el proyecto Supabase `atiny-world`.
-- El panel está implementado en la rama `feat/admin-roles`; su integración y despliegue son pasos posteriores.
+- El panel de roles está integrado en `main` mediante la PR #76. La siguiente entrega de moderación está documentada en `docs/admin-moderation.md`.
 
 La base de Compose (`54332`) y la de pruebas de Supabase (`54322`) son distintas: la suite nunca debe ejecutarse contra la base de uso real ni contra producción. El reset de una base local elimina también su asignación de propietario, que debe repetirse expresamente.
 
