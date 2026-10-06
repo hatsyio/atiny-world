@@ -1,0 +1,69 @@
+'use client'
+
+import { useActionState, useId, useState } from 'react'
+import { useFormatter, useTranslations } from 'next-intl'
+import { moderateMessageAction, type ModerationActionState } from '@/app/(site)/admin/messages/actions'
+import type { ModerationMessage } from '@/server/moderation/message-repository'
+import type { ModerationDecision } from '@/domain/moderation/policies'
+import { MODERATION_REASON_CODES, isModerationReasonCode } from '@/i18n/moderation-reasons'
+import { AdminRefresh } from './admin-refresh'
+
+function MessageDecisionForm({ message, onSaved }: { message: ModerationMessage; onSaved: () => void }) {
+  const t = useTranslations('Pages.admin.moderation')
+  const reasons = useTranslations('Forms.own')
+  const id = useId()
+  const [decision, setDecision] = useState<ModerationDecision>(message.decisions[0])
+  const [state, action, pending] = useActionState<ModerationActionState, FormData>(async (previous, form) => {
+    const result = await moderateMessageAction(previous, form)
+    if (result.status === 'saved') onSaved()
+    return result
+  }, { status: 'idle' })
+  const stale = state.status === 'conflict' || state.status === 'transition' || state.status === 'denied' || state.status === 'saved'
+  return <form action={action} className="admin-decision-form">
+    <input type="hidden" name="publicId" value={message.publicId} />
+    <input type="hidden" name="expectedVersion" value={message.version} />
+    <label htmlFor={`${id}-decision`}>{t('decision')}</label>
+    <select id={`${id}-decision`} name="decision" value={decision} disabled={pending || stale} onChange={event => setDecision(event.target.value as ModerationDecision)}>
+      {message.decisions.map(value => <option key={value} value={value}>{t(`decisions.${value}`)}</option>)}
+    </select>
+    {decision !== 'approve' && <>
+      <label htmlFor={`${id}-reason`}>{t('reason')}</label>
+      <select id={`${id}-reason`} name="reasonCode" defaultValue="" required disabled={pending || stale}>
+        <option value="" disabled>{t('chooseReason')}</option>
+        {MODERATION_REASON_CODES.map(code => <option key={code} value={code}>{reasons(`reasons.${code}`)}</option>)}
+      </select>
+    </>}
+    <label htmlFor={`${id}-note`}>{t('note')}</label>
+    <textarea id={`${id}-note`} name="note" maxLength={1000} rows={3} disabled={pending || stale} />
+    <button type="submit" disabled={pending || stale}>{pending ? t('saving') : t('apply')}</button>
+    {state.status !== 'idle' && state.status !== 'saved' && <p role="alert">{t(state.status)}</p>}
+    {(state.status === 'conflict' || state.status === 'transition') && <AdminRefresh />}
+  </form>
+}
+
+export function MessageQueue({ messages }: { messages: ModerationMessage[] }) {
+  const t = useTranslations('Pages.admin.moderation')
+  const own = useTranslations('Forms.own')
+  const accounts = useTranslations('Pages.admin.states')
+  const format = useFormatter()
+  const [saved, setSaved] = useState(false)
+  return <>
+    {saved && <p role="status">{t('saved')}</p>}
+    {messages.length === 0 ? <p role="status">{t('empty')}</p> : <ul className="admin-message-list">
+    {messages.map(message => <li key={message.publicId}>
+      <article aria-label={t('letterBy', { name: message.authorName })}>
+        <h3>{message.authorName}</h3>
+        <p>{accounts(message.authorState)} · {own(`status.${message.status}`)} · {t('version', { version: message.version })}</p>
+        <p className="admin-message-content">{message.content}</p>
+        <p>{[message.locality, message.country].filter(Boolean).join(', ')}</p>
+        <time dateTime={message.publishedAt}>{format.dateTime(new Date(message.publishedAt), { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' })} UTC</time>
+        <p>{t(message.publicVisible ? 'public' : 'hidden')}</p>
+        <small>{t('letterId')}: {message.publicId}</small>
+        {message.reasonCode && <p>{isModerationReasonCode(message.reasonCode) ? own(`reasons.${message.reasonCode}`) : own('reasonFallback')}</p>}
+        {message.note && <p>{message.note}</p>}
+      </article>
+      {message.decisions.length > 0 ? <MessageDecisionForm key={`${message.publicId}-${message.version}-${message.decisions.join(',')}`} message={message} onSaved={() => setSaved(true)} /> : <p className="profile-note">{t('noDecisions')}</p>}
+    </li>)}
+    </ul>}
+  </>
+}

@@ -99,6 +99,40 @@
       "active": "Activa",
       "suspended": "Suspendida",
       "deletion_pending": "Borrado pendiente"
+    },
+    "messages": "Moderación de mensajes",
+    "moderation": {
+      "title": "Moderación de mensajes",
+      "intro": "Revisa las cartas sin modificar su texto. Cada decisión queda registrada de forma privada.",
+      "searchLabel": "Buscar por texto de la carta, nombre de autora o ID de carta",
+      "state": "Estado",
+      "all": "Todos los estados",
+      "pagination": "Páginas de resultados de cartas",
+      "empty": "No hay cartas que coincidan con estos filtros.",
+      "letterBy": "Carta de {name}",
+      "version": "Versión {version}",
+      "public": "Visible en el mapa público",
+      "hidden": "Oculta en el mapa público",
+      "letterId": "ID de carta",
+      "decision": "Decisión",
+      "reason": "Motivo",
+      "chooseReason": "Elige un motivo",
+      "note": "Nota privada (opcional, compartida con la autora)",
+      "apply": "Aplicar decisión",
+      "saving": "Guardando…",
+      "saved": "Decisión guardada.",
+      "denied": "Ya no tienes permiso para moderar esta carta.",
+      "invalid": "Revisa los filtros, la versión, el motivo y la nota antes de volver a intentarlo.",
+      "conflict": "Esta carta ha cambiado. Recarga y revisa la versión actual.",
+      "transition": "Esta decisión ya no está disponible. Recarga y revisa la carta.",
+      "error": "No se pudo guardar la decisión. Vuelve a intentarlo.",
+      "reload": "Recargar cartas",
+      "noDecisions": "No hay decisiones disponibles para este estado.",
+      "decisions": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "withdraw": "Retirar"
+      }
     }
   }
 }
