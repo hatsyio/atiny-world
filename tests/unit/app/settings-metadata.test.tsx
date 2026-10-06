@@ -24,11 +24,11 @@ import {generateMetadata} from '@/app/(site)/messages/[publicId]/page'
 
 afterEach(() => {cleanup(); session.userId = 'user_1'; session.role = 'fan'})
 
-it.each(['fan', 'admin', 'owner'] as const)('offers administration only to privileged accounts (%s)', async role => {
+it.each(['fan', 'admin', 'owner'] as const)('keeps administration in the account menu rather than settings (%s)', async role => {
   session.role = role
   setServerLocale('en')
   render(<IntlTestProvider locale="en">{await SettingsPage()}</IntlTestProvider>)
-  expect(screen.queryByRole('link', {name: 'Administration'}) !== null).toBe(role !== 'fan')
+  expect(screen.queryByRole('link', {name: 'Administration'})).toBeNull()
 })
 
 it.each(['en', 'es'] as const)('embeds the language preference inside the account profile in %s', async locale => {

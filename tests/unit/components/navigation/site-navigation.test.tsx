@@ -4,7 +4,7 @@ vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
 /** @vitest-environment jsdom */
 import { act, cleanup, fireEvent, render as testingRender, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const state = vi.hoisted(() => ({ pathname: '/', signedIn: false, openUserProfile: vi.fn(), signOut: vi.fn() }))
 vi.mock('next/navigation', () => ({ usePathname: () => state.pathname, useRouter: () => ({refresh: vi.fn()}) }))
@@ -17,6 +17,12 @@ import { SiteFooter } from '@/components/navigation/site-footer'
 let testLocale: 'en' | 'es' = 'es'
 function render(ui: React.ReactElement) { return testingRender(<IntlTestProvider locale={testLocale}>{ui}</IntlTestProvider>) }
 import LocalizedLayout from '@/app/(site)/layout'
+vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
+vi.mock('@/server/auth/session', () => ({ getSessionIdentity: vi.fn() }))
+vi.mock('@/server/auth/authorize', () => ({ authorizeProfile: vi.fn() }))
+import { getSessionIdentity } from '@/server/auth/session'
+import { authorizeProfile } from '@/server/auth/authorize'
+beforeEach(() => { vi.mocked(getSessionIdentity).mockResolvedValue(null) })
 
 afterEach(() => { cleanup(); testLocale = 'es'; state.pathname = '/'; state.signedIn = false; vi.clearAllMocks(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/'); })
 
@@ -31,7 +37,7 @@ describe('shared navigation', () => {
     expect(screen.getByRole('link', { name: 'ATINY World' })).toHaveAttribute('href', '/')
     expect(screen.getAllByRole('link').filter(link => link.hasAttribute('aria-current')).length).toBeLessThanOrEqual(1)
   })
-  it.each([['/messages/new', 'Escribir una carta'], ['/messages/id', 'Cartas'], ['/my-messages', 'Mi cuenta'], ['/my-messages/id/edit', 'Mi cuenta'], ['/profile', 'Mi cuenta'], ['/settings', 'Mi cuenta']])('marks the current destination on %s', (pathname, label) => {
+  it.each([['/messages/new', 'Escribir una carta'], ['/messages/id', 'Cartas'], ['/my-messages', 'Mi cuenta'], ['/my-messages/id/edit', 'Mi cuenta'], ['/profile', 'Mi cuenta'], ['/settings', 'Mi cuenta'], ['/admin/users', 'Mi cuenta']])('marks the current destination on %s', (pathname, label) => {
     state.pathname = pathname; state.signedIn = true
     render(<SiteHeader />)
     expect(screen.getByText(label)).toHaveAttribute('aria-current', 'page')
@@ -66,6 +72,29 @@ describe('shared navigation', () => {
     expect(screen.getByRole('link', { name: 'Account settings' })).toHaveAttribute('href', '/settings')
     await user.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(state.signOut).toHaveBeenCalledWith({ redirectUrl: '/' })
+  })
+  it.each(['admin', 'owner'] as const)('adds administration to the account menu for an active %s', async role => {
+    state.signedIn = true
+    vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'user_admin' })
+    vi.mocked(authorizeProfile).mockResolvedValue({ ok: true, data: { profileId: '1', publicId: 'profile', displayName: 'Admin', role } })
+    render(await LocalizedLayout({ children: <main>Content</main> }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Mi cuenta' }))
+    const link = screen.getByRole('link', { name: 'Administración' })
+    expect(link).toHaveAttribute('href', '/admin')
+    link.addEventListener('click', event => event.preventDefault())
+    await userEvent.setup().click(link)
+    expect(screen.getByRole('button', { name: 'Mi cuenta' })).toHaveAttribute('aria-expanded', 'false')
+  })
+  it.each(['fan', 'unavailable', 'anonymous'])('hides administration for %s accounts', async kind => {
+    state.signedIn = kind !== 'anonymous'
+    if (kind !== 'anonymous') vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'user_fan' })
+    vi.mocked(authorizeProfile).mockResolvedValue(kind === 'fan'
+      ? { ok: true, data: { profileId: '1', publicId: 'profile', displayName: 'Fan', role: 'fan' } }
+      : { ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.suspended' } })
+    render(await LocalizedLayout({ children: <main>Content</main> }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Mi cuenta' }))
+    expect(screen.queryByRole('link', { name: 'Administración' })).toBeNull()
+    if (kind === 'anonymous') expect(authorizeProfile).not.toHaveBeenCalled()
   })
   it('closes the mobile disclosure with Escape and restores focus', async () => {
     render(<SiteHeader />)
@@ -136,7 +165,7 @@ describe('shared navigation', () => {
   it.each(['en', 'es'] as const)('wraps internal content with one shared header and a project footer in %s', async lang => {
     state.pathname = '/profile'
     testLocale = lang
-    render(LocalizedLayout({children: <main>Profile</main>}))
+    render(await LocalizedLayout({children: <main>Profile</main>}))
     expect(screen.getAllByRole('banner')).toHaveLength(1)
     expect(screen.getAllByRole('contentinfo')).toHaveLength(1)
     expect(screen.getByRole('link', { name: lang === 'es' ? 'Sobre el proyecto' : 'About the project' })).toHaveAttribute('href', '#about')

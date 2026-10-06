@@ -4,7 +4,7 @@ La sesión de Clerk identifica al usuario. `app_private.profiles.role` es la fue
 
 ## Entrega
 
-- `/admin` conduce a `/admin/users`. El acceso se ofrece desde Ajustes a administradores y propietarios activos.
+- `/admin` conduce a `/admin/users`. El acceso se ofrece como entrada «Administración» en el desplegable de Mi cuenta a administradores y propietarios activos. El servidor comprueba el rol antes de mostrarla.
 - `admin` y `owner` pueden buscar perfiles por nombre o ID de Clerk y consultar rol y estado. Resultados paginados de 25 cuentas; no se envían IDs de Clerk ni detalles de suspensión al navegador.
 - Solo `owner` puede alternar `fan` y `admin`. No se puede otorgar ni retirar `owner` desde la web ni actuar sobre perfiles pendientes de borrado.
 - La acción toma la identidad de la sesión, valida los valores, bloquea actor y destinatario en orden estable y vuelve a comprobar sus roles vigentes. Un trigger aumenta `role_version` en cada cambio y permite rechazar formularios antiguos incluso después de conceder y retirar el mismo rol.
@@ -41,6 +41,6 @@ La base de Compose (`54332`) y la de pruebas de Supabase (`54322`) son distintas
 
 Las pruebas cubren acceso directo al panel y acciones, identidad de sesión frente a actor falsificado, revocación de privilegios, restricciones de roles, formularios obsoletos, búsqueda literal y rollback del cambio si falla la auditoría. La asignación inicial es idempotente y no sustituye un propietario existente.
 
-Resultado: 37 escenarios BDD, 417 pruebas unitarias, 80 pruebas de integración y 51 de contrato correctas; TypeScript, ESLint y build correctos. La revisión independiente detectó el caso de formulario antiguo tras conceder y retirar un rol; la versión monotónica lo corrige y su prueba pasa. Se corrigió además una aserción inestable de ubicación aproximada: un desplazamiento puede mantener una coordenada, pero debe cambiar el punto.
+Resultado: 37 escenarios BDD, 423 pruebas unitarias, 80 pruebas de integración y 51 de contrato correctas; TypeScript, ESLint y build correctos. La revisión independiente detectó el caso de formulario antiguo tras conceder y retirar un rol; la versión monotónica lo corrige y su prueba pasa. Se corrigió además una aserción inestable de ubicación aproximada: un desplazamiento puede mantener una coordenada, pero debe cambiar el punto.
 
 El bloqueo de filas sigue las garantías de [PostgreSQL](https://www.postgresql.org/docs/current/explicit-locking.html). La búsqueda del propietario usa el filtro de correo de [Clerk getUserList](https://clerk.com/docs/reference/backend/user/get-user-list).

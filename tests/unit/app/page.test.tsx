@@ -27,6 +27,7 @@ vi.mock('../../../src/components/map/public-map-controller', () => ({
 }))
 
 vi.mock('../../../src/server/db/client', () => ({ getDb: vi.fn() }))
+vi.mock('@/server/auth/session', () => ({ getSessionIdentity: async () => null }))
 vi.mock('../../../src/server/messages/public-repository', () => ({
   listLatestPublicMessages: vi.fn(async () => []),
 }))
@@ -41,7 +42,7 @@ import Home from '../../../src/app/(site)/page'
 
 describe('Home', () => {
   it('renders the public application shell', async () => {
-    render(<SiteLayout>{await Home({searchParams: Promise.resolve({})})}</SiteLayout>)
+    render(await SiteLayout({children: await Home({searchParams: Promise.resolve({})})}))
 
     expect(
       screen.getByRole('heading', {
@@ -53,7 +54,7 @@ describe('Home', () => {
   })
 
   it('opens visitor account actions from the account button', async () => {
-    render(<SiteLayout>{await Home({searchParams: Promise.resolve({})})}</SiteLayout>)
+    render(await SiteLayout({children: await Home({searchParams: Promise.resolve({})})}))
 
     fireEvent.click(screen.getByRole('button', {name: 'My account'}))
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/sign-in')
