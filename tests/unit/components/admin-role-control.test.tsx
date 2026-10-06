@@ -2,11 +2,11 @@
 import { cleanup, screen, fireEvent, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { render, IntlTestProvider } from '../../support/intl'
-vi.mock('@/app/(site)/admin/users/actions', () => ({ setAdministratorRoleAction: vi.fn() }))
+vi.mock('@/app/(site)/admin/users/actions', () => ({ setAdministratorRoleAction: vi.fn(), setSuspensionAction: vi.fn() }))
 import { RoleControl } from '@/components/admin/role-control'
 import { setAdministratorRoleAction } from '@/app/(site)/admin/users/actions'
 
-const account = { publicId: 'target', displayName: 'ATINY', role: 'fan' as const, roleVersion: 1, state: 'active' as const }
+const account = { publicId: 'target', displayName: 'ATINY', role: 'fan' as const, roleVersion: 1, suspensionVersion: 1, state: 'active' as const }
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 
 it('requires confirmation naming the target and resets it when the next role changes', () => {

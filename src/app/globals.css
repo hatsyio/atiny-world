@@ -351,3 +351,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .location-selection-map__unavailable { position: absolute; top: .5rem; left: 3rem; right: .5rem; z-index: 800; margin: 0; padding: .5rem; background: #faf0da; font-size: .8rem; pointer-events: none; }
 .location-picker__search-feedback [role='option'] { min-width: 0; text-align: left; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
 .location-picker__selection > span { min-width: 0; max-height: 3rem; overflow: auto; overflow-wrap: anywhere; }
+
+.admin-account-controls { display: grid; gap: 1.5rem; align-content: start; min-width: 0; }
+.admin-account-controls input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--navy); }
+.suspension-notice { max-width: 70rem; margin: 1rem auto; padding: 1rem 1.5rem; border: 1px solid var(--brown); overflow-wrap: anywhere; }
+.suspension-notice p { margin: 0 0 .75rem; }

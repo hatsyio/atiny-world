@@ -205,16 +205,20 @@ updateSettings(input: {
 
 ```ts
 setSuspension(input: {
-  profilePublicId: string;
+  publicId: string;
   suspended: boolean;
+  expectedRoleVersion: number;
+  expectedSuspensionVersion: number;
   reasonCode?: string;
   note?: string;
-}): Promise<ActionResult<{ suspended: boolean }>>
+}): Promise<ActionResult<{ publicId: string; suspended: boolean; suspensionVersion: number }>>
 ```
 
-- Suspender exige motivo; levantar suspensión limpia el estado vigente sin borrar auditoría.
-- Un `admin` no puede suspender a otro `admin` ni al `owner`; solo `owner` puede actuar sobre administradores.
-- El cambio se refleja en toda lectura nueva sin alterar mensajes.
+- La identidad se toma de la sesión; el adaptador de formulario exige confirmación explícita.
+- Suspender exige motivo predefinido; nota interna opcional de hasta 1000 caracteres. Levantar suspensión limpia el estado vigente sin borrar auditoría.
+- Un `admin` no puede suspender ni reactivar a otro `admin` ni al `owner`; solo `owner` puede actuar sobre administradores. Se protegen propia cuenta, perfiles incompletos y pendientes de borrado.
+- Las versiones se comprueban tras bloquear perfiles; cambios de rol o suspensión devuelven `MESSAGE_VERSION_CONFLICT` sin efecto parcial, incluidos ciclos ABA.
+- Estado, decisión y auditoría son atómicos; el cambio se refleja en toda lectura nueva sin alterar mensajes y se sincroniza con el impacto de configuración.
 
 ### `setAdministratorRole`
 

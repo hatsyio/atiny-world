@@ -4,12 +4,12 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { render } from '../../support/intl'
 
 vi.mock('next-intl/server', () => import('../../support/server-intl'))
-vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('NOT_FOUND') } }))
+vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('NOT_FOUND') }, useRouter: () => ({ refresh: vi.fn() }) }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 vi.mock('@/server/auth/authorize', () => ({ authorizeSession: vi.fn() }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: vi.fn() }))
 vi.mock('@/server/moderation/accounts', () => ({ searchAccounts: vi.fn() }))
-vi.mock('@/app/(site)/admin/users/actions', () => ({ setAdministratorRoleAction: vi.fn() }))
+vi.mock('@/app/(site)/admin/users/actions', () => ({ setAdministratorRoleAction: vi.fn(), setSuspensionAction: vi.fn() }))
 
 import AdminLayout from '@/app/(site)/admin/layout'
 import AdminUsersPage from '@/app/(site)/admin/users/page'
@@ -31,8 +31,20 @@ it('does not query users when a fan requests the page directly', async () => {
 it.each(['admin', 'owner'] as const)('renders users with role controls only for owner (%s)', async role => {
   vi.mocked(authorizeSession).mockResolvedValue({ ok: true, data: { profileId: '1', publicId: 'actor', displayName: 'Actor', role } })
   vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'user_actor' })
-  vi.mocked(searchAccounts).mockResolvedValue({ ok: true, data: { actorRole: role, hasMore: false, items: [{ publicId: 'target', displayName: 'ATINY fan', role: 'fan', roleVersion: 1, state: 'active' }] } })
+  vi.mocked(searchAccounts).mockResolvedValue({ ok: true, data: { actorRole: role, hasMore: false, items: [{ publicId: 'target', displayName: 'ATINY fan', role: 'fan', roleVersion: 1, suspensionVersion: 1, state: 'active' }] } })
   render(await AdminUsersPage({ searchParams: Promise.resolve({}) }))
   expect(screen.getByText('ATINY fan')).toBeVisible()
   expect(screen.queryByRole('button', { name: 'Make administrator' }) !== null).toBe(role === 'owner')
+  expect(screen.getByRole('button', { name: 'Suspend account' })).toBeVisible()
+})
+
+it.each([
+  ['admin', 'admin', 'active', false], ['owner', 'admin', 'suspended', true],
+  ['owner', 'owner', 'active', false], ['owner', 'fan', 'deletion_pending', false],
+] as const)('offers suspension controls only for permitted targets (%s -> %s/%s)', async (role, targetRole, state, allowed) => {
+  vi.mocked(authorizeSession).mockResolvedValue({ ok: true, data: { profileId: '1', publicId: 'actor', displayName: 'Actor', role } })
+  vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'actor' })
+  vi.mocked(searchAccounts).mockResolvedValue({ ok: true, data: { actorRole: role, hasMore: false, items: [{ publicId: 'target', displayName: 'Target', role: targetRole, roleVersion: 1, suspensionVersion: 1, state }] } })
+  render(await AdminUsersPage({ searchParams: Promise.resolve({}) }))
+  expect(screen.queryByRole('button', { name: state === 'suspended' ? 'Reactivate account' : 'Suspend account' }) !== null).toBe(allowed)
 })
