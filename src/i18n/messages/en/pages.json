@@ -66,5 +66,39 @@
     "title": "Account settings",
     "security": "Profile and security",
     "intro": "Choose your ATINY World language and manage your account security."
+  },
+  "admin": {
+    "title": "Administration",
+    "navigation": "Administration navigation",
+    "back": "Back to settings",
+    "users": "Users and roles",
+    "ownerIntro": "Manage who can administer ATINY World. Each role change is recorded in the private history.",
+    "adminIntro": "Review user roles and account status. Only the owner can change administrator roles.",
+    "searchLabel": "Search by name or Clerk user ID",
+    "search": "Search",
+    "empty": "No accounts match this search. Try another name.",
+    "accountId": "Account ID",
+    "confirmRole": "Confirm changing {name} to {role}.",
+    "makeAdmin": "Make administrator",
+    "removeAdmin": "Remove administrator role",
+    "saving": "Saving…",
+    "saved": "Role updated.",
+    "denied": "You no longer have permission to change this account.",
+    "invalid": "Check the search or role values and try again.",
+    "conflict": "This role has changed. Reload the page before trying again.",
+    "error": "Could not save the role. Try again.",
+    "pagination": "User result pages",
+    "previous": "Previous",
+    "next": "Next",
+    "roles": {
+      "fan": "Fan",
+      "admin": "Administrator",
+      "owner": "Owner"
+    },
+    "states": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "deletion_pending": "Deletion pending"
+    }
   }
 }

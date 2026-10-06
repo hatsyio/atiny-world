@@ -1,3 +1,25 @@
+.auth-panel.admin-panel { width: min(100%, 960px); text-align: left; justify-items: stretch; }
+.auth-panel.admin-panel h1 { text-align: left; text-transform: none; letter-spacing: normal; }
+.admin-panel > nav { margin-block: 1rem 2rem; }
+.admin-search { margin-block: 1.5rem; }
+.admin-search label { display: block; margin-bottom: .5rem; }
+.admin-search > div { display: flex; gap: .75rem; }
+.admin-search input { min-width: 0; flex: 1; }
+.admin-panel input[type='search'], .admin-panel button { min-height: 44px; padding: .65rem .9rem; font: inherit; border: 1px solid var(--brown); }
+.admin-panel input[type='search'] { background: #faf0da; color: var(--ink); }
+.admin-panel button { background: var(--navy); color: #fff0cb; cursor: pointer; }
+.admin-panel button:disabled { opacity: .6; cursor: wait; }
+.admin-panel :focus-visible { outline: 3px solid var(--brown); outline-offset: 3px; }
+.admin-users { padding: 0; list-style: none; }
+.admin-users > li { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding-block: 1.5rem; border-top: 1px solid var(--brown); overflow-wrap: anywhere; }
+.admin-users h3 { margin-top: 0; }
+.admin-role-form { display: grid; gap: .75rem; align-content: start; }
+.admin-role-form label { display: flex; align-items: start; gap: .5rem; line-height: 1.5; }
+.admin-role-form input[type='checkbox'] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--navy); }
+.admin-role-form p { margin: 0; }
+.admin-pagination { display: flex; justify-content: space-between; gap: 1rem; }
+@media (max-width: 600px) { .admin-users > li { grid-template-columns: 1fr; } .admin-search > div { flex-direction: column; } }
+
 :root {
   --wood: #241a17;
   --navy: #102033;

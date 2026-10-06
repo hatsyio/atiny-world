@@ -97,8 +97,8 @@ describe('createMessage server action', () => {
       country: 'South Korea',
       country_code: 'kr',
     })
-    expect(message.latitude).not.toBe(SELECTION.point.latitude)
-    expect(message.longitude).not.toBe(SELECTION.point.longitude)
+    // An axis-aligned offset can leave one coordinate unchanged.
+    expect([message.latitude, message.longitude]).not.toEqual([SELECTION.point.latitude, SELECTION.point.longitude])
   })
 
   it('publishes the explicitly confirmed precise point without the typed address', async () => {

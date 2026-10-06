@@ -66,5 +66,39 @@
     "title": "Ajustes de cuenta",
     "security": "Perfil y seguridad",
     "intro": "Elige el idioma de ATINY World y administra la seguridad de tu cuenta."
+  },
+  "admin": {
+    "title": "Administración",
+    "navigation": "Navegación de administración",
+    "back": "Volver a ajustes",
+    "users": "Usuarios y roles",
+    "ownerIntro": "Gestiona quién puede administrar ATINY World. Cada cambio de rol queda registrado en el historial privado.",
+    "adminIntro": "Consulta los roles y el estado de las cuentas. Solo el propietario puede cambiar los roles de administrador.",
+    "searchLabel": "Buscar por nombre o identificador de usuario de Clerk",
+    "search": "Buscar",
+    "empty": "No hay cuentas que coincidan. Prueba con otro nombre.",
+    "accountId": "Identificador de cuenta",
+    "confirmRole": "Confirmo cambiar a {name} al rol de {role}.",
+    "makeAdmin": "Asignar administrador",
+    "removeAdmin": "Retirar rol de administrador",
+    "saving": "Guardando…",
+    "saved": "Rol actualizado.",
+    "denied": "Ya no tienes permiso para cambiar esta cuenta.",
+    "invalid": "Revisa la búsqueda o los valores del rol e inténtalo de nuevo.",
+    "conflict": "Este rol ha cambiado. Recarga la página antes de volver a intentarlo.",
+    "error": "No se ha podido guardar el rol. Inténtalo de nuevo.",
+    "pagination": "Páginas de resultados de usuarios",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "roles": {
+      "fan": "Fan",
+      "admin": "Administrador",
+      "owner": "Propietario"
+    },
+    "states": {
+      "active": "Activa",
+      "suspended": "Suspendida",
+      "deletion_pending": "Borrado pendiente"
+    }
   }
 }
