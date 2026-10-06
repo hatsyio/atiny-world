@@ -11,7 +11,7 @@ import { returnDestination } from './return-destination'
 
 type Section = 'home' | 'map' | 'letters'
 
-export function SiteHeader() {
+export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean }) {
   const lang = useLocale()
   const t = useTranslations('Navigation')
   const pathname = usePathname()
@@ -64,7 +64,7 @@ export function SiteHeader() {
   const origin = returnDestination(lang, !isHome && !writing ? pathname ?? undefined : undefined)
   const writeHref = `/messages/new${origin.href !== `${home}#map` ? `?returnTo=${encodeURIComponent(origin.href)}` : ''}`
   const reading = !writing && pathname?.startsWith('/messages/')
-  const account = pathname?.startsWith('/my-messages') || pathname === '/profile' || pathname === '/settings'
+  const account = pathname?.startsWith('/my-messages') || pathname?.startsWith('/admin') || pathname === '/profile' || pathname === '/settings'
   const close = () => setOpenedPath(null)
   const current = (id: Section) => isHome && section === id ? (id === 'home' ? 'page' : 'location') : undefined
 
@@ -94,7 +94,7 @@ export function SiteHeader() {
         <Link href={`${home}#map`} aria-current={current('map')}>{t('map')}</Link>
         <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t('letters')}</Link>
         <Link className="navigation-write" href={writeHref} aria-current={writing ? 'page' : undefined}>{t('write')}</Link>
-        <Show when="signed-in"><AccountMenu lang={lang} active={Boolean(account)} onNavigate={close} /></Show>
+        <Show when="signed-in"><AccountMenu lang={lang} canAdminister={canAdminister} active={Boolean(account)} onNavigate={close} /></Show>
         <Show when="signed-out"><AccountMenu visitor active={Boolean(pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up'))} onNavigate={close} /></Show>
       </nav>
     </header>

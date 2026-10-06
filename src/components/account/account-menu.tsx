@@ -7,10 +7,11 @@ import { useEffect, useId, useRef, useState } from 'react'
 import {LanguageSwitcher} from '@/components/i18n/language-switcher'
 import {useTranslations} from 'next-intl'
 
-export function AccountMenu({ active = false, visitor = false, onNavigate }: {
+export function AccountMenu({ active = false, visitor = false, canAdminister = false, onNavigate }: {
   lang?: 'en' | 'es'
   visitor?: boolean
   active?: boolean
+  canAdminister?: boolean
   onNavigate?: () => void
 }) {
   const linksId = useId()
@@ -49,6 +50,7 @@ export function AccountMenu({ active = false, visitor = false, onNavigate }: {
         </> : <>
           <Link href="/my-messages" onClick={close}>{t('myLetters')}</Link>
           <Link href="/settings" onClick={close}>{t('settings')}</Link>
+          {canAdminister ? <Link href="/admin" onClick={close}>{t('administration')}</Link> : null}
           <button type="button" onClick={() => { close(); void signOut({ redirectUrl: '/' }) }}>{t('signOut')}</button>
         </>}
       </div>

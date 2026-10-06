@@ -4,7 +4,7 @@ import {afterEach, expect, it, vi} from 'vitest'
 import {IntlTestProvider} from '@/../tests/support/intl'
 import {setServerLocale} from '@/../tests/support/server-intl'
 
-const session = vi.hoisted(() => ({userId: 'user_1' as string | null}))
+const session = vi.hoisted(() => ({userId: 'user_1' as string | null, role: 'fan' as 'fan' | 'admin' | 'owner'}))
 vi.mock('server-only', () => ({}))
 vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
 vi.mock('@clerk/nextjs/server', () => ({auth: async () => session}))
@@ -18,10 +18,18 @@ vi.mock('@clerk/nextjs', () => ({
   ),
 }))
 vi.mock('@/server/db/client', () => ({getDb: () => ({})}))
+vi.mock('@/server/auth/authorize', () => ({authorizeSession: async () => ({ok: true, data: {profileId: '1', publicId: 'profile', displayName: 'Fan', role: session.role}})}))
 import SettingsPage from '@/app/(site)/settings/page'
 import {generateMetadata} from '@/app/(site)/messages/[publicId]/page'
 
-afterEach(() => {cleanup(); session.userId = 'user_1'})
+afterEach(() => {cleanup(); session.userId = 'user_1'; session.role = 'fan'})
+
+it.each(['fan', 'admin', 'owner'] as const)('keeps administration in the account menu rather than settings (%s)', async role => {
+  session.role = role
+  setServerLocale('en')
+  render(<IntlTestProvider locale="en">{await SettingsPage()}</IntlTestProvider>)
+  expect(screen.queryByRole('link', {name: 'Administration'})).toBeNull()
+})
 
 it.each(['en', 'es'] as const)('embeds the language preference inside the account profile in %s', async locale => {
   setServerLocale(locale)
