@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <Link className="auth-back" href="/settings">{t('back')}</Link>
     <div className="auth-panel admin-panel">
       <h1>{t('title')}</h1>
-      <nav aria-label={t('navigation')}><Link href="/admin/messages">{t('messages')}</Link><Link href="/admin/users">{t('users')}</Link></nav>
+      <nav aria-label={t('navigation')}><Link href="/admin/messages">{t('messages')}</Link><Link href="/admin/users">{t('users')}</Link><Link href="/admin/settings">{t('settings')}</Link></nav>
       {children}
     </div>
   </main>

@@ -30,6 +30,8 @@ export async function deleteMessage(
     if (!profile || !profile.display_name.trim()) return errorResult('PROFILE_INCOMPLETE', { messageKey: 'profile.incomplete' })
     if (profile.account_state !== 'active') return errorResult('PROFILE_INCOMPLETE', { messageKey: 'account.unavailable' })
 
+    await tx`select id from app_private.settings where id = 1 for share`
+
     const messages = await tx<{ id: string; public_id: string; version: number }[]>`
       select id, public_id, version
         from app_private.messages
