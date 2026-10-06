@@ -44,7 +44,9 @@ export async function createMessage(
     if (profile.suspended_at) return errorResult('ACCOUNT_SUSPENDED', { messageKey: 'account.suspended' })
     if (profile.account_state !== 'active') return errorResult('PROFILE_INCOMPLETE', { messageKey: 'account.unavailable' })
 
-    const settings = (await tx<{ message_limit: number; cooldown_seconds: number; premoderation_enabled: boolean }[]>`select message_limit, cooldown_seconds, premoderation_enabled from app_private.settings where id = 1`)[0]
+    // A shared lock makes publication serialize with an administrative settings change.
+    // The settings transaction recalculates its impact after taking its update lock.
+    const settings = (await tx<{ message_limit: number; cooldown_seconds: number; premoderation_enabled: boolean }[]>`select message_limit, cooldown_seconds, premoderation_enabled from app_private.settings where id = 1 for share`)[0]
     const count = (await tx<{ count: string }[]>`select count(*)::text as count from app_private.messages where author_id = ${profile.id}`)[0]
     if (Number(count.count) >= settings.message_limit) return errorResult('MESSAGE_LIMIT_REACHED', { messageKey: 'message.limitReached' })
     const latest = (await tx<{ created_at: string | null; now: string }[]>`

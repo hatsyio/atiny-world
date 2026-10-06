@@ -51,3 +51,9 @@ Característica: Moderar cartas con decisiones justificadas y versionadas
     Cuando decide "approve" sobre la versión revisada sin motivo
     Entonces la decisión se rechaza sin cambios ni auditoría
     Y la cola privada no revela cartas a la cuenta sin permisos
+
+  Escenario: Activar moderación previa confirma y oculta solo las pendientes activas
+    Dado una administradora con dos cartas pendientes públicas y una cuenta suspendida
+    Cuando confirma activar la moderación previa con impacto de 2 cartas
+    Entonces se ocultan 2 cartas pendientes sin reescribir su contenido ni ubicación
+    Y la configuración y su auditoría quedan guardadas juntas

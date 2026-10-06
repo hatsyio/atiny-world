@@ -101,6 +101,25 @@
       "deletion_pending": "Deletion pending"
     },
     "messages": "Message moderation",
+    "settings": "Operational settings",
+    "settingsPanel": {
+      "title": "Operational settings",
+      "intro": "Set moderation, the letter limit, and the interval between new letters.",
+      "premoderation": "Require approval before a letter appears publicly",
+      "messageLimit": "Maximum letters per account",
+      "cooldown": "Seconds between new letters",
+      "hideImpact": "{count, plural, one {# pending letter will be hidden.} other {# pending letters will be hidden.}}",
+      "showImpact": "{count, plural, one {# pending letter will appear.} other {# pending letters will appear.}}",
+      "confirmHide": "Confirm hiding {count} pending letters.",
+      "confirmShow": "Confirm showing {count} pending letters.",
+      "save": "Save settings",
+      "saving": "Saving…",
+      "saved": "Settings saved.",
+      "denied": "You no longer have permission to change these settings.",
+      "invalid": "Check the settings values and try again.",
+      "conflict": "The settings or their impact changed. Reload before trying again.",
+      "error": "Could not save the settings. Try again."
+    },
     "moderation": {
       "title": "Message moderation",
       "intro": "Review letters without changing their text. Each decision is recorded privately.",

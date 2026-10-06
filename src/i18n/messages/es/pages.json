@@ -101,6 +101,25 @@
       "deletion_pending": "Borrado pendiente"
     },
     "messages": "Moderación de mensajes",
+    "settings": "Configuración operativa",
+    "settingsPanel": {
+      "title": "Configuración operativa",
+      "intro": "Configura la moderación, el límite de cartas y el intervalo entre nuevas cartas.",
+      "premoderation": "Exigir aprobación antes de que una carta aparezca públicamente",
+      "messageLimit": "Máximo de cartas por cuenta",
+      "cooldown": "Segundos entre nuevas cartas",
+      "hideImpact": "{count, plural, one {Se ocultará # carta pendiente.} other {Se ocultarán # cartas pendientes.}}",
+      "showImpact": "{count, plural, one {Aparecerá # carta pendiente.} other {Aparecerán # cartas pendientes.}}",
+      "confirmHide": "Confirmo ocultar {count} cartas pendientes.",
+      "confirmShow": "Confirmo mostrar {count} cartas pendientes.",
+      "save": "Guardar configuración",
+      "saving": "Guardando…",
+      "saved": "Configuración guardada.",
+      "denied": "Ya no tienes permiso para cambiar esta configuración.",
+      "invalid": "Revisa los valores de configuración e inténtalo de nuevo.",
+      "conflict": "La configuración o su impacto han cambiado. Recarga antes de volver a intentarlo.",
+      "error": "No se ha podido guardar la configuración. Inténtalo de nuevo."
+    },
     "moderation": {
       "title": "Moderación de mensajes",
       "intro": "Revisa las cartas sin modificar su texto. Cada decisión queda registrada de forma privada.",
