@@ -72,8 +72,8 @@
     "navigation": "Administration navigation",
     "back": "Back to settings",
     "users": "Users and roles",
-    "ownerIntro": "Manage who can administer ATINY World. Each role change is recorded in the private history.",
-    "adminIntro": "Review user roles and account status. Only the owner can change administrator roles.",
+    "ownerIntro": "Manage administrator roles and suspend or reactivate accounts. Each change is recorded privately.",
+    "adminIntro": "Review user roles and suspend or reactivate fan accounts. Only the owner can change administrator roles or suspend administrators.",
     "searchLabel": "Search by name or Clerk user ID",
     "search": "Search",
     "empty": "No accounts match this search. Try another name.",
@@ -152,6 +152,29 @@
         "reject": "Reject",
         "withdraw": "Withdraw"
       }
+    },
+    "suspension": {
+      "reason": "Reason",
+      "chooseReason": "Choose a reason",
+      "note": "Private note for administrators (optional)",
+      "hideWarning": "Suspending this account hides all their letters and blocks publishing and editing. They can still read and delete their letters.",
+      "restoreWarning": "Reactivation restores visibility under the current moderation rules. Rejected and withdrawn letters stay hidden.",
+      "confirmSuspend": "Confirm suspending {name} and hiding their letters.",
+      "confirmReinstate": "Confirm reactivating {name} under the current visibility rules.",
+      "suspend": "Suspend account",
+      "reinstate": "Reactivate account",
+      "saving": "Saving…",
+      "saved": "Account status updated.",
+      "denied": "You no longer have permission to change this account.",
+      "invalid": "Check the reason, note and account version.",
+      "conflict": "This account changed. Reload before trying again.",
+      "error": "Could not update the account. Try again.",
+      "reload": "Reload accounts"
     }
+  },
+  "suspensionNotice": {
+    "title": "Your account is suspended",
+    "explanation": "Your letters are hidden. You cannot publish or edit, but you can still read and delete your letters.",
+    "ownLetters": "Read or delete my letters"
   }
 }

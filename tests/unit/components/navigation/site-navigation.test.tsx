@@ -20,6 +20,7 @@ import LocalizedLayout from '@/app/(site)/layout'
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: vi.fn() }))
 vi.mock('@/server/auth/authorize', () => ({ authorizeProfile: vi.fn() }))
+vi.mock('@/server/accounts/suspension', () => ({ readOwnSuspensionReason: async () => 'privacy' }))
 import { getSessionIdentity } from '@/server/auth/session'
 import { authorizeProfile } from '@/server/auth/authorize'
 beforeEach(() => { vi.mocked(getSessionIdentity).mockResolvedValue(null) })
@@ -184,4 +185,13 @@ it.each(['/my-messages', '/messages/letter-1'])('carries the reading origin into
   const url = new URL(link.getAttribute('href')!, 'https://atiny.invalid')
   expect(url.pathname).toBe('/messages/new')
   expect(url.searchParams.get('returnTo')).toBe(pathname)
+})
+
+it('shows the suspended account a translated reason in the shared layout', async () => {
+  state.signedIn = true
+  vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'suspended' })
+  vi.mocked(authorizeProfile).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.suspended' } })
+  render(await LocalizedLayout({ children: <main>Content</main> }))
+  expect(screen.getByRole('status')).toHaveTextContent('Tu cuenta está suspendida')
+  expect(screen.getByRole('status')).toHaveTextContent('Datos personales o información privada')
 })

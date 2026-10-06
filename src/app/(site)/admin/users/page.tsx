@@ -5,6 +5,7 @@ import { requireAdminPage } from '@/server/auth/admin'
 import { getSessionIdentity } from '@/server/auth/session'
 import { getDb } from '@/server/db/client'
 import { searchAccounts } from '@/server/moderation/accounts'
+import { SuspensionControl } from '@/components/admin/suspension-control'
 import { RoleControl } from '@/components/admin/role-control'
 
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
@@ -31,7 +32,10 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
     {result.data.items.length === 0 ? <p role="status">{t('empty')}</p> : <ul className="admin-users">
       {result.data.items.map(account => <li key={account.publicId}>
         <div><h3>{account.displayName}</h3><p>{t(`roles.${account.role}`)} · {t(`states.${account.state}`)}</p><small>{t('accountId')}: {account.publicId}</small></div>
-        {result.data.actorRole === 'owner' && account.role !== 'owner' && account.state !== 'deletion_pending' ? <RoleControl account={account} /> : null}
+        <div className="admin-account-controls">
+          {result.data.actorRole === 'owner' && account.role !== 'owner' && account.state !== 'deletion_pending' ? <RoleControl account={account} /> : null}
+          {account.state !== 'deletion_pending' && (account.role === 'fan' || (account.role === 'admin' && result.data.actorRole === 'owner')) ? <SuspensionControl account={account} /> : null}
+        </div>
       </li>)}
     </ul>}
     <nav className="admin-pagination" aria-label={t('pagination')}>

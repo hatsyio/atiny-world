@@ -28,3 +28,24 @@ export function validateModerationDecision(input: { decision: unknown; reasonCod
     note: typeof note === 'string' ? note.trim() || null : null,
   } }
 }
+
+export function canSetSuspension(
+  actor: Parameters<typeof canModerate>[0],
+  target: { role: string; accountState: string; displayName: string },
+): boolean {
+  return canModerate(actor) && target.accountState === 'active' && !!target.displayName.trim()
+    && (target.role === 'fan' || (target.role === 'admin' && actor.role === 'owner'))
+}
+
+export function validateSuspension(input: { suspended: unknown; reasonCode?: unknown; note?: unknown }):
+  { ok: true; data: { suspended: boolean; reasonCode: ModerationReasonCode | null; note: string | null } } | { ok: false } {
+  if (typeof input.suspended !== 'boolean') return { ok: false }
+  if (input.note !== undefined && (typeof input.note !== 'string' || input.note.length > 1000)) return { ok: false }
+  if (input.reasonCode !== undefined && input.reasonCode !== '' && !isModerationReasonCode(input.reasonCode)) return { ok: false }
+  if (input.suspended && !isModerationReasonCode(input.reasonCode)) return { ok: false }
+  return { ok: true, data: {
+    suspended: input.suspended,
+    reasonCode: input.suspended ? input.reasonCode as ModerationReasonCode : null,
+    note: input.suspended && typeof input.note === 'string' ? input.note.trim() || null : null,
+  } }
+}

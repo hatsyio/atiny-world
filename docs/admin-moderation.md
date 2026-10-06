@@ -1,5 +1,7 @@
 # Moderación de cartas
 
+Actualización operativa del 6 de octubre: la migración de moderación ya está aplicada en remoto y Compose local; véase [Suspensión de cuentas](admin-suspension.md) para el estado posterior a esta entrega.
+
 Entrega de US5 posterior al merge de usuarios y roles (#76), en la rama `feat/admin-message-moderation`.
 
 ## Recorrido

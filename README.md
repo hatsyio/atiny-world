@@ -15,6 +15,7 @@ mensajes siguen en desarrollo.
 - [Requisitos de producto](docs/requisitos.md): alcance de la primera versión y mejoras futuras.
 - [Arquitectura](docs/arquitectura.md): tecnologías, modelo de datos, permisos, entornos y migraciones.
 - [Configuración administrativa](docs/admin-settings.md): moderación previa, límite e intervalo operativos.
+- [Suspensión de cuentas](docs/admin-suspension.md): permisos, reactivación, visibilidad y auditoría.
 - [Entorno local](docs/desarrollo-local.md): arranque de Supabase y estado de la infraestructura.
 - [Plan de implementación](docs/superpowers/plans/2026-09-13-atiny-world.md): entregas previstas y trabajo pendiente.
 

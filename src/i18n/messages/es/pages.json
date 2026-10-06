@@ -72,8 +72,8 @@
     "navigation": "Navegación de administración",
     "back": "Volver a ajustes",
     "users": "Usuarios y roles",
-    "ownerIntro": "Gestiona quién puede administrar ATINY World. Cada cambio de rol queda registrado en el historial privado.",
-    "adminIntro": "Consulta los roles y el estado de las cuentas. Solo el propietario puede cambiar los roles de administrador.",
+    "ownerIntro": "Gestiona los roles de administrador y suspende o reactiva cuentas. Cada cambio queda registrado de forma privada.",
+    "adminIntro": "Consulta los roles y suspende o reactiva cuentas de fans. Solo el propietario puede cambiar roles o suspender administradores.",
     "searchLabel": "Buscar por nombre o identificador de usuario de Clerk",
     "search": "Buscar",
     "empty": "No hay cuentas que coincidan. Prueba con otro nombre.",
@@ -152,6 +152,29 @@
         "reject": "Rechazar",
         "withdraw": "Retirar"
       }
+    },
+    "suspension": {
+      "reason": "Motivo",
+      "chooseReason": "Elige un motivo",
+      "note": "Nota privada para administración (opcional)",
+      "hideWarning": "La suspensión oculta todas sus cartas e impide publicar y editar. La cuenta puede seguir consultando y borrando sus cartas.",
+      "restoreWarning": "La reactivación recupera la visibilidad según las reglas de moderación vigentes. Las cartas rechazadas y retiradas siguen ocultas.",
+      "confirmSuspend": "Confirmo suspender a {name} y ocultar sus cartas.",
+      "confirmReinstate": "Confirmo reactivar a {name} según las reglas de visibilidad vigentes.",
+      "suspend": "Suspender cuenta",
+      "reinstate": "Reactivar cuenta",
+      "saving": "Guardando…",
+      "saved": "Estado de cuenta actualizado.",
+      "denied": "Ya no tienes permiso para cambiar esta cuenta.",
+      "invalid": "Revisa el motivo, la nota y la versión de la cuenta.",
+      "conflict": "Esta cuenta ha cambiado. Recarga antes de volver a intentarlo.",
+      "error": "No se pudo actualizar la cuenta. Inténtalo de nuevo.",
+      "reload": "Recargar cuentas"
     }
+  },
+  "suspensionNotice": {
+    "title": "Tu cuenta está suspendida",
+    "explanation": "Tus cartas están ocultas. No puedes publicar ni editar, pero puedes seguir consultando y borrando tus cartas.",
+    "ownLetters": "Consultar o borrar mis cartas"
   }
 }

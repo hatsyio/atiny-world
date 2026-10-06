@@ -40,6 +40,7 @@ Perfil de producto; Clerk conserva credenciales y correo.
 | `display_name` | text | conserva coreano, espacios y emojis; puede coincidir con `username` y repetirse entre cuentas |
 | `role` | text | `fan`, `admin`, `owner`; default `fan` |
 | `account_state` | text | `active`, `deletion_pending`; default `active` |
+| `suspension_version` | integer | no nulo; inicia en 1; trigger incrementa al cambiar fecha, motivo, nota o actor de suspensión; impide formularios obsoletos tras ciclos de reactivación |
 | `suspended_at` | timestamptz | nullable |
 | `suspension_reason_code` | text | nullable; código traducible |
 | `suspension_note` | text | nullable, privado |
