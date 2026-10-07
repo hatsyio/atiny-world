@@ -1,5 +1,8 @@
 /** @vitest-environment jsdom */
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { publicMapQueryKey } from '@/components/map/map-queries'
+
 import { act } from 'react'
 import { cleanup,  waitFor } from '@testing-library/react'
 import { render } from '../../../support/intl'
@@ -92,7 +95,8 @@ describe('PublicMapController', () => {
     )
     vi.stubGlobal('fetch', fetch)
 
-    const { getByRole } = render(<PublicMapController />)
+    const client = new QueryClient()
+    const { getByRole } = render(<QueryClientProvider client={client}><PublicMapController /></QueryClientProvider>)
     act(() => getByRole('button', { name: 'Set viewport' }).click())
     await waitFor(() => expect(fetch).toHaveBeenCalledWith(
       '/api/map/features?west=-4&south=40&east=-3&north=41',
@@ -100,7 +104,7 @@ describe('PublicMapController', () => {
     ))
 
     const before = fetch.mock.calls.length
-    act(() => window.dispatchEvent(new Event('atiny:message-published')))
+    await act(async () => { await client.resetQueries({ queryKey: publicMapQueryKey }) })
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(before + 1))
     expect(fetch.mock.calls.at(-1)?.[0]).toBe('/api/map/features?west=-4&south=40&east=-3&north=41')
   })
@@ -108,7 +112,7 @@ describe('PublicMapController', () => {
   it('mantiene la zona de avisos al fallar y reintentar la carga del mapa', async () => {
     vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
     const fetch = vi.fn<typeof globalThis.fetch>()
-      .mockRejectedValueOnce(new Error('network unavailable'))
+      .mockResolvedValueOnce(new Response(null, { status: 400 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ features: [] })))
     vi.stubGlobal('fetch', fetch)
 

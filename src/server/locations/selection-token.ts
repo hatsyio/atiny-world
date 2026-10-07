@@ -2,13 +2,15 @@ import 'server-only'
 
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
-export type LocationSelection = {
-  locality: string
-  country: string
-  countryCode: string
-  point: { latitude: number; longitude: number }
-  attribution: string
-}
+import { z } from 'zod'
+import { locationSelectionSchema, type LocationSelection } from '@/domain/location/selection'
+
+export type { LocationSelection } from '@/domain/location/selection'
+
+const tokenPayloadSchema = z.object({
+  selection: locationSelectionSchema,
+  expiresAt: z.number().int().nonnegative(),
+})
 
 const TTL_MS = 5 * 60 * 1000
 
@@ -43,12 +45,15 @@ export function verifyLocationSelectionResult(
   secret: string,
   now = new Date(),
 ): LocationSelectionVerification {
-  const [encoded, received] = token.split('.')
-  if (!encoded || !received) return { ok: false, reason: 'INVALID' }
+  const parts = token.split('.')
+  const [encoded, received] = parts
+  if (parts.length !== 2 || !encoded || !received || !/^[A-Za-z0-9_-]+$/.test(encoded) || !/^[A-Za-z0-9_-]{43}$/.test(received)) return { ok: false, reason: 'INVALID' }
   const expected = signature(encoded, secret)
   if (received.length !== expected.length || !timingSafeEqual(Buffer.from(received), Buffer.from(expected))) return { ok: false, reason: 'INVALID' }
   try {
-    const value = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')) as { selection: LocationSelection; expiresAt: number }
+    const parsed = tokenPayloadSchema.safeParse(JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')))
+    if (!parsed.success) return { ok: false, reason: 'INVALID' }
+    const value = parsed.data
     if (value.expiresAt <= now.getTime()) return { ok: false, reason: 'EXPIRED' }
     return { ok: true, selection: value.selection }
   } catch {

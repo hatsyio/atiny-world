@@ -64,7 +64,7 @@ describe('MessageClusterList', () => {
 
   it('shows a retry action when the messages cannot be loaded', async () => {
     const fetch = vi.fn<typeof globalThis.fetch>()
-      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce(new Response(null, { status: 400 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ items: [], nextCursor: null })))
     vi.stubGlobal('fetch', fetch)
     render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={() => {}} lang="es" />)

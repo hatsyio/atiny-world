@@ -3,6 +3,9 @@
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 
+import { useQueryClient } from '@tanstack/react-query'
+import { publicMapQueryKey } from '@/components/map/map-queries'
+
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 
@@ -53,6 +56,7 @@ export function MyMessageList({
   onDelete,
   onEdit,
 }: Props) {
+  const queryClient = useQueryClient()
   const locale = useLocale()
   const t = useTranslations('Forms.own')
   const [confirming, setConfirming] = useState<string | null>(null)
@@ -82,6 +86,7 @@ export function MyMessageList({
     startTransition(async () => {
       if (onDelete) {
         await onDelete(item.publicId, item.version)
+        void queryClient.resetQueries({ queryKey: publicMapQueryKey })
         setConfirming(null)
         return
       }
@@ -96,6 +101,7 @@ export function MyMessageList({
         return
       }
       setConfirming(null)
+      void queryClient.resetQueries({ queryKey: publicMapQueryKey })
       window.location.reload()
     })
   }

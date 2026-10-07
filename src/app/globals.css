@@ -317,11 +317,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .letter-workspace__feedback { min-height: 1.5rem; }
 .location-picker { position: relative; padding: 0; border: 0; min-width: 0; margin: 0; }
 .location-picker > legend { font-weight: 700; margin-bottom: .75rem; }
-.location-picker > label { display: block; font-size: .9rem; margin-bottom: .3rem; }
-.location-picker > input { width: 100%; padding: .65rem .8rem; border: 1px solid #6b3e20; background: #faf0da; color: #171b20; font: inherit; }
+.location-picker__combobox > label { display: block; font-size: .9rem; margin-bottom: .3rem; }
+.location-picker__combobox > input { width: 100%; padding: .65rem .8rem; border: 1px solid #6b3e20; background: #faf0da; color: #171b20; font: inherit; }
 .location-picker__search-feedback { position: relative; z-index: 500; }
 .location-picker__search-feedback > * { position: absolute; inset: 0 0 auto; margin: 0; padding: .65rem; background: #faf0da; border: 1px solid #6b3e20; box-shadow: 0 5px 12px #34221540; }
-.location-picker__search-feedback [role='listbox'] { max-height: 230px; overflow-y: auto; display: grid; gap: .3rem; }
+.location-picker__popover { width: var(--trigger-width); padding: .65rem; background: #faf0da; border: 1px solid #6b3e20; box-shadow: 0 5px 12px #34221540; }
+.location-picker__suggestions { max-height: 230px; overflow-y: auto; display: grid; gap: .3rem; }
+.location-picker__option { padding: .5rem .65rem; border: 1px solid #6b3e20; color: #4a2a13; cursor: pointer; }
+.location-picker__option[data-focused] { outline: 2px solid #171b20; outline-offset: -2px; background: #ecd7af; }
 .location-picker button { padding: .5rem .65rem; font: inherit; border: 1px solid #6b3e20; background: #faf0da; color: #4a2a13; cursor: pointer; }
 .location-picker button:focus-visible, .profile-actions button:focus-visible { outline: 2px solid #171b20; outline-offset: 3px; }
 .location-picker__summary { min-height: 3.6rem; padding-top: .6rem; }
@@ -349,10 +352,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .location-selection-map { position: relative; height: 100%; }
 .location-selection-map .location-selection-map__center { position: absolute; bottom: 1.5rem; left: .5rem; z-index: 800; font-size: .75rem; padding: .45rem .6rem; box-shadow: 0 2px 5px #34221530; }
 .location-selection-map__unavailable { position: absolute; top: .5rem; left: 3rem; right: .5rem; z-index: 800; margin: 0; padding: .5rem; background: #faf0da; font-size: .8rem; pointer-events: none; }
-.location-picker__search-feedback [role='option'] { min-width: 0; text-align: left; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
+.location-picker__option { min-width: 0; text-align: left; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
 .location-picker__selection > span { min-width: 0; max-height: 3rem; overflow: auto; overflow-wrap: anywhere; }
 
 .admin-account-controls { display: grid; gap: 1.5rem; align-content: start; min-width: 0; }
 .admin-account-controls input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--navy); }
 .suspension-notice { max-width: 70rem; margin: 1rem auto; padding: 1rem 1.5rem; border: 1px solid var(--brown); overflow-wrap: anywhere; }
 .suspension-notice p { margin: 0 0 .75rem; }
+
+.location-picker__popover .location-picker__search-feedback > * { position: static; padding: 0; border: 0; box-shadow: none; }

@@ -1,5 +1,8 @@
 /** @vitest-environment jsdom */
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { publicMapQueryKey } from '@/components/map/map-queries'
+
 import { act } from 'react'
 import { cleanup, fireEvent,  waitFor } from '@testing-library/react'
 import { render, IntlTestProvider } from '../../../support/intl'
@@ -32,10 +35,19 @@ const leaflet = vi.hoisted(() => {
   const cluster = { addLayer: vi.fn(), removeLayer: vi.fn(), clearLayers: vi.fn() }
   const markerHandlers = new Map<string, () => void>()
   const markerInstance = {
-    bindPopup: vi.fn(),
+    bindPopup: vi.fn(() => {
+      let isOpen = false
+      markerHandlers.set('click', () => {
+        isOpen = !isOpen
+        markerHandlers.get(isOpen ? 'popupopen' : 'popupclose')?.()
+      })
+    }),
     setPopupContent: vi.fn(),
-    on: vi.fn((event: string, handler: () => void) => { markerHandlers.set(event, handler) }),
-    openPopup: vi.fn(),
+    on: vi.fn((event: string, handler: () => void) => {
+      const previous = markerHandlers.get(event)
+      markerHandlers.set(event, () => { previous?.(); handler() })
+    }),
+    openPopup: vi.fn(() => markerHandlers.get('popupopen')?.()),
   }
   return {
     instance,
@@ -263,4 +275,51 @@ it('updates locale controls without recreating the map, markers, view or open fi
   expect(leaflet.marker).toHaveBeenCalledTimes(1)
   expect(leaflet.instance.setView).toHaveBeenCalledTimes(1)
   expect(leaflet.instance.remove).not.toHaveBeenCalled()
+})
+
+it('revalidates an open popup on invalidation and hides a letter which is no longer public', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  let hidden = false
+  vi.stubGlobal('fetch', vi.fn(async () => hidden ? new Response(null, { status: 404 }) : new Response(JSON.stringify({ ...feature, content: 'visible letter' }))))
+  const client = new QueryClient()
+  render(<QueryClientProvider client={client}><LeafletMap features={[feature]} onSelect={() => {}} /></QueryClientProvider>)
+  await waitFor(() => expect(leaflet.markerHandlers.has('click')).toBe(true))
+  act(() => leaflet.markerHandlers.get('click')?.())
+  await waitFor(() => expect(leaflet.markerInstance.setPopupContent.mock.calls.at(-1)?.[0]).toHaveTextContent('visible letter'))
+  hidden = true
+  await act(async () => { await client.resetQueries({ queryKey: publicMapQueryKey }) })
+  await waitFor(() => expect(leaflet.markerInstance.setPopupContent.mock.calls.at(-1)?.[0]).toHaveTextContent('The message could not be loaded.'))
+  expect(leaflet.markerInstance.setPopupContent.mock.calls.at(-1)?.[0]).not.toHaveTextContent('visible letter')
+  client.clear()
+})
+
+it('cancels a pending popup request when its marker is removed', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  let signal: AbortSignal | undefined
+  vi.stubGlobal('fetch', vi.fn((_url: unknown, init?: RequestInit) => {
+    signal = init?.signal as AbortSignal
+    return new Promise<Response>(() => {})
+  }))
+  const view = render(<LeafletMap features={[feature]} onSelect={() => {}} />)
+  await waitFor(() => expect(leaflet.markerHandlers.has('click')).toBe(true))
+  act(() => leaflet.markerHandlers.get('click')?.())
+  await waitFor(() => expect(signal).toBeDefined())
+  view.rerender(<LeafletMap features={[]} onSelect={() => {}} />)
+  await waitFor(() => expect(signal?.aborted).toBe(true))
+})
+
+it('stops the popup query when a second marker click closes it', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  const signals: AbortSignal[] = []
+  vi.stubGlobal('fetch', vi.fn((_url: unknown, init?: RequestInit) => {
+    signals.push(init?.signal as AbortSignal)
+    return new Promise<Response>(() => {})
+  }))
+  render(<LeafletMap features={[feature]} onSelect={() => {}} />)
+  await waitFor(() => expect(leaflet.markerHandlers.has('click')).toBe(true))
+  act(() => leaflet.markerHandlers.get('click')?.())
+  await waitFor(() => expect(signals).toHaveLength(1))
+  act(() => leaflet.markerHandlers.get('click')?.())
+  expect(signals).toHaveLength(1)
+  expect(signals[0].aborted).toBe(true)
 })

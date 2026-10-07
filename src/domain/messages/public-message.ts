@@ -1,9 +1,7 @@
 import type { LocationPrecision } from '../contracts'
 
-export type PublicPoint = {
-  latitude: number
-  longitude: number
-}
+import type { PublicPoint } from '../location/public-point'
+export type { PublicPoint } from '../location/public-point'
 
 export type PublicAuthor = {
   publicId: string

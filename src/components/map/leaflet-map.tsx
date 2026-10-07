@@ -9,7 +9,10 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 
 import { useEffect, useRef, useState } from 'react'
 
-import type { MapBounds, PublicMapFeature, PublicMessageDetail } from '@/domain/messages/public-message'
+import type { MapBounds, PublicMapFeature } from '@/domain/messages/public-message'
+
+import { QueryObserver, useQueryClient } from '@tanstack/react-query'
+import { publicMessageQuery } from './map-queries'
 
 import type { MapView } from '@/components/navigation/letter-origin'
 
@@ -71,6 +74,7 @@ type FullscreenControl = import('leaflet').Control & {
 }
 
 export function LeafletMap({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: Props) {
+  const queryClient = useQueryClient()
   const lang = useLocale()
   const t = useTranslations('Map.leaflet')
   const translations = useRef(t)
@@ -80,8 +84,7 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
   const map = useRef<import('leaflet').Map | null>(null)
   const cluster = useRef<import('leaflet').MarkerClusterGroup | null>(null)
   const markerLayers = useRef(new Map<string, import('leaflet').Marker>())
-  const loadMessages = useRef(new Map<string, () => void>())
-  const messageRequests = useRef(new Map<string, AbortController>())
+  const messageRequests = useRef(new Map<string, () => void>())
   const centeredPublicId = useRef<string | null>(null)
   const initialViewRef = useRef(initialView)
   const onSelectRef = useRef(onSelect)
@@ -211,9 +214,9 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
       const nextIds = new Set(features.map((feature) => feature.publicId))
       for (const [publicId, marker] of markerLayers.current) {
         if (nextIds.has(publicId)) continue
-        messageRequests.current.get(publicId)?.abort()
+        messageRequests.current.get(publicId)?.()
         messageRequests.current.delete(publicId)
-        loadMessages.current.delete(publicId)
+        popupStates.current.delete(publicId)
         markers.removeLayer(marker)
         markerLayers.current.delete(publicId)
       }
@@ -240,39 +243,33 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
             autoPanPadding: [16, 16],
           })
 
-          const loadMessage = async () => {
-            messageRequests.current.get(publicId)?.abort()
-            const request = new AbortController()
-            messageRequests.current.set(publicId, request)
-            popupStates.current.set(publicId, 'loadingMessage')
-            currentMarker.setPopupContent(popupContent(translations.current('loadingMessage')))
-            try {
-              const response = await fetch(`/api/messages/${publicId}`, {
-                cache: 'no-store',
-                signal: request.signal,
-              })
-              if (!response.ok) throw new Error('message unavailable')
-              const message = await response.json() as PublicMessageDetail
-              if (!request.signal.aborted && markerLayers.current.get(publicId) === currentMarker) {
+          const openMessage = () => {
+            messageRequests.current.get(publicId)?.()
+            const observer = new QueryObserver(queryClient, publicMessageQuery(publicId))
+            const unsubscribe = observer.subscribe(result => {
+              if (markerLayers.current.get(publicId) !== currentMarker) return
+              if (result.isError) {
+                popupStates.current.set(publicId, 'messageUnavailable')
+                currentMarker.setPopupContent(popupContent(translations.current('messageUnavailable')))
+              } else if (result.data) {
                 popupStates.current.set(publicId, 'content')
-                currentMarker.setPopupContent(popupContent(message.content, {
+                currentMarker.setPopupContent(popupContent(result.data.content, {
                   label: translations.current('readFullMessage'),
                   onRead: () => onSelectRef.current(publicId),
                 }))
+              } else {
+                popupStates.current.set(publicId, 'loadingMessage')
+                currentMarker.setPopupContent(popupContent(translations.current('loadingMessage')))
               }
-            } catch {
-              if (!request.signal.aborted && markerLayers.current.get(publicId) === currentMarker) {
-                popupStates.current.set(publicId, 'messageUnavailable')
-                currentMarker.setPopupContent(popupContent(translations.current('messageUnavailable')))
-              }
-            } finally {
-              if (messageRequests.current.get(publicId) === request) messageRequests.current.delete(publicId)
-            }
+            })
+            messageRequests.current.set(publicId, () => { unsubscribe(); observer.destroy() })
           }
 
-          const openMessage = () => { void loadMessage() }
-          marker.on('click', openMessage)
-          loadMessages.current.set(publicId, openMessage)
+          marker.on('popupclose', () => {
+            messageRequests.current.get(publicId)?.()
+            messageRequests.current.delete(publicId)
+          })
+          marker.on('popupopen', openMessage)
           markers.addLayer(marker)
           markerLayers.current.set(publicId, marker)
         }
@@ -280,25 +277,24 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
           centeredPublicId.current = selectedPublicId
           currentInstance.setView([feature.point.latitude, feature.point.longitude], 8)
           marker.openPopup()
-          loadMessages.current.get(selectedPublicId)?.()
         }
       }
     }
 
     void updateMarkers()
     return () => { active = false }
-  }, [instance, features, selectedPublicId])
+  }, [instance, features, selectedPublicId, queryClient])
 
   useEffect(() => {
     if (!instance) return
     const requests = messageRequests.current
     const layers = markerLayers.current
-    const loaders = loadMessages.current
+    const states = popupStates.current
     return () => {
-      for (const request of requests.values()) request.abort()
+      for (const dispose of requests.values()) dispose()
       requests.clear()
       layers.clear()
-      loaders.clear()
+      states.clear()
       cluster.current = null
       centeredPublicId.current = null
     }

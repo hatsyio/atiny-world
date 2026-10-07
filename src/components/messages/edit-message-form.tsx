@@ -5,6 +5,9 @@ import type { Locale } from '@/i18n/locale'
 
 import { useTranslations } from 'next-intl'
 
+import { useQueryClient } from '@tanstack/react-query'
+import { publicMapQueryKey } from '@/components/map/map-queries'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -38,6 +41,7 @@ export function EditMessageForm({
 }: EditMessageFormProps) {
   const t = useTranslations('Forms.edit')
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [content, setContent] = useState(message.content)
   const [location, setLocation] = useState<LocationPickerSelection | null>(null)
   const [locationPending, setLocationPending] = useState(false)
@@ -60,6 +64,7 @@ export function EditMessageForm({
         ...(location !== null ? { location } : {}),
       })
       if (result.ok) {
+        void queryClient.resetQueries({ queryKey: publicMapQueryKey })
         if (onSaved) onSaved()
         else router.push('/my-messages')
         return

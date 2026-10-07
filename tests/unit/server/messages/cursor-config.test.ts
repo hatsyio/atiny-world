@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { signCursor } from '../../../../src/server/messages/cursor'
+import { signCursor, verifyCursor } from '../../../../src/server/messages/cursor'
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -18,4 +18,12 @@ describe('cursor signing configuration', () => {
     vi.stubEnv('CURSOR_SECRET', '')
     expect(signCursor({ id: '1' })).toContain('.')
   })
+})
+
+it('rejects cursor suffixes and Unicode signatures while preserving issued cursors', () => {
+  const payload = { id: 'message-1', publishedAt: '2026-10-07T10:00:00Z' }
+  const cursor = signCursor(payload)
+  expect(verifyCursor(cursor)).toEqual(payload)
+  expect(verifyCursor(`${cursor}.extra`)).toBeNull()
+  expect(verifyCursor(`${cursor.split('.')[0]}.${'é'.repeat(43)}`)).toBeNull()
 })

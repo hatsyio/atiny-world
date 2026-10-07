@@ -140,7 +140,7 @@ describe('LocationPicker', () => {
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
     expect(screen.getByRole('region', { name: 'Selected place' })).toHaveTextContent('Seoul, South Korea')
     expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-1', precision: 'approximate' })
-    expect(screen.getByRole('textbox')).toHaveValue('Seoul, South Korea')
+    expect(screen.getByRole('combobox')).toHaveValue('Seoul, South Korea')
   })
 
   it('ignores an older map lookup after a second click', async () => {
@@ -212,7 +212,8 @@ describe('LocationPicker', () => {
     const requests: Array<ReturnType<typeof deferred<Response>>> = []
     stubFetch(requests)
     render(<LocationPicker onChange={() => {}} />)
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Seoul' } })
+    act(() => screen.getByRole('combobox').focus())
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
     fireEvent.click(screen.getByRole('option', { name: 'Seoul, South Korea' }))
@@ -228,7 +229,8 @@ describe('LocationPicker', () => {
     stubFetch(requests)
     const onChange = vi.fn()
     render(<LocationPicker lang="es" onChange={onChange} />)
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'torrejon de ard' } })
+    act(() => screen.getByRole('combobox').focus())
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'torrejon de ard' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([
       { ...madridSuggestion, locality: 'Torrejón de Ardoz', displayLabel: '28850 Torrejón de Ardoz, España', selectionToken: 'city-token' },
@@ -247,10 +249,12 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={() => {}} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seo' } })
     await act(async () => { advance(300) })
     expect(fetchMock).not.toHaveBeenCalled()
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     expect(fetchMock).toHaveBeenCalledTimes(1)
@@ -268,10 +272,12 @@ describe('LocationPicker', () => {
     render(<LocationPicker onChange={() => {}} />)
     const input = screen.getByLabelText(/search/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seo' } })
     await act(async () => { advance(400) })
     expect(fetchMock).toHaveBeenCalledTimes(1)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -291,6 +297,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={() => {}} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seou' } })
     await act(async () => { advance(400) })
     expect(screen.getByRole('status')).toHaveTextContent(/buscando lugares/i)
@@ -298,6 +305,7 @@ describe('LocationPicker', () => {
     await resolveSearch(requests[0], suggestionsResponse([]))
     expect(screen.getByRole('status')).toHaveTextContent(/no se encontraron/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoud' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[1], new Response(null, { status: 429 }))
@@ -317,6 +325,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker onChange={() => {}} />)
     const input = screen.getByLabelText(/search/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await act(async () => { await fetchMock.mock.results[0].value })
@@ -338,6 +347,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={onChange} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'La casa de Seúl' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -360,6 +370,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={onChange} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -367,6 +378,7 @@ describe('LocationPicker', () => {
     fireEvent.click(screen.getByRole('option', { name: 'Seoul, South Korea' }))
     expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-1', precision: 'approximate' })
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul zone' } })
     expect(onChange).toHaveBeenLastCalledWith(null)
     expect(screen.queryByLabelText(/lugar seleccionado/i)).toBeNull()
@@ -380,6 +392,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={onChange} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -417,6 +430,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={onChange} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -437,6 +451,7 @@ it('keeps the chosen place and precise public point when the provider locale cha
   const onChange = vi.fn()
   const view = (locale:'en'|'es') => <IntlTestProvider locale={locale}><LocationPicker onChange={onChange}/></IntlTestProvider>
   const result = render(view('en'))
+  act(() => screen.getByLabelText('Search for a city or area').focus())
   fireEvent.change(screen.getByLabelText('Search for a city or area'), {target:{value:'Seoul'}})
   await act(async () => { await advance(400) })
   await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -450,7 +465,7 @@ it('keeps the chosen place and precise public point when the provider locale cha
   fireEvent.click(screen.getByRole('button', {name:'I understand, make this point public'}))
   const retained = onChange.mock.calls.at(-1)?.[0] as LocationPickerSelection
   result.rerender(view('es'))
-  expect(screen.getByLabelText('Busca una ciudad o zona')).toHaveValue('Seoul')
+  expect(screen.getByLabelText('Busca una ciudad o zona')).toHaveValue('Seoul, South Korea')
   expect(screen.getByRole('region', {name:'Lugar seleccionado'})).toHaveTextContent('Seoul, South Korea')
   expect(screen.getByRole('radio', {name:'Ubicación exacta'})).toBeChecked()
   expect(screen.getByText('Punto exacto confirmado.')).toBeVisible()
@@ -464,4 +479,45 @@ it('keeps the chosen place and precise public point when the provider locale cha
   expect(leafletCallbacks.marker).toHaveBeenCalledTimes(1)
   expect(leafletCallbacks.setView).toHaveBeenCalledTimes(2)
   expect(leafletCallbacks.remove).not.toHaveBeenCalled()
+})
+
+it('links the combobox to suggestions and selects the active option with arrows and Enter', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-map-key')
+  vi.useFakeTimers()
+  const requests: Array<ReturnType<typeof deferred<Response>>> = []
+  stubFetch(requests)
+  const onChange = vi.fn()
+  render(<LocationPicker onChange={onChange} />)
+  const input = screen.getByRole('combobox', { name: 'Search for a city or area' })
+  act(() => input.focus())
+  fireEvent.change(input, { target: { value: 'city' } })
+  await act(async () => { advance(400) })
+  await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion, madridSuggestion]))
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  expect(input).toHaveAttribute('aria-expanded', 'true')
+  expect(input.getAttribute('aria-controls')).toBe(screen.getByRole('listbox').id)
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  const active = document.getElementById(input.getAttribute('aria-activedescendant')!)
+  expect(active).toHaveTextContent('Madrid, España')
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-2', precision: 'approximate' })
+  expect(input).toHaveAttribute('aria-expanded', 'false')
+})
+
+it('closes suggestions on Escape without selecting a public location', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-map-key')
+  vi.useFakeTimers()
+  const requests: Array<ReturnType<typeof deferred<Response>>> = []
+  stubFetch(requests)
+  const onChange = vi.fn()
+  render(<LocationPicker onChange={onChange} />)
+  const input = screen.getByRole('combobox', { name: 'Search for a city or area' })
+  act(() => input.focus())
+  fireEvent.change(input, { target: { value: 'Seoul' } })
+  await act(async () => { advance(400) })
+  await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  fireEvent.keyDown(input, { key: 'Escape' })
+  expect(input).toHaveAttribute('aria-expanded', 'false')
+  expect(onChange).not.toHaveBeenCalled()
 })

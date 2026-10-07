@@ -4,7 +4,9 @@ import type { Locale } from '@/i18n/locale'
 
 import { useLocale, useTranslations } from 'next-intl'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { mapFeaturesQuery } from './map-queries'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { rememberLetterOrigin } from '@/components/navigation/letter-link'
@@ -105,44 +107,9 @@ function MapExploration({ lang, selectedPublicId, selectedMessage, initialView, 
   const view = useRef(initialView)
   const [bounds, setBounds] = useState<MapBounds>(WORLD_BOUNDS)
   const [filters, setFilters] = useState<MapFilterValues>(initialFilters)
-  const [features, setFeatures] = useState<PublicMapFeature[]>(selectedMessage ? [selectedMessage] : [])
-  const [error, setError] = useState<string | null>(null)
-  const [retry, setRetry] = useState(0)
   const hasBasemap = Boolean(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY)
-
-  useEffect(() => {
-    const refreshViewport = () => setRetry((current) => current + 1)
-    window.addEventListener('atiny:message-published', refreshViewport)
-    return () => window.removeEventListener('atiny:message-published', refreshViewport)
-  }, [])
-
-  useEffect(() => {
-    if (!hasBasemap) return
-    const controller = new AbortController()
-
-    async function loadFeatures() {
-      setError(null)
-      try {
-        const response = await fetch(buildFeatureRequest(bounds, filters), {
-          cache: 'no-store',
-          signal: controller.signal,
-        })
-        if (!response.ok) throw new Error('map features unavailable')
-
-        const body = (await response.json()) as { features?: PublicMapFeature[] }
-        const viewportFeatures = body.features ?? []
-        setFeatures(selectedMessage && !filters.city && !filters.country && !viewportFeatures.some(feature => feature.publicId === selectedMessage.publicId)
-          ? [selectedMessage, ...viewportFeatures] : viewportFeatures)
-      } catch {
-        if (!controller.signal.aborted) {
-          setError('unavailable')
-        }
-      }
-    }
-
-    void loadFeatures()
-    return () => controller.abort()
-  }, [bounds, filters, retry, hasBasemap, selectedMessage])
+  const query = useQuery({ ...mapFeaturesQuery(buildFeatureRequest(bounds, filters)), enabled: hasBasemap })
+  const features = query.isError ? [] : query.data?.features ?? (query.isPending && selectedMessage && !filters.city && !filters.country ? [selectedMessage] : [])
 
   const selectMessage = useCallback((publicId: string) => {
     const origin = mapOrigin(lang, view.current, filters)
@@ -153,10 +120,10 @@ function MapExploration({ lang, selectedPublicId, selectedMessage, initialView, 
   return (
     <section aria-label={t('explore')}>
       <div className="map-feedback" aria-live="polite" aria-atomic="true">
-        {error ? (
+        {query.isError ? (
           <div role="status">
             <p>{t('unavailable')}</p>
-            <button type="button" onClick={() => setRetry((current) => current + 1)}>
+            <button type="button" onClick={() => void query.refetch()}>
               {t('retry')}
             </button>
           </div>

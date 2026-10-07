@@ -23,8 +23,9 @@ export function signCursor(payload: CursorPayload): string {
 }
 
 export function verifyCursor(cursor: string): CursorPayload | null {
-  const [body, signature] = cursor.split('.')
-  if (!body || !signature) return null
+  const parts = cursor.split('.')
+  const [body, signature] = parts
+  if (parts.length !== 2 || !body || !signature || !/^[A-Za-z0-9_-]+$/.test(body) || !/^[A-Za-z0-9_-]{43}$/.test(signature)) return null
 
   const expected = hmac(body)
   const left = Buffer.from(signature, 'utf8')
