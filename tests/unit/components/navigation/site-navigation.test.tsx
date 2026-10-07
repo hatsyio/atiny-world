@@ -169,7 +169,10 @@ describe('shared navigation', () => {
     render(await LocalizedLayout({children: <main>Profile</main>}))
     expect(screen.getAllByRole('banner')).toHaveLength(1)
     expect(screen.getAllByRole('contentinfo')).toHaveLength(1)
-    expect(screen.getByRole('link', { name: lang === 'es' ? 'Sobre el proyecto' : 'About the project' })).toHaveAttribute('href', '#about')
+    expect(screen.queryByRole('link', { name: lang === 'es' ? 'Sobre el proyecto' : 'About the project' })).not.toBeInTheDocument()
+    const developer = within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Josep Pascual' })
+    expect(developer).toHaveAttribute('href', 'https://joseppascual.com')
+    expect(developer.parentElement).toHaveTextContent(lang === 'es' ? 'Desarrollado por Josep Pascual' : 'Developed by Josep Pascual')
     expect(document.getElementById('about')).toHaveTextContent(lang === 'es' ? 'Sin afiliación' : 'Not affiliated')
   })
   it('renders a localized footer independently', () => {
