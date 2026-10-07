@@ -3,6 +3,7 @@ import type { Sql } from 'postgres'
 import { errorResult, okResult, parsePublicId, type ActionResult } from '@/domain/contracts'
 import { getSessionIdentity, type SessionIdentity } from '@/server/auth/session'
 import { deleteMessage, type DeleteMessageInput } from '@/server/messages/delete-message'
+import { captureServerEvent } from '@/server/observability/posthog'
 
 export type DeleteMessageActionInput = {
   publicId: string
@@ -66,6 +67,8 @@ export async function deleteMessageForSession(
     confirmation: input.confirmation,
   })
   if (!deleted.ok) return deleted
+
+  await captureServerEvent(identity.clerkUserId, 'message_deleted')
 
   return okResult({ deleted: true })
 }

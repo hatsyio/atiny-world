@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getSessionIdentity } from '@/server/auth/session'
 import { getDb } from '@/server/db/client'
 import { updateSettings } from '@/server/moderation/settings'
+import { captureServerEvent } from '@/server/observability/posthog'
 
 export type SettingsActionState = {
   status: 'idle' | 'saved' | 'denied' | 'invalid' | 'conflict' | 'error'
@@ -43,6 +44,12 @@ export async function updateSettingsAction(_previous: SettingsActionState, form:
       if (result.error.code === 'MESSAGE_VERSION_CONFLICT') return { status: 'conflict' }
       return { status: result.error.code === 'VALIDATION_ERROR' ? 'invalid' : 'denied' }
     }
+    await captureServerEvent(identity.clerkUserId, 'moderation_settings_updated', {
+      premoderation_enabled: premoderationEnabled === 'true',
+      message_limit: messageLimit,
+      cooldown_seconds: cooldownSeconds,
+      confirmed_impact: confirmedImpact === 'true',
+    })
     for (const path of ['/', '/messages', '/my-messages', '/admin/settings']) revalidatePath(path)
     return {
       status: 'saved',

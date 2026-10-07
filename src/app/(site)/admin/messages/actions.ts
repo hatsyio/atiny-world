@@ -6,6 +6,7 @@ import { parsePublicId } from '@/domain/contracts'
 import { getSessionIdentity } from '@/server/auth/session'
 import { getDb } from '@/server/db/client'
 import { moderateMessage } from '@/server/moderation/moderate-message'
+import { captureServerEvent } from '@/server/observability/posthog'
 
 export type ModerationActionState = { status: 'idle' | 'saved' | 'denied' | 'invalid' | 'conflict' | 'transition' | 'error' }
 
@@ -28,6 +29,9 @@ export async function moderateMessageAction(_previous: ModerationActionState, fo
     })
     if (!result.ok) return { status: result.error.code === 'MESSAGE_VERSION_CONFLICT' ? 'conflict' : result.error.messageKey === 'admin.moderation.transition' ? 'transition' : result.error.code === 'VALIDATION_ERROR' ? 'invalid' : 'denied' }
   } catch { return { status: 'error' } }
+  await captureServerEvent(identity.clerkUserId, 'message_moderated', {
+    decision: validated.data.decision,
+  })
   for (const path of ['/', '/messages', '/my-messages', '/admin/messages', `/messages/${publicId.toLowerCase()}`]) revalidatePath(path)
   return { status: 'saved' }
 }

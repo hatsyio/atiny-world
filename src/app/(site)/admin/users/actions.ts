@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getSessionIdentity } from '@/server/auth/session'
 import { getDb } from '@/server/db/client'
 import { setAdministratorRole, setSuspension } from '@/server/moderation/accounts'
+import { captureServerEvent } from '@/server/observability/posthog'
 
 export type RoleActionState = { status: 'idle' | 'saved' | 'denied' | 'invalid' | 'conflict' | 'error' }
 
@@ -20,6 +21,7 @@ export async function setAdministratorRoleAction(_previous: RoleActionState, for
     const result = await setAdministratorRole(getDb(), { clerkUserId: identity.clerkUserId, publicId, role, expectedRole, expectedRoleVersion })
     if (!result.ok) return { status: result.error.messageKey === 'admin.conflict' ? 'conflict' : result.error.code === 'VALIDATION_ERROR' ? 'invalid' : 'denied' }
   } catch { return { status: 'error' } }
+  await captureServerEvent(identity.clerkUserId, 'administrator_role_updated', { role })
   revalidatePath('/admin', 'layout')
   revalidatePath('/settings')
   return { status: 'saved' }
@@ -48,6 +50,9 @@ export async function setSuspensionAction(_previous: SuspensionActionState, form
     })
     if (!result.ok) return { status: result.error.code === 'MESSAGE_VERSION_CONFLICT' ? 'conflict' : result.error.code === 'VALIDATION_ERROR' ? 'invalid' : 'denied' }
   } catch { return { status: 'error' } }
+  await captureServerEvent(identity.clerkUserId, 'account_suspension_updated', {
+    suspended: suspended === 'true',
+  })
   revalidatePath('/', 'layout')
   return { status: 'saved' }
 }

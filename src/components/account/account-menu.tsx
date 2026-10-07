@@ -1,6 +1,7 @@
 'use client'
 
 import { useClerk } from '@clerk/nextjs'
+import posthog from 'posthog-js'
 import Link from 'next/link'
 import { useEffect, useId, useRef, useState } from 'react'
 
@@ -51,7 +52,7 @@ export function AccountMenu({ active = false, visitor = false, canAdminister = f
           <Link href="/my-messages" onClick={close}>{t('myLetters')}</Link>
           <Link href="/settings" onClick={close}>{t('settings')}</Link>
           {canAdminister ? <Link href="/admin" onClick={close}>{t('administration')}</Link> : null}
-          <button type="button" onClick={() => { close(); void signOut({ redirectUrl: '/' }) }}>{t('signOut')}</button>
+          <button type="button" onClick={() => { close(); posthog.reset(); void signOut({ redirectUrl: '/' }) }}>{t('signOut')}</button>
         </>}
       </div>
     </div>
