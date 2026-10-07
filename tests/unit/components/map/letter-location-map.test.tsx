@@ -1,9 +1,10 @@
 /** @vitest-environment jsdom */
 
+import { StrictMode } from 'react'
 import leaflet from 'leaflet'
 import { cleanup, fireEvent, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { render } from '../../../support/intl'
+import { render, IntlTestProvider } from '../../../support/intl'
 import { LetterLocationMap } from '@/components/map/letter-location-map'
 
 const point = { latitude: 40.4167, longitude: -3.7033 }
@@ -16,7 +17,7 @@ afterEach(() => {
 
 it('keeps the letter pin centered with all navigation disabled and no fullscreen control', async () => {
   vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
-  const mapFactory = vi.spyOn(leaflet, 'map')
+  const mapFactory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const { container, unmount } = render(<LetterLocationMap point={point} content="Una carta desde Madrid." />)
   await waitFor(() => expect(mapFactory).toHaveReturned())
   const map = mapFactory.mock.results[0].value as leaflet.Map
@@ -40,7 +41,7 @@ it('keeps the letter pin centered with all navigation disabled and no fullscreen
 
 it('recenters on a different letter and removes the previous map', async () => {
   vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
-  const mapFactory = vi.spyOn(leaflet, 'map')
+  const mapFactory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const { rerender } = render(<LetterLocationMap point={point} content="Una carta desde Madrid." />)
   await waitFor(() => expect(mapFactory).toHaveReturned())
   const previousMap = mapFactory.mock.results[0].value as leaflet.Map
@@ -56,7 +57,7 @@ it('recenters on a different letter and removes the previous map', async () => {
 
 it('shows an unavailable status when the basemap is not configured', () => {
   vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', '')
-  const mapFactory = vi.spyOn(leaflet, 'map')
+  const mapFactory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const { getByRole } = render(<LetterLocationMap point={point} content="Una carta desde Madrid." />)
   expect(getByRole('status')).toBeInTheDocument()
   expect(mapFactory).not.toHaveBeenCalled()
@@ -64,7 +65,7 @@ it('shows an unavailable status when the basemap is not configured', () => {
 
 it('opens and closes the letter popup without moving or zooming the static map', async () => {
   vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
-  const mapFactory = vi.spyOn(leaflet, 'map')
+  const mapFactory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const content = 'Mi carta <script>alert(1)</script> desde Madrid.'
   const { container, getByText, getByRole } = render(<LetterLocationMap point={point} content={content} />)
   await waitFor(() => expect(container.querySelector('.leaflet-marker-icon')).toBeTruthy())
@@ -83,4 +84,66 @@ it('opens and closes the letter popup without moving or zooming the static map',
   expect(getByText(content)).toBeVisible()
   expect(map.getCenter().lat).toBeCloseTo(40.4167)
   expect(map.getCenter().lng).toBeCloseTo(-3.7033)
+})
+
+
+it('updates the letter content without rebuilding the map or closing its popup', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  const mapFactory = vi.spyOn(leaflet.Map.prototype, 'setView')
+  const { rerender, getByRole, findByText } = render(<LetterLocationMap point={point} content="Original content" />)
+  await waitFor(() => expect(mapFactory).toHaveReturned())
+  const map = mapFactory.mock.results[0].value as leaflet.Map
+  const remove = vi.spyOn(map, 'remove')
+  fireEvent.click(getByRole('button', { name: 'View 1 message' }))
+  await findByText('Original content')
+  rerender(<LetterLocationMap point={point} content="Updated <script>literal content</script>" />)
+  await findByText('Updated <script>literal content</script>')
+  expect(remove).not.toHaveBeenCalled()
+  expect(mapFactory).toHaveBeenCalledTimes(1)
+  expect(map.getContainer().querySelector('.leaflet-popup script')).toBeNull()
+})
+
+it('translates an open popup and marker without replacing the static map', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  const mapFactory = vi.spyOn(leaflet.Map.prototype, 'setView')
+  const view = (locale: 'en' | 'es') => <IntlTestProvider locale={locale}><LetterLocationMap point={point} content="A letter" /></IntlTestProvider>
+  const { rerender, getByRole, findByRole } = render(view('en'))
+  await waitFor(() => expect(mapFactory).toHaveReturned())
+  const map = mapFactory.mock.results[0].value as leaflet.Map
+  const remove = vi.spyOn(map, 'remove')
+  fireEvent.click(getByRole('button', { name: 'View 1 message' }))
+  await findByRole('button', { name: 'Close popup' })
+  rerender(view('es'))
+  await findByRole('button', { name: 'Ver 1 mensaje' })
+  await findByRole('button', { name: 'Cerrar ventana' })
+  expect(remove).not.toHaveBeenCalled()
+  expect(mapFactory).toHaveBeenCalledTimes(1)
+  expect(map.getCenter().lat).toBeCloseTo(point.latitude)
+  expect(map.getZoom()).toBe(15)
+})
+
+it('mounts and cleans up with StrictMode without leaving duplicate canvases or pins', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  const { container, unmount } = render(<StrictMode><LetterLocationMap point={point} content="Strict letter" /></StrictMode>)
+  await waitFor(() => expect(container.querySelectorAll('.leaflet-marker-icon')).toHaveLength(1))
+  expect(container.querySelectorAll('.leaflet-container')).toHaveLength(1)
+  unmount()
+  expect(container.querySelector('.leaflet-container')).toBeNull()
+})
+
+
+it('uses the translated close label when opening a popup for the first time in Spanish', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  const { findByRole } = render(<IntlTestProvider locale="es"><LetterLocationMap point={point} content="Carta" /></IntlTestProvider>)
+  fireEvent.click(await findByRole('button', { name: 'Ver 1 mensaje' }))
+  expect(await findByRole('button', { name: 'Cerrar ventana' })).toBeVisible()
+})
+
+it('contains a map initialization failure and shows the translated unavailable status', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(leaflet.Map.prototype, 'setView').mockImplementation(() => { throw new Error('Map initialization failed') })
+  const { findByRole, container } = render(<LetterLocationMap point={point} content="Carta" />)
+  expect(await findByRole('status')).toHaveTextContent('The map could not be loaded. Try again.')
+  expect(container.querySelector('.leaflet-marker-icon')).toBeNull()
 })
