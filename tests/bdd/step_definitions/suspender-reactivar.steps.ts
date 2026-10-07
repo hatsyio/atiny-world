@@ -7,9 +7,9 @@ import { updateMessage } from '../../../src/server/messages/update-message'
 import { deleteMessage } from '../../../src/server/messages/delete-message'
 import type { ActionResult } from '../../../src/domain/contracts'
 import { createTestDb, insertMessage, insertProfile, truncateProductTables } from '../../support/database'
-import type { AtinyWorld } from '../support/world'
+import type { AtinyAtlasWorld } from '../support/world'
 
-type SuspensionWorld = AtinyWorld & { targetId: string; letterIds: string[]; suspensionResult?: ActionResult<SetSuspensionSuccess> }
+type SuspensionWorld = AtinyAtlasWorld & { targetId: string; letterIds: string[]; suspensionResult?: ActionResult<SetSuspensionSuccess> }
 const db = createTestDb()
 async function clean() {
   await db`delete from app_private.moderation_actions`

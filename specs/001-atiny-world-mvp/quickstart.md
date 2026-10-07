@@ -1,4 +1,4 @@
-# Quickstart and Verification: ATINY World MVP
+# Quickstart and Verification: Atiny Atlas MVP
 
 Esta guía valida la implementación futura del plan. No ejecuta migraciones remotas ni activa planes de pago.
 

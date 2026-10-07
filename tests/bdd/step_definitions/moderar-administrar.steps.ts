@@ -8,9 +8,9 @@ import { updateMessage } from '../../../src/server/messages/update-message'
 import { updateSettings, type UpdateSettingsSuccess } from '../../../src/server/moderation/settings'
 import type { ActionResult } from '../../../src/domain/contracts'
 import { createTestDb, insertMessage, insertProfile, truncateProductTables } from '../../support/database'
-import type { AtinyWorld } from '../support/world'
+import type { AtinyAtlasWorld } from '../support/world'
 
-type ModerationWorld = AtinyWorld & {
+type ModerationWorld = AtinyAtlasWorld & {
   moderationResult?: ActionResult<ModerateMessageSuccess>
   sourceStatus: string
   sourceContent: string

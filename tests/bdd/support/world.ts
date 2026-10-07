@@ -18,7 +18,7 @@ import type { DeleteMessageForSessionSuccess } from '../../../src/server/actions
 
 export type BddResponse = { status: number; body: Record<string, unknown> }
 
-export class AtinyWorld extends World {
+export class AtinyAtlasWorld extends World {
   actualName?: string
   authReader?: ClerkAuthReader
   sessionIdentity?: SessionIdentity | null
@@ -44,4 +44,4 @@ export class AtinyWorld extends World {
   }
 }
 
-setWorldConstructor(AtinyWorld)
+setWorldConstructor(AtinyAtlasWorld)

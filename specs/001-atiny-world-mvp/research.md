@@ -1,4 +1,4 @@
-# Research: ATINY World MVP
+# Research: Atiny Atlas MVP
 
 ## 1. Aplicación full-stack y fronteras de Next.js
 

@@ -1,4 +1,4 @@
-# Implementation Plan: ATINY World MVP
+# Implementation Plan: Atiny Atlas MVP
 
 **Branch**: `feat/bootstrap` | **Date**: 2026-09-15 | **Spec**: [spec.md](./spec.md)
 
@@ -6,7 +6,7 @@
 
 ## Summary
 
-Construir el MVP integral de ATINY World como una aplicación única Next.js 16 con App Router: lectura pública de mensajes sobre Leaflet/CARTO, cuentas Clerk, publicación y gestión de hasta 10 mensajes por cuenta, moderación, acción privada «Pedir revisión», administración, eliminación coordinada e interfaz inglesa/española. El backend Node.js será la única puerta a PostgreSQL 17 en Supabase, concentrará permisos e invariantes en módulos de dominio y servidor, y mantendrá toda dirección, evidencia de revisión e historial administrativo fuera del cliente. La UI conservará filtros, borrador y ubicaciones ya confirmadas ante fallos temporales de mapa o geocodificación, y los recorridos esenciales tendrán medición E2E automatizada sobre la matriz móvil exigida.
+Construir el MVP integral de Atiny Atlas como una aplicación única Next.js 16 con App Router: lectura pública de mensajes sobre Leaflet/CARTO, cuentas Clerk, publicación y gestión de hasta 10 mensajes por cuenta, moderación, acción privada «Pedir revisión», administración, eliminación coordinada e interfaz inglesa/española. El backend Node.js será la única puerta a PostgreSQL 17 en Supabase, concentrará permisos e invariantes en módulos de dominio y servidor, y mantendrá toda dirección, evidencia de revisión e historial administrativo fuera del cliente. La UI conservará filtros, borrador y ubicaciones ya confirmadas ante fallos temporales de mapa o geocodificación, y los recorridos esenciales tendrán medición E2E automatizada sobre la matriz móvil exigida.
 
 ## Internacionalización por lector (#67)
 

@@ -1,4 +1,4 @@
-# Data Model: ATINY World MVP
+# Data Model: Atiny Atlas MVP
 
 ## Conventions
 

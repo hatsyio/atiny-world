@@ -1,12 +1,12 @@
-# ATINY World — Requisitos de producto
+# Atiny Atlas — Requisitos de producto
 
 Estado: validado por el propietario el 13 de septiembre de 2026 y actualizado el 14 de septiembre de 2026. Alcance acordado para la primera versión.
 
 ## Propósito y lanzamiento
 
-ATINY World es un mapa permanente y público de mensajes de buenos deseos de fans de ATEEZ. Cada fan puede crear una cuenta y publicar mensajes asociados a una ubicación elegida.
+Atiny Atlas es un mapa permanente y público de mensajes de buenos deseos de fans de ATEEZ. Cada fan puede crear una cuenta y publicar mensajes asociados a una ubicación elegida.
 
-- Nombre: ATINY World.
+- Nombre: Atiny Atlas.
 - Subtítulo en español: «Un mundo de buenos deseos para ATEEZ».
 - Lanzamiento público desde el principio; el propietario se encarga de la difusión inicial.
 - Sin fecha límite de lanzamiento.
