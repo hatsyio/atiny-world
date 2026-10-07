@@ -8,6 +8,8 @@ La aplicación Clerk independiente `Atiny Atlas` (`app_3JI4zhFVA0aV562F9b7xpl7MB
 
 El 7 de octubre de 2026 se cambió el nombre de la aplicación de `atiny world` a `Atiny Atlas` mediante la Platform API de Clerk. Se comprobó que `/v1/environment` devuelve `display_config.application_name = "Atiny Atlas"` tanto en Production como en Development. Este es el nombre que reciben los componentes de acceso y registro; se conservaron el ID de aplicación, las instancias, las cuentas, las claves y los dominios.
 
+La comprobación posterior en Chrome confirmó que una pestaña ya abierta todavía mostraba el nombre anterior. En una ventana de incógnito, `https://atinyatlas.com/sign-in` mostró «para continuar a Atiny Atlas». Recargar permite que una pestaña abierta vuelva a cargar la configuración de Clerk; si ya existe una sesión, puede redirigir al flujo de continuación.
+
 | Vercel | Clerk | Instancia |
 | --- | --- | --- |
 | Production | Production, `clerk.atinyatlas.com` | `ins_3JsZ908qMscCJl9ToOnEX7SBSUl` |
