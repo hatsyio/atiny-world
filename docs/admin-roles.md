@@ -6,7 +6,7 @@ La sesión de Clerk identifica al usuario. `app_private.profiles.role` es la fue
 
 - `/admin` conduce a `/admin/users`. El acceso se ofrece como entrada «Administración» en el desplegable de Mi cuenta a administradores y propietarios activos. El servidor comprueba el rol antes de mostrarla.
 - `admin` y `owner` pueden buscar perfiles por nombre o ID de Clerk y consultar rol y estado. Resultados paginados de 25 cuentas; no se envían IDs de Clerk ni detalles de suspensión al navegador.
-- Solo `owner` puede alternar `fan` y `admin`. No se puede otorgar ni retirar `owner` desde la web ni actuar sobre perfiles pendientes de borrado.
+- `admin` y `owner` activos pueden alternar `fan` y `admin` en otras cuentas. No se puede cambiar el rol propio, otorgar ni retirar `owner` desde la web ni actuar sobre perfiles pendientes de borrado. La suspensión de administradores sigue reservada a `owner`.
 - La acción toma la identidad de la sesión, valida los valores, bloquea actor y destinatario en orden estable y vuelve a comprobar sus roles vigentes. Un trigger aumenta `role_version` en cada cambio y permite rechazar formularios antiguos incluso después de conceder y retirar el mismo rol.
 - El cambio y su auditoría se guardan en una transacción. El runtime puede leer e insertar auditoría, pero no modificarla ni borrarla. La base de datos privada sigue inaccesible desde las credenciales públicas y las vistas previas.
 
@@ -39,8 +39,10 @@ La base de Compose (`54332`) y la de pruebas de Supabase (`54322`) son distintas
 
 ## Verificación
 
-Las pruebas cubren acceso directo al panel y acciones, identidad de sesión frente a actor falsificado, revocación de privilegios, restricciones de roles, formularios obsoletos, búsqueda literal y rollback del cambio si falla la auditoría. La asignación inicial es idempotente y no sustituye un propietario existente.
+Las pruebas cubren acceso directo al panel y acciones, identidad de sesión frente a actor falsificado, revocación de privilegios, asignación y retirada por otros administradores, protección de la propia cuenta y del propietario, revocación inmediata, restricciones de roles, formularios obsoletos, búsqueda literal y rollback del cambio si falla la auditoría. La asignación inicial es idempotente y no sustituye un propietario existente.
 
-Resultado: 37 escenarios BDD, 423 pruebas unitarias, 80 pruebas de integración y 51 de contrato correctas; TypeScript, ESLint y build correctos. La revisión independiente detectó el caso de formulario antiguo tras conceder y retirar un rol; la versión monotónica lo corrige y su prueba pasa. Se corrigió además una aserción inestable de ubicación aproximada: un desplazamiento puede mantener una coordenada, pero debe cambiar el punto.
+Resultado de la entrega inicial: 37 escenarios BDD, 423 pruebas unitarias, 80 pruebas de integración y 51 de contrato correctas; TypeScript, ESLint y build correctos. La revisión independiente detectó el caso de formulario antiguo tras conceder y retirar un rol; la versión monotónica lo corrige y su prueba pasa. Se corrigió además una aserción inestable de ubicación aproximada: un desplazamiento puede mantener una coordenada, pero debe cambiar el punto.
+
+Verificación del cambio de permisos entre administradores (7 de octubre de 2026): 51 escenarios BDD, 517 pruebas unitarias, 128 de integración y 51 de contrato correctas; TypeScript, ESLint y build correctos. Incluye cambios simultáneos entre administradores y denegación de la operación del actor revocado. No requiere migraciones.
 
 El bloqueo de filas sigue las garantías de [PostgreSQL](https://www.postgresql.org/docs/current/explicit-locking.html). La búsqueda del propietario usa el filtro de correo de [Clerk getUserList](https://clerk.com/docs/reference/backend/user/get-user-list).

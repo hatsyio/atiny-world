@@ -9,7 +9,7 @@ import { SuspensionControl } from '@/components/admin/suspension-control'
 import { RoleControl } from '@/components/admin/role-control'
 
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
-  await requireAdminPage()
+  const actor = await requireAdminPage()
   const identity = await getSessionIdentity()
   if (!identity) notFound()
   const params = await searchParams
@@ -33,7 +33,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
       {result.data.items.map(account => <li key={account.publicId}>
         <div><h3>{account.displayName}</h3><p>{t(`roles.${account.role}`)} · {t(`states.${account.state}`)}</p><small>{t('accountId')}: {account.publicId}</small></div>
         <div className="admin-account-controls">
-          {result.data.actorRole === 'owner' && account.role !== 'owner' && account.state !== 'deletion_pending' ? <RoleControl account={account} /> : null}
+          {account.publicId !== actor.publicId && account.role !== 'owner' && account.state !== 'deletion_pending' ? <RoleControl account={account} /> : null}
           {account.state !== 'deletion_pending' && (account.role === 'fan' || (account.role === 'admin' && result.data.actorRole === 'owner')) ? <SuspensionControl account={account} /> : null}
         </div>
       </li>)}
