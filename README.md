@@ -23,7 +23,7 @@ se comprobaron después de migrar las cuentas.
 | --- | --- | --- |
 | Namecheap | Registro y renovación del dominio | `atinyatlas.com`. Los servidores DNS delegados son `ns1.vercel-dns.com` y `ns2.vercel-dns.com`; los registros se administran en Vercel. |
 | Vercel | Hosting de Next.js, despliegues, variables, DNS y HTTPS de la web | Proyecto `atiny-world`, conectado a GitHub. Production publica en `atinyatlas.com`; las PR generan previews. `SITE_URL=https://atinyatlas.com`. |
-| Clerk | Cuentas, sesiones, acceso, recuperación y correos de autenticación | Aplicación independiente `atiny world`. Production usa claves live y `clerk.atinyatlas.com`; Preview y Development usan su instancia Development con claves test. Las variables se gestionan manualmente en Vercel. |
+| Clerk | Cuentas, sesiones, acceso, recuperación y correos de autenticación | Aplicación independiente `Atiny Atlas`. Production usa claves live y `clerk.atinyatlas.com`; Preview y Development usan su instancia Development con claves test. Las variables se gestionan manualmente en Vercel. |
 | Google Cloud / Google Auth Platform | Cliente OAuth para «Continuar con Google» | Credenciales propias configuradas en Clerk Production. URI de retorno: `https://clerk.atinyatlas.com/v1/oauth_callback`. El estado de publicación y la marca se gestionan en Google Cloud. |
 | Supabase | PostgreSQL con PostGIS para perfiles, cartas y moderación | Proyecto remoto documentado como `atiny-world`, región París. Acceso desde el backend mediante `DATABASE_URL`; la autenticación de la aplicación la gestiona Clerk. Production y Preview comparten actualmente la base remota. |
 | GitHub / GitHub Actions | Repositorio, PR y validación de CI | Repositorio `hatsyio/atiny-world`. Actions ejecuta los controles; Vercel realiza los despliegues. |
@@ -55,7 +55,6 @@ migración sigue pendiente.
 | Elemento | Nombre o referencia actual | Cambio pendiente |
 | --- | --- | --- |
 | Vercel | Proyecto `atiny-world` y alias `atiny-world.vercel.app` | Renombrar el proyecto a `atiny-atlas`, revisar aliases generados y volver a comprobar el vínculo local, GitHub y el dominio propio. Mantener el ID del proyecto. |
-| Clerk | Aplicación `atiny world` | Renombrar la aplicación a `Atiny Atlas`; revisar branding del Account Portal, formularios y correos. Mantener las instancias, IDs y cuentas actuales. |
 | Google Cloud | Nombre del proyecto, cliente OAuth y marca de consentimiento por revisar | Usar `Atiny Atlas` en la marca pública y en el nombre descriptivo del cliente; comprobar dominio, enlaces de privacidad/contacto y estado `In production`. El ID técnico del proyecto no necesita cambiar. |
 | Supabase | Proyecto remoto y `project_id = "atiny-world"` en `supabase/config.toml` | Revisar el nombre visible remoto y el identificador del entorno local por separado. Conservar la referencia remota y las conexiones de la base existente. |
 | GitHub | `hatsyio/atiny-world` | Renombrar el repositorio a `atiny-atlas`; actualizar `origin`, vínculo con Vercel y referencias vigentes a issues/PR. |
@@ -79,6 +78,7 @@ cambio y comprobar el acceso y los despliegues antes de retirar compatibilidad.
 - [x] Sustituir las claves antiguas de Clerk en Vercel y en `.env`/`.env.clerk-production.local`.
 - [x] Sustituir los CNAME de correo y DKIM de Clerk y verificar DNS, SSL y correo.
 - [x] Marcar `docs/issue-35-clerk-production.md` como documentación histórica y enlazar la configuración vigente.
+- [x] Renombrar la aplicación Clerk a `Atiny Atlas`; comprobar el nombre público que reciben los formularios en Production y Development, conservando las instancias y cuentas existentes.
 - [ ] Retirar el cliente OAuth o secretos de Google anteriores cuando se confirme que ningún otro entorno los utiliza. Conservar las credenciales del cliente nuevo.
 - [ ] Retirar del cliente OAuth nuevo las URI antiguas, como la de `atiny-world.vercel.app`, si ya no se utilizan. Mantener la URI definitiva de `clerk.atinyatlas.com`.
 - [ ] Decidir el plazo de conservación de `atiny-world.dynv6.net`. Mantener su redirección mientras haya enlaces en circulación; actualizar enlaces compartidos antes de retirar el dominio y sus registros.

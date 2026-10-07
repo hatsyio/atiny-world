@@ -2,7 +2,7 @@
   "home": {
     "send": "Escribir una carta",
     "explore": "Explora el mapa",
-    "heroScript": "Querido ATEEZ…",
+    "heroScript": "Queridos ATEEZ…",
     "heroTitle": "Mensajes a través de los mares",
     "heroSub": "De ATINY de todo el mundo, para ATEEZ.",
     "heroText": "Deja un mensaje de cariño, ánimo o agradecimiento y suma tu voz a nuestro mapa global.",
@@ -26,14 +26,14 @@
     "journey": "Nuestro viaje compartido"
   },
   "newLetter": {
-    "script": "Querido ATEEZ…",
+    "script": "Queridos ATEEZ…",
     "title": "Escribir una carta",
     "intro": "Escribe tu carta y elige dónde aparecerá en el mapa.",
     "unavailable": "Tu cuenta no está disponible, así que no puedes publicar una carta ahora mismo."
   },
   "profile": {
     "back": "Volver al mapa",
-    "script": "Querido ATEEZ…",
+    "script": "Queridos ATEEZ…",
     "title": "Terminando tu cuenta",
     "intro": "Todavía no hemos podido crear tu perfil. Vuelve a intentarlo en un momento.",
     "unavailable": "Tu cuenta no está disponible en este momento.",
@@ -47,7 +47,7 @@
   },
   "ownLetters": {
     "back": "Volver al mapa",
-    "script": "Querido ATEEZ…",
+    "script": "Queridos ATEEZ…",
     "title": "Mis cartas",
     "intro": "Consulta todas las cartas que has enviado, incluido su estado de moderación.",
     "next": "Ver cartas anteriores",
@@ -55,12 +55,12 @@
   },
   "editLetter": {
     "back": "Volver a mis cartas",
-    "script": "Querido ATEEZ…",
+    "script": "Queridos ATEEZ…",
     "title": "Editar tu carta"
   },
   "publicLetter": {
     "title": "Una carta de ATINY",
-    "script": "Querido ATEEZ…"
+    "script": "Queridos ATEEZ…"
   },
   "settings": {
     "title": "Ajustes de cuenta",
