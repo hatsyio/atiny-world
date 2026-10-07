@@ -1,14 +1,98 @@
-# ATINY World
+# Atiny Atlas
 
 Un mundo de buenos deseos para ATEEZ.
 
-ATINY World será un mapa público y permanente de mensajes de ATINY, con ubicaciones elegidas por sus autoras y moderación configurable.
+Atiny Atlas es un mapa público y permanente de mensajes de ATINY, con ubicaciones elegidas por sus autoras y moderación configurable.
+
+Producción: **https://atinyatlas.com**.
 
 ## Estado
 
 La base ejecutable incluye Next.js, TypeScript, pnpm, Clerk, persistencia en
-PostgreSQL, mapa público y creación de mensajes. Moderación y gestión de
-mensajes siguen en desarrollo.
+PostgreSQL, mapa público, creación y gestión de mensajes, moderación y
+administración. La lista de trabajo de producto y verificación de lanzamiento
+se mantiene en [tasks.md](specs/001-atiny-world-mvp/tasks.md).
+
+## Servicios e infraestructura
+
+Inventario revisado el **7 de octubre de 2026**. Clerk ya funciona de forma
+independiente de Vercel Marketplace; el login, las cartas y la administración
+se comprobaron después de migrar las cuentas.
+
+| Servicio | Uso en Atiny Atlas | Configuración actual |
+| --- | --- | --- |
+| Namecheap | Registro y renovación del dominio | `atinyatlas.com`. Los servidores DNS delegados son `ns1.vercel-dns.com` y `ns2.vercel-dns.com`; los registros se administran en Vercel. |
+| Vercel | Hosting de Next.js, despliegues, variables, DNS y HTTPS de la web | Proyecto `atiny-world`, conectado a GitHub. Production publica en `atinyatlas.com`; las PR generan previews. `SITE_URL=https://atinyatlas.com`. |
+| Clerk | Cuentas, sesiones, acceso, recuperación y correos de autenticación | Aplicación independiente `atiny world`. Production usa claves live y `clerk.atinyatlas.com`; Preview y Development usan su instancia Development con claves test. Las variables se gestionan manualmente en Vercel. |
+| Google Cloud / Google Auth Platform | Cliente OAuth para «Continuar con Google» | Credenciales propias configuradas en Clerk Production. URI de retorno: `https://clerk.atinyatlas.com/v1/oauth_callback`. El estado de publicación y la marca se gestionan en Google Cloud. |
+| Supabase | PostgreSQL con PostGIS para perfiles, cartas y moderación | Proyecto remoto documentado como `atiny-world`, región París. Acceso desde el backend mediante `DATABASE_URL`; la autenticación de la aplicación la gestiona Clerk. Production y Preview comparten actualmente la base remota. |
+| GitHub / GitHub Actions | Repositorio, PR y validación de CI | Repositorio `hatsyio/atiny-world`. Actions ejecuta los controles; Vercel realiza los despliegues. |
+| CARTO / OpenStreetMap | Mapa base y datos cartográficos | Teselas de CARTO y atribución a CARTO/OpenStreetMap. La clave de CARTO es pública y se configura con `NEXT_PUBLIC_CARTO_BASEMAP_KEY`. |
+| Geoapify | Autocompletado y búsqueda inversa de ubicaciones | Consultas desde el servidor; `GEOAPIFY_API_KEY` se mantiene privada. |
+| Docker Compose | Aplicación y PostgreSQL/PostGIS para desarrollo | Proyecto local `atiny-world`; perfiles `local` y `pro`. No es el hosting de producción. |
+
+`www.atinyatlas.com` y el dominio anterior `atiny-world.dynv6.net` redirigen
+mediante HTTP 308 a `atinyatlas.com`. dynv6 queda como compatibilidad con
+enlaces antiguos. No se utiliza como DNS del dominio nuevo.
+
+Los certificados de la web se gestionan en Vercel y los de los subdominios de
+autenticación en Clerk. Namecheap no aporta hosting ni correo de la aplicación.
+Google OAuth tampoco implica tener correo de empresa o Google Workspace.
+
+La configuración de la migración, los entornos y las verificaciones están en
+[Clerk independiente](docs/clerk-independent-migration-20261007.md).
+
+## Nombre definitivo y revisión pendiente
+
+La marca es **Atiny Atlas**, respetando esa capitalización. Para nombres
+técnicos nuevos, usar `atiny-atlas`; para el dominio, `atinyatlas.com`.
+Los nombres anteriores todavía existen en los elementos siguientes. Esta
+revisión documenta los cambios pendientes; no implica que se hayan renombrado
+los recursos remotos ni la interfaz.
+
+| Elemento | Nombre o referencia actual | Cambio pendiente |
+| --- | --- | --- |
+| Identidad de la aplicación | `atiny world` en `src/app-identity.ts` | Devolver `Atiny Atlas` y compartir esta identidad donde se muestra la marca. |
+| Cabecera y metadatos | `ATINY World` en `src/components/navigation/site-header.tsx`; `atiny world` en `src/app/layout.tsx` | Actualizar marca visible y título de página. |
+| Traducciones | `ATINY World` en `src/i18n/messages/{en,es}/pages.json` | Actualizar los textos de ajustes en ambos idiomas. |
+| Pruebas | Nombre antiguo en `tests/bdd/features/bootstrap.feature` y pruebas de identidad, página y navegación | Ajustar las expectativas al renombrar el producto y ejecutar las suites afectadas. Revisar también ejemplos de dominio en pruebas de metadatos. |
+| Paquete npm | `name: atiny-world` en `package.json` | Renombrar a `atiny-atlas` y comprobar las referencias de herramientas y lockfile. |
+| Vercel | Proyecto `atiny-world` y alias `atiny-world.vercel.app` | Renombrar el proyecto a `atiny-atlas`, revisar aliases generados y volver a comprobar el vínculo local, GitHub y el dominio propio. Mantener el ID del proyecto. |
+| Clerk | Aplicación `atiny world` | Renombrar la aplicación a `Atiny Atlas`; revisar branding del Account Portal, formularios y correos. Mantener las instancias, IDs y cuentas actuales. |
+| Google Cloud | Nombre del proyecto, cliente OAuth y marca de consentimiento por revisar | Usar `Atiny Atlas` en la marca pública y en el nombre descriptivo del cliente; comprobar dominio, enlaces de privacidad/contacto y estado `In production`. El ID técnico del proyecto no necesita cambiar. |
+| Supabase | Proyecto remoto y `project_id = "atiny-world"` en `supabase/config.toml` | Revisar el nombre visible remoto y el identificador del entorno local por separado. Conservar la referencia remota y las conexiones de la base existente. |
+| GitHub | `hatsyio/atiny-world` | Renombrar el repositorio a `atiny-atlas`; actualizar `origin`, vínculo con Vercel y referencias vigentes a issues/PR. |
+| Docker | `name: atiny-world` e imagen `atiny-world-postgres:17.6-postgis` en `compose.yaml` | Revisar nombres de imágenes, contenedores y volúmenes. Cambiar el nombre del proyecto puede seleccionar otros volúmenes: respaldar y conservar o trasladar los datos antes. |
+| Carpeta local | `atiny-map` | Renombrar a `atiny-atlas` después de revisar referencias locales y sesiones/herramientas que dependen de la ruta. |
+| Documentación y especificación | `docs/requisitos.md`, `docs/arquitectura.md`, `specs/001-atiny-world-mvp/` y planes antiguos | Actualizar requisitos vigentes, especialmente FR-001, títulos y contratos. Revisar todos los enlaces antes de renombrar carpetas. Los planes y registros históricos pueden conservar su nombre con una nota de contexto. |
+| Proveedores de mapas y búsqueda | Nombres de proyectos/claves de CARTO y Geoapify por revisar | Comprobar etiquetas y restricciones de dominio; renombrar etiquetas a `Atiny Atlas` cuando proceda. No regenerar claves solo por cambiar el nombre. |
+
+Orden recomendado: marca y pruebas → documentación vigente → etiquetas de los
+servicios → repositorio/Vercel → entornos locales y carpeta. Registrar cada
+cambio y comprobar el acceso y los despliegues antes de retirar compatibilidad.
+
+## Limpieza y retirada de elementos anteriores
+
+- [x] Eliminar el recurso `clerk-rose-fountain` y desinstalar la integración Clerk de Vercel Marketplace.
+- [x] Migrar las cuentas Production y Development y conservar los vínculos de perfiles, cartas y roles.
+- [x] Sustituir las claves antiguas de Clerk en Vercel y en `.env`/`.env.clerk-production.local`.
+- [x] Sustituir los CNAME de correo y DKIM de Clerk y verificar DNS, SSL y correo.
+- [x] Marcar `docs/issue-35-clerk-production.md` como documentación histórica y enlazar la configuración vigente.
+- [ ] Retirar el cliente OAuth o secretos de Google anteriores cuando se confirme que ningún otro entorno los utiliza. Conservar las credenciales del cliente nuevo.
+- [ ] Retirar del cliente OAuth nuevo las URI antiguas, como la de `atiny-world.vercel.app`, si ya no se utilizan. Mantener la URI definitiva de `clerk.atinyatlas.com`.
+- [ ] Decidir el plazo de conservación de `atiny-world.dynv6.net`. Mantener su redirección mientras haya enlaces en circulación; actualizar enlaces compartidos antes de retirar el dominio y sus registros.
+- [ ] Retirar la configuración local `ddclient` y su credencial dynv6 cuando deje de ser necesaria. No ejecutar la detección de IP: podría sobrescribir el registro del dominio anterior.
+- [ ] Revisar los alias antiguos de Vercel después del renombrado; mantener las redirecciones necesarias y eliminar solo los alias sin uso.
+- [ ] Actualizar `docs/desarrollo-local.md` y `docs/arquitectura.md`: todavía contienen referencias a Clerk Marketplace y estados antiguos de provisión.
+- [ ] Revisar variables, webhooks, claves de CI y archivos locales que aún puedan referirse a la instancia Clerk eliminada. No retirar claves de otros servicios ni secretos activos.
+- [ ] Definir conservación y eliminación de los CSV descargados y las copias temporales de migración. Contienen datos personales y contraseñas cifradas; no subirlos a Git. Conservar el respaldo privado y los mapas de IDs mientras sea necesario para recuperar o auditar la migración.
+- [ ] Revisar el perfil sin correspondencia con las cuentas exportadas que se conservó en la base. Verificar autoría y referencias antes de decidir una actuación; no borrarlo automáticamente.
+- [ ] Provisionar y comprobar la credencial de solo lectura de Preview, pendiente en la documentación de desarrollo, antes de dar por aislados los datos de producción.
+
+El respaldo privado de la migración está en
+`~/.local/share/atiny-world/clerk-migration-20261007`. Su carpeta conserva el
+nombre antiguo como referencia de la operación; no es un nombre público ni
+debe eliminarse como parte de un reemplazo general de textos.
 
 ## Documentación
 
