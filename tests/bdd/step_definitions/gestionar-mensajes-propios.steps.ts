@@ -132,7 +132,7 @@ When('edito su texto', async function (this: AtinyAtlasWorld) {
 })
 
 When('cambio la ubicación del mensaje', async function (this: AtinyAtlasWorld) {
-  const token = signLocationSelection({
+  const token = await signLocationSelection({
     locality: 'Barcelona', country: 'España', countryCode: 'es',
     point: { latitude: 41.3874, longitude: 2.1686 }, attribution: 'Geoapify',
   }, locationSecret)

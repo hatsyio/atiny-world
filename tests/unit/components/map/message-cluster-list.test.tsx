@@ -59,3 +59,19 @@ it('appends cursor pages and retries a failed next page without discarding read 
   await screen.findByText('second letter')
   expect(screen.getByText('first letter')).toBeVisible()
 })
+
+it('restarts pagination when a previous deployment cursor is rejected without duplicating letters', async () => {
+  let reset = false
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+    if (url.includes('cursor=')) return new Response(JSON.stringify({ code: 'VALIDATION_ERROR', fieldErrors: { cursor: 'pagination.cursorInvalid' } }), { status: 400 })
+    return response(reset ? 'refreshed letter' : 'old page', reset ? null : 'previous-format-cursor')
+  }))
+  view('/api/map/messages?city=A')
+  await screen.findByText('old page')
+  fireEvent.click(screen.getByRole('button', { name: 'Load more messages' }))
+  await screen.findByRole('status')
+  reset = true
+  fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+  await screen.findByText('refreshed letter')
+  expect(screen.queryByText('old page')).toBeNull()
+})

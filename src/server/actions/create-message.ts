@@ -75,7 +75,7 @@ export async function createMessageForSession(
     })
   }
 
-  const location = resolveLocationSelection(input?.location, verifySelection)
+  const location = await resolveLocationSelection(input?.location, verifySelection)
   if (!location.ok) return location
 
   const created = await publish({

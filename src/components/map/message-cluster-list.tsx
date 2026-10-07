@@ -4,8 +4,8 @@ import type { Locale } from '@/i18n/locale'
 
 import { useTranslations } from 'next-intl'
 
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { mapMessagesQuery } from './map-queries'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
+import { isInvalidMapCursor, mapMessagesQuery } from './map-queries'
 
 interface Props {
   requestUrl: string
@@ -14,13 +14,16 @@ interface Props {
 }
 
 export function MessageClusterList({ requestUrl, onSelect }: Props) {
-  const query = useInfiniteQuery(mapMessagesQuery(requestUrl))
+  const queryClient = useQueryClient()
+  const options = mapMessagesQuery(requestUrl)
+  const query = useInfiniteQuery(options)
   const page = query.isError && !query.isFetchNextPageError ? [] : query.data?.pages.flatMap(page => page.items) ?? []
   const t = useTranslations('Map.cluster')
   const isLoading = query.isPending
   const error = query.isError
   function retryLoad() {
-    if (query.isFetchNextPageError) void query.fetchNextPage()
+    if (isInvalidMapCursor(query.error)) void queryClient.resetQueries({ queryKey: options.queryKey, exact: true })
+    else if (query.isFetchNextPageError) void query.fetchNextPage()
     else void query.refetch()
   }
 

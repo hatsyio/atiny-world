@@ -1,10 +1,18 @@
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
+import { SignJWT, jwtVerify } from 'jose'
+import { z } from 'zod'
 
-let processCursorKey: Buffer | undefined
+let processCursorKey: Uint8Array | undefined
+const TOKEN_TYPE = 'atiny-message-cursor+jwt'
+const cursorPayloadSchema = z.object({
+  id: z.string().regex(/^[1-9][0-9]{0,18}$/).refine(id => id.length < 19 || id <= '9223372036854775807'),
+  publishedAt: z.iso.datetime({ offset: true }).optional(),
+})
+export type CursorPayload = z.infer<typeof cursorPayloadSchema>
 
-function cursorKey(): Buffer {
+function cursorKey(): Uint8Array {
   const configured = process.env.CURSOR_SECRET
-  if (configured) return Buffer.from(configured, 'utf8')
+  if (configured) return new TextEncoder().encode(configured)
   if (process.env.NODE_ENV === 'production') {
     throw new Error('CURSOR_SECRET is required in production')
   }
@@ -12,46 +20,19 @@ function cursorKey(): Buffer {
   return processCursorKey
 }
 
-export interface CursorPayload {
-  id: string
-  publishedAt?: string
+export async function signCursor(payload: CursorPayload): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256', typ: TOKEN_TYPE })
+    .sign(cursorKey())
 }
 
-export function signCursor(payload: CursorPayload): string {
-  const body = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url')
-  return `${body}.${hmac(body)}`
-}
-
-export function verifyCursor(cursor: string): CursorPayload | null {
-  const parts = cursor.split('.')
-  const [body, signature] = parts
-  if (parts.length !== 2 || !body || !signature || !/^[A-Za-z0-9_-]+$/.test(body) || !/^[A-Za-z0-9_-]{43}$/.test(signature)) return null
-
-  const expected = hmac(body)
-  const left = Buffer.from(signature, 'utf8')
-  const right = Buffer.from(expected, 'utf8')
-
-  if (left.length !== right.length || !timingSafeEqual(left, right)) return null
-
+export async function verifyCursor(cursor: string): Promise<CursorPayload | null> {
+  const key = cursorKey()
   try {
-    const payload = JSON.parse(
-      Buffer.from(body, 'base64url').toString('utf8'),
-    ) as CursorPayload
-
-    if (typeof payload.id !== 'string' || payload.id.length === 0) return null
-    if (
-      payload.publishedAt !== undefined &&
-      typeof payload.publishedAt !== 'string'
-    ) {
-      return null
-    }
-
-    return payload
+    const { payload } = await jwtVerify(cursor, key, { algorithms: ['HS256'], typ: TOKEN_TYPE })
+    const parsed = cursorPayloadSchema.safeParse(payload)
+    return parsed.success ? parsed.data : null
   } catch {
     return null
   }
-}
-
-function hmac(body: string): string {
-  return createHmac('sha256', cursorKey()).update(body).digest('base64url')
 }

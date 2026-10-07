@@ -16,10 +16,14 @@ export async function GET(request: Request): Promise<Response> {
 
   const { west, south, east, north, city, country, cursor, limit } = parsed.data
 
-  if (cursor !== undefined && verifyCursor(cursor) === null) {
+  const verifiedCursor = cursor !== undefined ? await verifyCursor(cursor) : null
+  if (cursor !== undefined && !verifiedCursor?.publishedAt) {
     return Response.json(
       toProblemEnvelope(
-        createProblem('VALIDATION_ERROR', { messageKey: 'validation.invalidFields' }),
+        createProblem('VALIDATION_ERROR', {
+          messageKey: 'validation.invalidFields',
+          fieldErrors: { cursor: 'pagination.cursorInvalid' },
+        }),
       ),
       { status: 400 },
     )

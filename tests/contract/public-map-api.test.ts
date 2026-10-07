@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { GET as getMessage } from '../../src/app/api/messages/[publicId]/route'
 import { createMapFeaturesGetHandler, GET as getFeatures } from '../../src/app/api/map/features/route'
 import { GET as getMessages } from '../../src/app/api/map/messages/route'
+import { signCursor } from '../../src/server/messages/cursor'
 import { getDb } from '../../src/server/db/client'
 
 const db = getDb()
@@ -282,6 +283,13 @@ describe('GET /api/map/messages', () => {
     )
 
     expect(response.status).toBe(400)
+  })
+
+  it('rejects owner cursors without a public publication timestamp', async () => {
+    const cursor = await signCursor({ id: '123' })
+    const response = await getMessages(new Request(apiUrl('/api/map/messages', { west: '-10', south: '35', east: '5', north: '45', cursor })))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ fieldErrors: { cursor: 'pagination.cursorInvalid' } })
   })
 
   it('rejects limits above 50', async () => {

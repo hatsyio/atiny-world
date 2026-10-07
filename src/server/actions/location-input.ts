@@ -13,7 +13,7 @@ export type ResolvedPublicLocation = {
   confirmed?: boolean
 }
 
-export type SelectionVerifier = (token: string) => LocationSelectionVerification
+export type SelectionVerifier = (token: string) => LocationSelectionVerification | Promise<LocationSelectionVerification>
 
 const selectionEnvelopeSchema = z.object({ selectionId: selectionIdSchema })
 
@@ -21,10 +21,10 @@ const SELECTION_REQUIRED = 'LOCATION_SELECTION_REQUIRED' as const
 const SELECTION_INVALID = 'LOCATION_SELECTION_INVALID' as const
 const SELECTION_EXPIRED = 'LOCATION_SELECTION_EXPIRED' as const
 
-export function resolveLocationSelection(
+export async function resolveLocationSelection(
   rawLocation: unknown,
   verifySelection: SelectionVerifier,
-): ActionResult<ResolvedPublicLocation> {
+): Promise<ActionResult<ResolvedPublicLocation>> {
   const envelope = selectionEnvelopeSchema.safeParse(rawLocation)
   if (!envelope.success) {
     const tooLong = envelope.error.issues.some(issue => issue.code === 'too_big')
@@ -34,7 +34,7 @@ export function resolveLocationSelection(
   }
   const selectionId = envelope.data.selectionId
 
-  const verified = verifySelection(selectionId)
+  const verified = await verifySelection(selectionId)
   if (!verified.ok) {
     return verified.reason === 'EXPIRED'
       ? errorResult(SELECTION_EXPIRED, { messageKey: 'location.selection_expired' })
