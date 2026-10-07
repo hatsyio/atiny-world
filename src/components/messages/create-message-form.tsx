@@ -5,7 +5,7 @@ import type { Locale } from '@/i18n/locale'
 
 import { useLocale, useTranslations } from 'next-intl'
 
-import { useEffect, useState } from 'react'
+import { startTransition, useActionState, useEffect, useRef, useState } from 'react'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation'
 import { createMessageAction, type CreateMessageActionResult } from '@/app/(site)/actions/create-message'
 import { LocationPicker, type LocationPickerSelection } from '@/components/map/location-picker'
 import { returnDestination } from '@/components/navigation/return-destination'
+import { errorResult } from '@/domain/contracts'
 import { MAX_GRAPHEMES, countGraphemes } from '@/domain/messages/content'
 import type { CreateMessageActionInput } from '@/server/actions/create-message'
 
@@ -33,6 +34,11 @@ export interface CreateMessageFormProps {
   submitMessage?: CreateMessageSubmit
 }
 
+type PublishState = {
+  result: CreateMessageActionResult | null
+  published: Extract<CreateMessageActionResult, { ok: true }>['data'] | null
+}
+
 export function CreateMessageForm({
   onPublished,
   returnTo,
@@ -46,14 +52,17 @@ export function CreateMessageForm({
   const [content, setContent] = useState('')
   const [location, setLocation] = useState<LocationPickerSelection | null>(null)
   const [pickerResetKey, setPickerResetKey] = useState(0)
-  const [sending, setSending] = useState(false)
-  const [publishedPublicId, setPublishedPublicId] = useState<string | null>(null)
-  const [publishedPublicVisible, setPublishedPublicVisible] = useState(false)
+  // Block same-turn submits before React renders pending; Actions otherwise queue them.
+  const submissionInFlight = useRef(false)
+  const [state, publish, sending] = useActionState<PublishState, CreateMessageActionInput>(handlePublish, {
+    result: null, published: null,
+  })
   const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({})
   const [cooldownRemaining, setCooldownRemaining] = useState(0)
-  const [limitBlocked, setLimitBlocked] = useState(false)
-  const [accountError, setAccountError] = useState(false)
-  const [genericError, setGenericError] = useState(false)
+  const errorCode = state.result?.ok === false ? state.result.error.code : null
+  const limitBlocked = errorCode === 'MESSAGE_LIMIT_REACHED'
+  const accountError = errorCode === 'PROFILE_INCOMPLETE' || errorCode === 'ACCOUNT_SUSPENDED' || errorCode === 'NOT_FOUND'
+  const genericError = errorCode !== null && !['MESSAGE_LIMIT_REACHED', 'MESSAGE_COOLDOWN_ACTIVE', 'VALIDATION_ERROR', 'LOCATION_SELECTION_REQUIRED', 'LOCATION_SELECTION_EXPIRED', 'LOCATION_SELECTION_INVALID', 'PROFILE_INCOMPLETE', 'ACCOUNT_SUSPENDED', 'NOT_FOUND'].includes(errorCode)
 
   const graphemeCount = countGraphemes(content)
   const contentTooLong = graphemeCount > MAX_GRAPHEMES
@@ -85,9 +94,6 @@ export function CreateMessageForm({
     error: Extract<CreateMessageActionResult, { ok: false }>['error'],
   ) {
     switch (error.code) {
-      case 'MESSAGE_LIMIT_REACHED':
-        setLimitBlocked(true)
-        break
       case 'MESSAGE_COOLDOWN_ACTIVE':
         setCooldownRemaining(Math.max(1, error.retryAfterSeconds ?? 1))
         break
@@ -113,39 +119,28 @@ export function CreateMessageForm({
       case 'LOCATION_SELECTION_INVALID':
         setFieldErrors((errors) => ({ ...errors, location: 'invalid' }))
         break
-      case 'PROFILE_INCOMPLETE':
-      case 'ACCOUNT_SUSPENDED':
-      case 'NOT_FOUND':
-        setAccountError(true)
-        break
-      default:
-        setGenericError(true)
-        break
     }
   }
 
-  async function handlePublish() {
-    if (sending || publishDisabled || location === null) return
-    setSending(true)
+  async function handlePublish(previous: PublishState, input: CreateMessageActionInput): Promise<PublishState> {
     setFieldErrors({})
-    setAccountError(false)
-    setGenericError(false)
     try {
-      const result = await submitMessage({ content, location })
-      if (result.ok) {
-        onPublished?.(result.data.publicId, result.data.publicVisible)
-        setPublishedPublicId(result.data.publicId)
-        setPublishedPublicVisible(result.data.publicVisible)
-        setContent('')
-        setLocation(null)
-        setPickerResetKey((key) => key + 1)
-      } else {
-        applySubmitError(result.error)
-      }
+      const result = await submitMessage(input)
+      startTransition(() => {
+        if (result.ok) {
+          onPublished?.(result.data.publicId, result.data.publicVisible)
+          setContent('')
+          setLocation(null)
+          setPickerResetKey((key) => key + 1)
+        } else {
+          applySubmitError(result.error)
+        }
+      })
+      return { result, published: result.ok ? result.data : previous.published }
     } catch {
-      setGenericError(true)
+      return { ...previous, result: errorResult('INTERNAL_ERROR', { messageKey: 'error.internal' }) }
     } finally {
-      setSending(false)
+      submissionInFlight.current = false
     }
   }
 
@@ -165,12 +160,14 @@ export function CreateMessageForm({
       className="profile-form"
       onSubmit={(event) => {
         event.preventDefault()
-        void handlePublish()
+        if (submissionInFlight.current || publishDisabled || location === null) return
+        submissionInFlight.current = true
+        startTransition(() => publish({ content, location }))
       }}
     >
-      {publishedPublicId !== null && (
+      {state.published !== null && (
         <p className="profile-note" role="status">
-          <strong>{t('publishedTitle')}</strong> {publishedPublicVisible ? t('publishedVisibleText') : t('publishedText')}
+          <strong>{t('publishedTitle')}</strong> {state.published.publicVisible ? t('publishedVisibleText') : t('publishedText')}
         </p>
       )}
 
@@ -233,12 +230,12 @@ export function CreateMessageForm({
           </div>
         )}
 
-        {accountError && (
+        {!sending && accountError && (
           <p className="profile-error profile-error--general" role="alert">
             {t('accountUnavailable')}
           </p>
         )}
-        {genericError && (
+        {!sending && genericError && (
           <p className="profile-error profile-error--general" role="alert">
             {t('genericError')}
           </p>
