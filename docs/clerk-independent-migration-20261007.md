@@ -4,7 +4,9 @@ Configuración aplicada el 7 de octubre de 2026 mediante CLI y API, sin navegado
 
 ## Aplicación y entornos
 
-La aplicación Clerk independiente `atiny world` (`app_3JI4zhFVA0aV562F9b7xpl7MB28`) sustituye a `clerk-rose-fountain`. El recurso antiguo y la instalación Clerk de Vercel Marketplace se eliminaron con autorización del propietario después de respaldar e importar las cuentas. El dominio antiguo estaba bloqueado por Marketplace y no podía liberarse mediante `change_domain`.
+La aplicación Clerk independiente `Atiny Atlas` (`app_3JI4zhFVA0aV562F9b7xpl7MB28`) sustituye a `clerk-rose-fountain`. El recurso antiguo y la instalación Clerk de Vercel Marketplace se eliminaron con autorización del propietario después de respaldar e importar las cuentas. El dominio antiguo estaba bloqueado por Marketplace y no podía liberarse mediante `change_domain`.
+
+El 7 de octubre de 2026 se cambió el nombre de la aplicación de `atiny world` a `Atiny Atlas` mediante la Platform API de Clerk. Se comprobó que `/v1/environment` devuelve `display_config.application_name = "Atiny Atlas"` tanto en Production como en Development. Este es el nombre que reciben los componentes de acceso y registro; se conservaron el ID de aplicación, las instancias, las cuentas, las claves y los dominios.
 
 | Vercel | Clerk | Instancia |
 | --- | --- | --- |
