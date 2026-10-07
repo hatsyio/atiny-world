@@ -33,7 +33,8 @@ codex mcp login posthog
 - `src/server/observability/posthog.ts`: eventos de publicación, edición,
   eliminación y administración; envío diferido con `after`.
 - `src/server/observability/posthog-logs.ts`: exportación de logs del mapa con
-  OpenTelemetry y envío diferido.
+  OpenTelemetry y envío diferido. El exportador se inicializa al enviar el primer
+  log, en el mismo módulo que lo emite, sin depender de `instrumentation.register`.
 
 Los envíos tienen tiempos límite y sus fallos no sustituyen la respuesta de la
 aplicación. La identificación usa el ID de Clerk, sin email, nombre ni usuario.
