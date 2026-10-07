@@ -8,14 +8,14 @@ import { updateMessageForSession } from '../../../src/server/actions/update-mess
 import { pageOwnMessages } from '../../../src/server/messages/own-message-repository'
 import { signLocationSelection, verifyLocationSelectionResult } from '../../../src/server/locations/selection-token'
 import { createTestDb, insertMessage, insertProfile, truncateProductTables } from '../../support/database'
-import { AtinyWorld } from '../support/world'
+import { AtinyAtlasWorld } from '../support/world'
 
 const db = createTestDb()
 const ownerId = 'bdd-us3-owner'
 const foreignId = 'bdd-us3-foreign'
 const locationSecret = 'bdd-us3-location-secret'
 
-async function reset(world: AtinyWorld) {
+async function reset(world: AtinyAtlasWorld) {
   await truncateProductTables(db)
   await db`update app_private.settings set premoderation_enabled = false, message_limit = 10, cooldown_seconds = 10 where id = 1`
   world.clerkUserId = ownerId
@@ -25,7 +25,7 @@ async function reset(world: AtinyWorld) {
 }
 
 async function addOwnMessage(
-  world: AtinyWorld,
+  world: AtinyAtlasWorld,
   options: Parameters<typeof insertMessage>[2] = {},
 ) {
   const profile = await insertProfile(db, ownerId)
@@ -38,7 +38,7 @@ async function addOwnMessage(
   return message
 }
 
-function auth(world: AtinyWorld) {
+function auth(world: AtinyAtlasWorld) {
   return async () => world.clerkUserId ? { clerkUserId: world.clerkUserId } : null
 }
 
@@ -56,7 +56,7 @@ AfterAll(async function () {
   await db.end()
 })
 
-Given('una fan con mensajes visibles y ocultos', async function (this: AtinyWorld) {
+Given('una fan con mensajes visibles y ocultos', async function (this: AtinyAtlasWorld) {
   await reset(this)
   const profile = await insertProfile(db, ownerId)
   const visible = await insertMessage(db, profile.id, { status: 'approved', content: 'Texto visible', moderation_reason_code: null })
@@ -65,33 +65,33 @@ Given('una fan con mensajes visibles y ocultos', async function (this: AtinyWorl
   this.hiddenId = hidden.public_id
 })
 
-Given('una fan con un mensaje propio visible', async function (this: AtinyWorld) {
+Given('una fan con un mensaje propio visible', async function (this: AtinyAtlasWorld) {
   await reset(this)
   await addOwnMessage(this, { status: 'approved', content: 'Mensaje localizable' })
 })
 
-Given('un mensaje propio aprobado', async function (this: AtinyWorld) {
+Given('un mensaje propio aprobado', async function (this: AtinyAtlasWorld) {
   await reset(this)
   await addOwnMessage(this, { status: 'approved', content: 'Texto original' })
 })
 
-Given('un mensaje propio rechazado con motivo', async function (this: AtinyWorld) {
+Given('un mensaje propio rechazado con motivo', async function (this: AtinyAtlasWorld) {
   await reset(this)
   await addOwnMessage(this, { status: 'rejected', moderation_reason_code: 'community_guidelines', moderation_note: 'Nota privada', content: 'Texto rechazado' })
 })
 
-Given('un mensaje propio con una ubicación aproximada', async function (this: AtinyWorld) {
+Given('un mensaje propio con una ubicación aproximada', async function (this: AtinyAtlasWorld) {
   await reset(this)
   await addOwnMessage(this, { status: 'approved', location_precision: 'approximate', content: 'Mensaje con punto' })
 })
 
-Given('una fan en el límite de mensajes con un mensaje propio', async function (this: AtinyWorld) {
+Given('una fan en el límite de mensajes con un mensaje propio', async function (this: AtinyAtlasWorld) {
   await reset(this)
   await db`update app_private.settings set message_limit = 1 where id = 1`
   await addOwnMessage(this, { status: 'approved', content: 'Único mensaje permitido' })
 })
 
-Given('un mensaje de otra fan', async function (this: AtinyWorld) {
+Given('un mensaje de otra fan', async function (this: AtinyAtlasWorld) {
   await reset(this)
   const profile = await insertProfile(db, foreignId)
   await insertProfile(db, ownerId)
@@ -100,7 +100,7 @@ Given('un mensaje de otra fan', async function (this: AtinyWorld) {
   this.foreignClerkUserId = foreignId
 })
 
-Given('un mensaje de una fan', async function (this: AtinyWorld) {
+Given('un mensaje de una fan', async function (this: AtinyAtlasWorld) {
   await reset(this)
   const profile = await insertProfile(db, foreignId)
   const message = await insertMessage(db, profile.id, { status: 'approved', content: 'Texto de una fan' })
@@ -109,29 +109,29 @@ Given('un mensaje de una fan', async function (this: AtinyWorld) {
   this.foreignClerkUserId = foreignId
 })
 
-When('abro {string}', async function (this: AtinyWorld, label: string) {
+When('abro {string}', async function (this: AtinyAtlasWorld, label: string) {
   assert.equal(label, 'Mis cartas')
   this.ownMessages = await pageOwnMessages(db, { clerkUserId: this.clerkUserId! })
 })
 
-When('uso {string} sobre ese mensaje', async function (this: AtinyWorld, label: string) {
+When('uso {string} sobre ese mensaje', async function (this: AtinyAtlasWorld, label: string) {
   assert.equal(label, 'localizar')
   this.ownMessages = await pageOwnMessages(db, { clerkUserId: this.clerkUserId! })
 })
 
-When('edito solo el texto del mensaje', async function (this: AtinyWorld) {
+When('edito solo el texto del mensaje', async function (this: AtinyAtlasWorld) {
   this.updateResult = await updateMessageForSession(db, {
     publicId: this.publicId!, expectedVersion: 1, content: 'Texto actualizado',
   }, { readAuth: auth(this) })
 })
 
-When('edito su texto', async function (this: AtinyWorld) {
+When('edito su texto', async function (this: AtinyAtlasWorld) {
   this.updateResult = await updateMessageForSession(db, {
     publicId: this.publicId!, expectedVersion: 1, content: 'Texto corregido',
   }, { readAuth: auth(this) })
 })
 
-When('cambio la ubicación del mensaje', async function (this: AtinyWorld) {
+When('cambio la ubicación del mensaje', async function (this: AtinyAtlasWorld) {
   const token = signLocationSelection({
     locality: 'Barcelona', country: 'España', countryCode: 'es',
     point: { latitude: 41.3874, longitude: 2.1686 }, attribution: 'Geoapify',
@@ -145,27 +145,27 @@ When('cambio la ubicación del mensaje', async function (this: AtinyWorld) {
   })
 })
 
-When('elimina ese mensaje tras confirmarlo', async function (this: AtinyWorld) {
+When('elimina ese mensaje tras confirmarlo', async function (this: AtinyAtlasWorld) {
   this.deleteResult = await deleteMessageForSession(db, {
     publicId: this.publicId!, expectedVersion: 1, confirmation: true,
   }, { readAuth: auth(this) })
 })
 
-When('una fan distinta de la autora intenta reescribir su texto', async function (this: AtinyWorld) {
+When('una fan distinta de la autora intenta reescribir su texto', async function (this: AtinyAtlasWorld) {
   this.clerkUserId = ownerId
   this.updateResult = await updateMessageForSession(db, {
     publicId: this.publicId!, expectedVersion: 1, content: 'Intento de reescritura',
   }, { readAuth: auth(this) })
 })
 
-When('un administrador intenta reescribir su texto', async function (this: AtinyWorld) {
+When('un administrador intenta reescribir su texto', async function (this: AtinyAtlasWorld) {
   this.clerkUserId = ownerId
   this.updateResult = await updateMessageForSession(db, {
     publicId: this.publicId!, expectedVersion: 1, content: 'Intento de reescritura',
   }, { readAuth: auth(this) })
 })
 
-Then('consulto todos mis cartas con su estado y el motivo de moderación cuando exista', function (this: AtinyWorld) {
+Then('consulto todos mis cartas con su estado y el motivo de moderación cuando exista', function (this: AtinyAtlasWorld) {
   assert.equal(this.ownMessages?.items.length, 2)
   assert.deepEqual(new Set(this.ownMessages?.items.map((item) => item.status)), new Set(['approved', 'rejected']))
   const rejected = this.ownMessages?.items.find((item) => item.status === 'rejected')
@@ -173,7 +173,7 @@ Then('consulto todos mis cartas con su estado y el motivo de moderación cuando 
   assert.equal(rejected?.moderationNote, 'Nota privada')
 })
 
-Then('ningún estado ni motivo privado aparece en las respuestas públicas', async function (this: AtinyWorld) {
+Then('ningún estado ni motivo privado aparece en las respuestas públicas', async function (this: AtinyAtlasWorld) {
   const response = await publicDetail(this.publicId!)
   assert.equal(response.status, 200)
   assert.equal('status' in response.body, false)
@@ -181,7 +181,7 @@ Then('ningún estado ni motivo privado aparece en las respuestas públicas', asy
   assert.equal('moderationNote' in response.body, false)
 })
 
-Then('el mapa se centra en el punto del mensaje y su enlace estable abre la ficha', async function (this: AtinyWorld) {
+Then('el mapa se centra en el punto del mensaje y su enlace estable abre la ficha', async function (this: AtinyAtlasWorld) {
   const item = this.ownMessages?.items.find((message) => message.publicId === this.publicId)
   assert.deepEqual(item?.point, this.originalPoint)
   const detail = await publicDetail(this.publicId!)
@@ -189,14 +189,14 @@ Then('el mapa se centra en el punto del mensaje y su enlace estable abre la fich
   assert.equal(detail.body.publicId, this.publicId)
 })
 
-Then('el mensaje vuelve a pendiente e incrementa su versión', async function (this: AtinyWorld) {
+Then('el mensaje vuelve a pendiente e incrementa su versión', async function (this: AtinyAtlasWorld) {
   assert.ok(this.updateResult?.ok)
   assert.equal(this.updateResult.data.version, 2)
   const rows = await db<Array<{ version: number; status: string }>>`select version, status from app_private.messages where public_id = ${this.publicId!}`
   assert.deepEqual(rows[0], { version: 2, status: 'pending' })
 })
 
-Then('el contenido anterior deja de mostrarse públicamente conservando el enlace y el mismo punto público', async function (this: AtinyWorld) {
+Then('el contenido anterior deja de mostrarse públicamente conservando el enlace y el mismo punto público', async function (this: AtinyAtlasWorld) {
   const rows = await db<Array<{ content: string; latitude: number; longitude: number }>>`
     select content, st_y(public_point::geometry) as latitude, st_x(public_point::geometry) as longitude
       from app_private.messages where public_id = ${this.publicId!}
@@ -209,7 +209,7 @@ Then('el contenido anterior deja de mostrarse públicamente conservando el enlac
   assert.equal(detail.body.content, 'Texto actualizado')
 })
 
-Then('el mensaje vuelve a pendiente y queda sin motivo de moderación', async function (this: AtinyWorld) {
+Then('el mensaje vuelve a pendiente y queda sin motivo de moderación', async function (this: AtinyAtlasWorld) {
   assert.ok(this.updateResult?.ok)
   const rows = await db<Array<{ status: string; moderation_reason_code: string | null; moderation_note: string | null }>>`
     select status, moderation_reason_code, moderation_note from app_private.messages where public_id = ${this.publicId!}
@@ -217,7 +217,7 @@ Then('el mensaje vuelve a pendiente y queda sin motivo de moderación', async fu
   assert.deepEqual(rows[0], { status: 'pending', moderation_reason_code: null, moderation_note: null })
 })
 
-Then('puedo elegir un nuevo punto y el mensaje vuelve a pendiente conservando su enlace estable', async function (this: AtinyWorld) {
+Then('puedo elegir un nuevo punto y el mensaje vuelve a pendiente conservando su enlace estable', async function (this: AtinyAtlasWorld) {
   assert.ok(this.updateResult?.ok)
   assert.equal(this.updateResult.data.status, 'pending')
   const rows = await db<Array<{ version: number; latitude: number; longitude: number; status: string }>>`
@@ -230,7 +230,7 @@ Then('puedo elegir un nuevo punto y el mensaje vuelve a pendiente conservando su
   assert.equal((await publicDetail(this.publicId!)).body.publicId, this.publicId)
 })
 
-Then('el mensaje deja de estar disponible públicamente y libera un espacio del límite', async function (this: AtinyWorld) {
+Then('el mensaje deja de estar disponible públicamente y libera un espacio del límite', async function (this: AtinyAtlasWorld) {
   assert.ok(this.deleteResult?.ok)
   assert.equal((await publicDetail(this.publicId!)).status, 404)
   const rows = await db<Array<{ count: number }>>`select count(*)::int as count from app_private.messages m join app_private.profiles p on p.id = m.author_id where p.clerk_user_id = ${ownerId}`
@@ -238,12 +238,12 @@ Then('el mensaje deja de estar disponible públicamente y libera un espacio del 
   assert.equal(settings[0].message_limit - rows[0].count, 1)
 })
 
-Then('la eliminación no es un estado recuperable', async function (this: AtinyWorld) {
+Then('la eliminación no es un estado recuperable', async function (this: AtinyAtlasWorld) {
   const rows = await db<Array<{ count: number }>>`select count(*)::int as count from app_private.messages where public_id = ${this.publicId!}`
   assert.equal(rows[0].count, 0)
 })
 
-Then('la operación se rechaza sin modificar contenido ni estado', async function (this: AtinyWorld) {
+Then('la operación se rechaza sin modificar contenido ni estado', async function (this: AtinyAtlasWorld) {
   assert.ok(this.updateResult && !this.updateResult.ok)
   assert.equal(this.updateResult.error.code, 'NOT_FOUND')
   const rows = await db<Array<{ content: string; status: string; version: number }>>`select content, status, version from app_private.messages where public_id = ${this.publicId!}`

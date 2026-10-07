@@ -6,7 +6,7 @@ describe('canonical metadata origin', () => {
     expect(metadataBase({ SITE_URL: 'https://letters.example/map?language=es' }).href).toBe('https://letters.example/')
   })
   it('uses the stable Vercel project production origin on previews as well', () => {
-    expect(metadataBase({ VERCEL_PROJECT_PRODUCTION_URL: 'atiny-world.vercel.app', VERCEL_URL: 'preview.vercel.app' }).href).toBe('https://atiny-world.vercel.app/')
+    expect(metadataBase({ VERCEL_PROJECT_PRODUCTION_URL: 'atiny-atlas.vercel.app', VERCEL_URL: 'preview.vercel.app' }).href).toBe('https://atiny-atlas.vercel.app/')
   })
   it('supports local HTTP and rejects non-web or credential-bearing origins', () => {
     expect(metadataBase({ SITE_URL: 'http://localhost:3008' }).href).toBe('http://localhost:3008/')

@@ -46,29 +46,30 @@ La configuración de la migración, los entornos y las verificaciones están en
 
 La marca es **Atiny Atlas**, respetando esa capitalización. Para nombres
 técnicos nuevos, usar `atiny-atlas`; para el dominio, `atinyatlas.com`.
-Los nombres anteriores todavía existen en los elementos siguientes. Esta
-revisión documenta los cambios pendientes; no implica que se hayan renombrado
-los recursos remotos ni la interfaz.
+La interfaz, los metadatos, las traducciones, la identidad pública, el paquete
+npm, las pruebas y la documentación vigente ya usan esta marca. El favicon
+reproduce el símbolo dorado de cuatro puntas de la cabecera.
+Los nombres anteriores todavía existen en los recursos siguientes; su
+migración sigue pendiente.
 
 | Elemento | Nombre o referencia actual | Cambio pendiente |
 | --- | --- | --- |
-| Identidad de la aplicación | `atiny world` en `src/app-identity.ts` | Devolver `Atiny Atlas` y compartir esta identidad donde se muestra la marca. |
-| Cabecera y metadatos | `ATINY World` en `src/components/navigation/site-header.tsx`; `atiny world` en `src/app/layout.tsx` | Actualizar marca visible y título de página. |
-| Traducciones | `ATINY World` en `src/i18n/messages/{en,es}/pages.json` | Actualizar los textos de ajustes en ambos idiomas. |
-| Pruebas | Nombre antiguo en `tests/bdd/features/bootstrap.feature` y pruebas de identidad, página y navegación | Ajustar las expectativas al renombrar el producto y ejecutar las suites afectadas. Revisar también ejemplos de dominio en pruebas de metadatos. |
-| Paquete npm | `name: atiny-world` en `package.json` | Renombrar a `atiny-atlas` y comprobar las referencias de herramientas y lockfile. |
 | Vercel | Proyecto `atiny-world` y alias `atiny-world.vercel.app` | Renombrar el proyecto a `atiny-atlas`, revisar aliases generados y volver a comprobar el vínculo local, GitHub y el dominio propio. Mantener el ID del proyecto. |
 | Clerk | Aplicación `atiny world` | Renombrar la aplicación a `Atiny Atlas`; revisar branding del Account Portal, formularios y correos. Mantener las instancias, IDs y cuentas actuales. |
 | Google Cloud | Nombre del proyecto, cliente OAuth y marca de consentimiento por revisar | Usar `Atiny Atlas` en la marca pública y en el nombre descriptivo del cliente; comprobar dominio, enlaces de privacidad/contacto y estado `In production`. El ID técnico del proyecto no necesita cambiar. |
 | Supabase | Proyecto remoto y `project_id = "atiny-world"` en `supabase/config.toml` | Revisar el nombre visible remoto y el identificador del entorno local por separado. Conservar la referencia remota y las conexiones de la base existente. |
 | GitHub | `hatsyio/atiny-world` | Renombrar el repositorio a `atiny-atlas`; actualizar `origin`, vínculo con Vercel y referencias vigentes a issues/PR. |
-| Docker | `name: atiny-world` e imagen `atiny-world-postgres:17.6-postgis` en `compose.yaml` | Revisar nombres de imágenes, contenedores y volúmenes. Cambiar el nombre del proyecto puede seleccionar otros volúmenes: respaldar y conservar o trasladar los datos antes. |
+| Docker | `name: atiny-world`; imagen `atiny-atlas-postgres:17.6-postgis` en `compose.yaml` | Revisar el nombre del proyecto, contenedores y volúmenes. Cambiar el nombre del proyecto puede seleccionar otros volúmenes: respaldar y conservar o trasladar los datos antes. |
 | Carpeta local | `atiny-map` | Renombrar a `atiny-atlas` después de revisar referencias locales y sesiones/herramientas que dependen de la ruta. |
-| Documentación y especificación | `docs/requisitos.md`, `docs/arquitectura.md`, `specs/001-atiny-world-mvp/` y planes antiguos | Actualizar requisitos vigentes, especialmente FR-001, títulos y contratos. Revisar todos los enlaces antes de renombrar carpetas. Los planes y registros históricos pueden conservar su nombre con una nota de contexto. |
 | Proveedores de mapas y búsqueda | Nombres de proyectos/claves de CARTO y Geoapify por revisar | Comprobar etiquetas y restricciones de dominio; renombrar etiquetas a `Atiny Atlas` cuando proceda. No regenerar claves solo por cambiar el nombre. |
 
-Orden recomendado: marca y pruebas → documentación vigente → etiquetas de los
-servicios → repositorio/Vercel → entornos locales y carpeta. Registrar cada
+La carpeta `specs/001-atiny-world-mvp/` conserva su ruta para mantener los
+enlaces. Los planes y registros históricos conservan la marca original.
+Docker Compose mantiene `name: atiny-world` para reutilizar los volúmenes
+existentes, aunque la imagen de PostgreSQL ya se llama `atiny-atlas-postgres`.
+
+Orden recomendado para lo pendiente: etiquetas de los servicios →
+repositorio/Vercel → entornos locales y carpeta. Registrar cada
 cambio y comprobar el acceso y los despliegues antes de retirar compatibilidad.
 
 ## Limpieza y retirada de elementos anteriores

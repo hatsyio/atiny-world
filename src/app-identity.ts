@@ -1,3 +1,3 @@
 export function getPublicAppIdentity() {
-  return { name: 'atiny world' } as const
+  return { name: 'Atiny Atlas' } as const
 }

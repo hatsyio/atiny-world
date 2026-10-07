@@ -65,7 +65,7 @@
   "settings": {
     "title": "Account settings",
     "security": "Profile and security",
-    "intro": "Choose your ATINY World language and manage your account security."
+    "intro": "Choose your Atiny Atlas language and manage your account security."
   },
   "admin": {
     "title": "Administration",

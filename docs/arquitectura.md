@@ -1,4 +1,4 @@
-# ATINY World — Arquitectura de la primera versión
+# Atiny Atlas — Arquitectura de la primera versión
 
 Fecha: 2026-09-13.
 Base de producto: [requisitos validados](./requisitos.md).

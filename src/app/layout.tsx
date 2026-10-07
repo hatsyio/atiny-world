@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getPublicAppIdentity } from '@/app-identity'
 import { Fraunces, Manrope } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import { enUS, esES } from '@clerk/localizations'
@@ -16,7 +17,7 @@ const interfaceFont = Manrope({ subsets: ['latin'], variable: '--font-interface'
 export async function generateMetadata(): Promise<Metadata> {
   const { locale } = await getRequestLanguage()
   const messages = await loadMessages(locale)
-  return { metadataBase: metadataBase(), title: 'atiny world', description: messages.Settings.metadataDescription }
+  return { metadataBase: metadataBase(), title: getPublicAppIdentity().name, description: messages.Settings.metadataDescription }
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

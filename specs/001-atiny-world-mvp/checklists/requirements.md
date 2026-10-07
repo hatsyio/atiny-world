@@ -1,4 +1,4 @@
-# Specification Quality Checklist: ATINY World MVP
+# Specification Quality Checklist: Atiny Atlas MVP
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-09-14

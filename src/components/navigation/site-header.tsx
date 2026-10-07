@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
 import { AccountMenu } from '@/components/account/account-menu'
+import { getPublicAppIdentity } from '@/app-identity'
 import {useLocale, useTranslations} from 'next-intl'
 import { returnDestination } from './return-destination'
 
@@ -77,7 +78,7 @@ export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean 
     }}>
       <Link className="nav-brand" href={home} onClick={close}>
         <span className="nav-compass" aria-hidden="true">✧</span>
-        <span>ATINY World</span>
+        <span>{getPublicAppIdentity().name}</span>
       </Link>
       <button className="navigation-toggle" type="button" ref={toggle} aria-expanded={expanded} aria-controls="global-navigation" onClick={() => setOpenedPath(expanded ? null : pathname)}>{t('menu')}</button>
       <nav className="main-nav" id="global-navigation" aria-label={t('navigation')} data-open={expanded} onClick={event => {

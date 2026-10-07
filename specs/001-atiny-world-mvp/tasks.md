@@ -1,9 +1,9 @@
 ---
 
-description: "Dependency-ordered implementation tasks for ATINY World MVP"
+description: "Dependency-ordered implementation tasks for Atiny Atlas MVP"
 ---
 
-# Tasks: ATINY World MVP
+# Tasks: Atiny Atlas MVP
 
 **Input**: Design documents from `specs/001-atiny-world-mvp/`
 

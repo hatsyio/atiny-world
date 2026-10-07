@@ -49,7 +49,7 @@ describe('Home', () => {
         name: 'Messages across the seas',
       }),
     ).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'ATINY World' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Atiny Atlas' })).toBeTruthy()
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
   })
 

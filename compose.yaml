@@ -59,7 +59,7 @@ services:
     build:
       context: .
       dockerfile: docker/Postgres.Dockerfile
-    image: atiny-world-postgres:17.6-postgis
+    image: atiny-atlas-postgres:17.6-postgis
     environment:
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: postgres
@@ -77,7 +77,7 @@ services:
 
   migrate:
     profiles: [local]
-    image: atiny-world-postgres:17.6-postgis
+    image: atiny-atlas-postgres:17.6-postgis
     entrypoint: ["/bin/sh", "/migrate.sh"]
     environment:
       PGPASSWORD: postgres

@@ -35,7 +35,7 @@ describe('shared navigation', () => {
     expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual([
       ['Inicio', '/'], ['Mapa', '/#map'], ['Cartas', '/#letters'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/messages/new?returnTo=${encodeURIComponent(suffix)}` : '/messages/new'],
     ])
-    expect(screen.getByRole('link', { name: 'ATINY World' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Atiny Atlas' })).toHaveAttribute('href', '/')
     expect(screen.getAllByRole('link').filter(link => link.hasAttribute('aria-current')).length).toBeLessThanOrEqual(1)
   })
   it.each([['/messages/new', 'Escribir una carta'], ['/messages/id', 'Cartas'], ['/my-messages', 'Mi cuenta'], ['/my-messages/id/edit', 'Mi cuenta'], ['/profile', 'Mi cuenta'], ['/settings', 'Mi cuenta'], ['/admin/users', 'Mi cuenta']])('marks the current destination on %s', (pathname, label) => {

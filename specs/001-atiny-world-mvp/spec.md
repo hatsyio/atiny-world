@@ -1,4 +1,4 @@
-# Feature Specification: ATINY World MVP
+# Feature Specification: Atiny Atlas MVP
 
 **Feature Branch**: `feat/bootstrap`
 
@@ -166,7 +166,7 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 
 ### Functional Requirements
 
-- **FR-001**: El producto MUST presentarse como «ATINY World» y mostrar en español el subtítulo «Un mundo de buenos deseos para ATEEZ».
+- **FR-001**: El producto MUST presentarse como «Atiny Atlas» y mostrar en español el subtítulo «Un mundo de buenos deseos para ATEEZ».
 - **FR-002**: La página principal MUST presentar, en este orden, cabecera de cuenta, título e introducción, mapa, formulario de publicación y footer.
 - **FR-003**: La apariencia SHOULD transmitir una sensación cálida y participativa; el mapa MUST ocupar la mayor región de contenido visible antes del formulario, y la interfaz MUST NOT usar fotografías del grupo ni logotipos oficiales.
 - **FR-004**: El footer MUST mostrar un correo de contacto y declarar que el proyecto es una iniciativa de fans sin afiliación oficial con ATEEZ ni su agencia.
