@@ -11,6 +11,7 @@ import {
 import { getLocationSelectionSecret } from '@/server/env'
 import { verifyLocationSelectionResult } from '@/server/locations/selection-token'
 import { updateMessage, type UpdateMessageInput } from '@/server/messages/update-message'
+import { captureServerEvent } from '@/server/observability/posthog'
 import type { CreateMessageLocationInput } from './create-message'
 import { validateActionContent } from './content'
 import {
@@ -104,6 +105,10 @@ export async function updateMessageForSession(
     ...(location !== undefined ? { location } : {}),
   })
   if (!updated.ok) return updated
+
+  await captureServerEvent(identity.clerkUserId, 'message_updated', {
+    location_updated: location !== undefined,
+  })
 
   return okResult({ publicId: updated.data.publicId, version: updated.data.version, status: updated.data.status })
 }

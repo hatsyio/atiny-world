@@ -16,6 +16,7 @@ import {
 import { getLocationSelectionSecret } from '@/server/env'
 import { verifyLocationSelectionResult } from '@/server/locations/selection-token'
 import { createMessage, type CreateMessageInput } from '@/server/messages/create-message'
+import { captureServerEvent } from '@/server/observability/posthog'
 import { validateActionContent } from './content'
 import {
   resolveLocationSelection,
@@ -90,6 +91,11 @@ export async function createMessageForSession(
     location: location.data,
   })
   if (!created.ok) return created
+
+  await captureServerEvent(identity.clerkUserId, 'message_published', {
+    location_precision: input.location.precision,
+    public_visible: created.data.publicVisible,
+  })
 
   return okResult({ publicId: created.data.publicId, version: 1, status: created.data.status, publicVisible: created.data.publicVisible })
 }
