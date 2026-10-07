@@ -1,5 +1,7 @@
 # Clerk Production para atiny world
 
+> Documento histórico. El 7 de octubre de 2026 se migró a Clerk independiente y a `atinyatlas.com`. La configuración vigente está en [clerk-independent-migration-20261007.md](clerk-independent-migration-20261007.md). Las instrucciones sobre la aplicación conectada de Marketplace que aparecen abajo ya no se aplican.
+
 Estado comprobado el 28 de septiembre de 2026 mediante CLI, DNS y peticiones HTTPS. No se usó navegador.
 
 ## Entornos conectados a Vercel
