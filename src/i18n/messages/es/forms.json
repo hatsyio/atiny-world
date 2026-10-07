@@ -1,7 +1,7 @@
 {
   "create": {
     "contentLabel": "Tu carta",
-    "contentPlaceholder": "Querido ATEEZ…",
+    "contentPlaceholder": "Queridos ATEEZ…",
     "counterLabel": "caracteres",
     "contentRequired": "Escribe tu carta antes de publicar.",
     "contentTooLong": "Esta carta es demasiado larga. Acórtala antes de publicar.",
@@ -24,7 +24,7 @@
   },
   "edit": {
     "content": "Tu carta",
-    "contentPlaceholder": "Querido ATEEZ…",
+    "contentPlaceholder": "Queridos ATEEZ…",
     "characters": "caracteres",
     "currentLocation": "Ubicación actual",
     "approximate": "Punto aproximado",
