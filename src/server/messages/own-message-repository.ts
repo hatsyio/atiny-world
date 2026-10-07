@@ -40,7 +40,7 @@ export async function pageOwnMessages(
   sql: Sql,
   args: { clerkUserId: string; cursor?: string; limit?: number },
 ): Promise<OwnMessagePage> {
-  const bound = args.cursor ? verifyCursor(args.cursor) : null
+  const bound = args.cursor ? await verifyCursor(args.cursor) : null
   const limit = Math.min(Math.max(args.limit ?? 20, 1), 100)
 
   const cursorCondition: Fragment = bound
@@ -69,6 +69,6 @@ export async function pageOwnMessages(
 
   return {
     items: page.map(row => ({ ...projectOwnMessage(row), publicVisible: row.public_visible })),
-    nextCursor: hasMore && last ? signCursor({ id: last.id }) : null,
+    nextCursor: hasMore && last ? await signCursor({ id: last.id }) : null,
   }
 }

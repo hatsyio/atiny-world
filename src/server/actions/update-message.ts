@@ -92,7 +92,7 @@ export async function updateMessageForSession(
 
   let location: ResolvedPublicLocation | undefined
   if (input?.location !== undefined) {
-    const resolved = resolveLocationSelection(input.location, verifySelection)
+    const resolved = await resolveLocationSelection(input.location, verifySelection)
     if (!resolved.ok) return resolved
     location = resolved.data
   }

@@ -4,12 +4,19 @@ import type { PublicMapFeature, PublicMessageDetail } from '@/domain/messages/pu
 export const publicMapQueryKey = ['public-map'] as const
 
 class PublicMapRequestError extends Error {
-  constructor(readonly status: number) { super(`Public map request failed: ${status}`) }
+  constructor(readonly status: number, readonly invalidCursor = false) { super(`Public map request failed: ${status}`) }
+}
+
+export function isInvalidMapCursor(error: unknown): boolean {
+  return error instanceof PublicMapRequestError && error.invalidCursor
 }
 
 async function readPublicJson<T>(url: string, signal: AbortSignal): Promise<T> {
   const response = await fetch(url, { cache: 'no-store', signal })
-  if (!response.ok) throw new PublicMapRequestError(response.status)
+  if (!response.ok) {
+    const body = response.status === 400 ? await response.json().catch(() => null) : null
+    throw new PublicMapRequestError(response.status, body?.fieldErrors?.cursor === 'pagination.cursorInvalid')
+  }
   return response.json() as Promise<T>
 }
 

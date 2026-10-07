@@ -78,7 +78,7 @@ describe('createMessage server action', () => {
     const profile = await insertProfile(db, 'action-approximate')
     const result = await createMessageForSession(db, {
       content: 'Siempre contigo',
-      location: { selectionId: validSelectionId(), precision: 'approximate' },
+      location: { selectionId: await validSelectionId(), precision: 'approximate' },
     }, deps('action-approximate'))
 
     expect(result).toMatchObject({
@@ -107,7 +107,7 @@ describe('createMessage server action', () => {
     const result = await createMessageForSession(db, {
       content: 'Estoy aquí',
       location: {
-        selectionId: validSelectionId(),
+        selectionId: await validSelectionId(),
         precision: 'precise',
         confirmedPublicPoint,
         preciseLocationConfirmed: true,
@@ -136,7 +136,7 @@ describe('createMessage server action', () => {
     try {
       const result = await createMessageForSession(db, {
         content: 'Aún privada',
-        location: { selectionId: validSelectionId(), precision: 'approximate' },
+        location: { selectionId: await validSelectionId(), precision: 'approximate' },
       }, deps('action-premoderated'))
       expect(result).toMatchObject({
         ok: true,
@@ -154,7 +154,7 @@ describe('createMessage server action', () => {
     })
     const result = await createMessageForSession(db, {
       content: 'Sin permiso',
-      location: { selectionId: validSelectionId(), precision: 'approximate' },
+      location: { selectionId: await validSelectionId(), precision: 'approximate' },
     }, deps('action-suspended'))
 
     expect(result).toMatchObject({
@@ -172,7 +172,7 @@ describe('createMessage server action', () => {
 
     const result = await createMessageForSession(db, {
       content: 'El undécimo mensaje',
-      location: { selectionId: validSelectionId(), precision: 'approximate' },
+      location: { selectionId: await validSelectionId(), precision: 'approximate' },
     }, deps('action-limit'))
 
     expect(result).toEqual({
@@ -187,7 +187,7 @@ describe('createMessage server action', () => {
 
     const result = await createMessageForSession(db, {
       content: 'Demasiado pronto',
-      location: { selectionId: validSelectionId(), precision: 'approximate' },
+      location: { selectionId: await validSelectionId(), precision: 'approximate' },
     }, deps('action-cooldown'))
 
     expect(result).toMatchObject({

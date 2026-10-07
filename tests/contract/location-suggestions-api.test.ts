@@ -1,3 +1,5 @@
+import { jwtVerify } from 'jose'
+import { signLocationSelection } from '../../src/server/locations/selection-token'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
@@ -18,6 +20,25 @@ describe('POST /api/locations/suggestions', () => {
     expect((await POST(request({ query: 'a', language: 'en', limit: 5 }))).status).toBe(400)
     expect((await POST(request({ query: 'Seoul', language: 'fr', limit: 5 }))).status).toBe(400)
     expect((await POST(request({ query: 'Seoul', language: 'en', limit: 9 }))).status).toBe(400)
+  })
+
+  it('awaits real JWT signatures before returning suggestions', async () => {
+    const place = { locality: 'Seoul', country: 'Korea', countryCode: 'kr', point: { latitude: 37.5, longitude: 127 }, attribution: 'Geoapify' as const }
+    const secret = 'contract-token-secret'
+    const handler = createLocationSuggestionsPostHandler({ search: async () => [place], signSelection: selection => signLocationSelection(selection, secret) })
+    const response = await handler(request({ query: 'Seoul', language: 'en' }))
+    expect(response.status).toBe(200)
+    const body = await response.json()
+    const verified = await jwtVerify(body.suggestions[0].selectionToken, new TextEncoder().encode(secret), { algorithms: ['HS256'] })
+    expect(verified.payload.selection).toEqual(place)
+  })
+
+  it('handles asynchronous signing failures without returning partial suggestions', async () => {
+    const place = { locality: 'Seoul', country: 'Korea', countryCode: 'kr', point: { latitude: 37.5, longitude: 127 }, attribution: 'Geoapify' as const }
+    const handler = createLocationSuggestionsPostHandler({ search: async () => [place], signSelection: async () => { throw new Error('private-key-details') } })
+    const response = await handler(request({ query: 'Seoul', language: 'en' }))
+    expect(response.status).toBe(502)
+    expect(await response.json()).toEqual({ code: 'LOCATION_PROVIDER_UNAVAILABLE', messageKey: 'location.providerUnavailable' })
   })
 
   it('resolves and signs a map point using reverse geocoding', async () => {

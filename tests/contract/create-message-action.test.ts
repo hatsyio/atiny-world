@@ -55,13 +55,13 @@ function deps(
 
 const approximateInput: CreateMessageActionInput = {
   content: 'Siempre contigo',
-  location: { selectionId: validSelectionId(), precision: 'approximate' },
+  location: { selectionId: await validSelectionId(), precision: 'approximate' },
 }
 
 const preciseInput: CreateMessageActionInput = {
   content: 'Estoy aquí',
   location: {
-    selectionId: validSelectionId(),
+    selectionId: await validSelectionId(),
     precision: 'precise',
     confirmedPublicPoint: { latitude: 40.42, longitude: -3.69 },
     preciseLocationConfirmed: true,
@@ -124,7 +124,7 @@ describe('createMessage server action contract', () => {
     const result = await createMessageForSession(stubSql, {
       ...preciseInput,
       location: {
-        selectionId: validSelectionId(),
+        selectionId: await validSelectionId(),
         precision: 'precise',
       },
     } as unknown as CreateMessageActionInput, deps())
@@ -138,7 +138,7 @@ describe('createMessage server action contract', () => {
   it('rejects a tampered selection token as invalid without leaking data', async () => {
     const result = await createMessageForSession(stubSql, {
       ...approximateInput,
-      location: { selectionId: `${validSelectionId()}tampered`, precision: 'approximate' },
+      location: { selectionId: `${await validSelectionId()}tampered`, precision: 'approximate' },
     }, deps())
 
     expect(result).toEqual({
@@ -148,7 +148,7 @@ describe('createMessage server action contract', () => {
   })
 
   it('rejects an expired selection token', async () => {
-    const expired = signLocationSelection(SELECTION, SECRET, new Date('2026-09-20T11:50:00Z'))
+    const expired = await signLocationSelection(SELECTION, SECRET, new Date('2026-09-20T11:50:00Z'))
     const result = await createMessageForSession(stubSql, {
       ...approximateInput,
       location: { selectionId: expired, precision: 'approximate' },
@@ -237,7 +237,7 @@ describe('createMessage server action contract', () => {
 
     const invalid = await createMessageForSession(stubSql, {
       ...approximateInput,
-      location: { selectionId: `secret address never ${validSelectionId()}`, precision: 'approximate' },
+      location: { selectionId: `secret address never ${await validSelectionId()}`, precision: 'approximate' },
     }, deps())
     expect(JSON.stringify(invalid)).not.toContain('secret address never')
   })
