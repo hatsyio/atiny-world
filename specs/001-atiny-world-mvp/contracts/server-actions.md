@@ -229,7 +229,7 @@ setAdministratorRole(input: {
 }): Promise<ActionResult<{ role: 'fan' | 'admin' }>>
 ```
 
-- Solo `owner`; no permite asignar otro `owner` ni degradar al propietario mediante esta acción.
+- `admin` y `owner` activos; permite alternar `fan` y `admin` en otras cuentas. No permite cambiar el rol propio, asignar otro `owner` ni degradar al propietario mediante esta acción.
 - Cambio y auditoría son atómicos.
 
 ## Cache and refresh behavior

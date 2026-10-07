@@ -106,7 +106,7 @@ Como administradora, quiero revisar mensajes y solicitudes, aplicar decisiones j
 3. **Given** que un mensaje cambia mientras se revisa, **When** una administradora intenta decidir sobre la versión anterior, **Then** la operación se rechaza para evitar aplicar la decisión a contenido distinto.
 4. **Given** mensajes existentes, **When** una administradora activa o desactiva la moderación previa tras consultar el impacto, **Then** cambia su visibilidad conforme a las reglas sin alterar estado, contenido ni ubicación.
 5. **Given** una acción administrativa, **When** se completa, **Then** queda un registro privado de quién actuó, cuándo, qué hizo y el motivo aplicable.
-6. **Given** dos administradores, **When** uno intenta suspender al otro o retirarle el rol, **Then** se rechaza la operación salvo que quien actúe sea el propietario.
+6. **Given** dos administradores activos, **When** uno retira el rol al otro, **Then** el cambio queda auditado y el destinatario pierde inmediatamente sus permisos administrativos. Si intenta suspenderlo, se rechaza la operación salvo que quien actúe sea el propietario.
 
 ---
 
@@ -217,7 +217,7 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 - **FR-050**: Cada solicitud de revisión MUST conservar privadamente la versión solicitada aunque la autora edite o elimine el mensaje o su cuenta.
 - **FR-051**: La copia privada MUST conservarse mientras la solicitud esté abierta y durante dos años naturales desde su cierre; una vez vencida, MUST eliminarse.
 - **FR-052**: Solo administradores autorizados MUST poder consultar y gestionar solicitudes de revisión y sus copias privadas.
-- **FR-053**: El propietario MUST poder asignar o retirar el rol de administrador y suspender administradores; un administrador MUST NOT poder suspender a otro administrador ni retirarle el rol.
+- **FR-053**: El propietario y los administradores activos MUST poder asignar o retirar el rol de administrador de otras cuentas. MUST NOT cambiar su propio rol ni otorgar o retirar el rol de propietario. Solo el propietario MUST poder suspender administradores; un administrador MUST NOT poder suspender a otro administrador.
 - **FR-054**: El panel administrativo MUST permitir buscar y revisar mensajes, aprobar, rechazar, retirar, gestionar solicitudes de revisión, suspender cuentas y configurar moderación, límite e intervalo.
 - **FR-055**: Los motivos de rechazo, retirada y suspensión MUST ofrecer opciones predefinidas en inglés y español y una nota libre opcional.
 - **FR-056**: Cada acción administrativa MUST dejar un historial privado con actor, fecha, acción y motivo cuando corresponda, incluidos cambios de configuración y suspensiones.
@@ -230,7 +230,7 @@ Como fan internacional, quiero utilizar la interfaz en inglés o español, publi
 - **FR-063**: Todo mensaje nuevo MUST crearse en estado pendiente de revisión.
 - **FR-064**: La autora MUST poder editar también mensajes rechazados o retirados; la edición MUST devolverlos a pendiente de revisión.
 - **FR-065**: El resultado y motivo de moderación MUST consultarse en «Mis mensajes» y MUST NOT generar un correo por cada revisión.
-- **FR-066**: El producto MUST admitir varias cuentas administradoras simultáneas, bajo la gestión de roles del propietario.
+- **FR-066**: El producto MUST admitir varias cuentas administradoras simultáneas, bajo la gestión de roles del propietario y de los administradores activos.
 
 ### Key Entities
 

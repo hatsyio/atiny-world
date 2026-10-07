@@ -73,7 +73,7 @@
     "back": "Volver a ajustes",
     "users": "Usuarios y roles",
     "ownerIntro": "Gestiona los roles de administrador y suspende o reactiva cuentas. Cada cambio queda registrado de forma privada.",
-    "adminIntro": "Consulta los roles y suspende o reactiva cuentas de fans. Solo el propietario puede cambiar roles o suspender administradores.",
+    "adminIntro": "Gestiona los roles de administrador de otras cuentas y suspende o reactiva cuentas de fans. Cada cambio queda registrado de forma privada. Solo el propietario puede suspender administradores.",
     "searchLabel": "Buscar por nombre o identificador de usuario de Clerk",
     "search": "Buscar",
     "empty": "No hay cuentas que coincidan. Prueba con otro nombre.",

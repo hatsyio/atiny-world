@@ -73,7 +73,7 @@
     "back": "Back to settings",
     "users": "Users and roles",
     "ownerIntro": "Manage administrator roles and suspend or reactivate accounts. Each change is recorded privately.",
-    "adminIntro": "Review user roles and suspend or reactivate fan accounts. Only the owner can change administrator roles or suspend administrators.",
+    "adminIntro": "Manage administrator roles for other accounts and suspend or reactivate fan accounts. Each change is recorded privately. Only the owner can suspend administrators.",
     "searchLabel": "Search by name or Clerk user ID",
     "search": "Search",
     "empty": "No accounts match this search. Try another name.",

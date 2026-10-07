@@ -76,9 +76,9 @@ export async function setAdministratorRole(sql: Sql, input: {
       order by id for update
     `
     const actor = rows.find(row => row.clerk_user_id === input.clerkUserId)
-    if (!active(actor) || actor.role !== 'owner') return denied()
+    if (!active(actor) || (actor.role !== 'admin' && actor.role !== 'owner')) return denied()
     const target = rows.find(row => row.public_id === targetId.value)
-    if (!target || target.role === 'owner' || target.account_state !== 'active' || !target.display_name.trim()) return denied()
+    if (!target || target.id === actor.id || target.role === 'owner' || target.account_state !== 'active' || !target.display_name.trim()) return denied()
     if (target.role !== input.expectedRole || target.role_version !== input.expectedRoleVersion) return errorResult('VALIDATION_ERROR', { messageKey: 'admin.conflict' })
     if (target.role === role) return okResult({ publicId: target.public_id, role })
     await tx`update app_private.profiles set role = ${role}, updated_at = now() where id = ${target.id}`
