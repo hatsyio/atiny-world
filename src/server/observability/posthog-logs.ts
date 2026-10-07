@@ -1,7 +1,7 @@
 import { after } from 'next/server'
 import { SeverityNumber } from '@opentelemetry/api-logs'
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
-import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs'
+import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs'
 
 type LogAttributes = Record<string, boolean | number | string>
 type LogLevel = 'error' | 'info' | 'warn'
@@ -19,7 +19,7 @@ function reportMissingConfiguration(variableName: string) {
   }
 }
 
-export function registerPostHogLogExporter() {
+function registerPostHogLogExporter() {
   if (loggerProvider !== undefined) return
 
   const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
@@ -38,7 +38,7 @@ export function registerPostHogLogExporter() {
     headers: { Authorization: `Bearer ${projectToken}` },
   })
   loggerProvider = new LoggerProvider({
-    processors: [new SimpleLogRecordProcessor({ exporter })],
+    processors: [new BatchLogRecordProcessor({ exporter, exportTimeoutMillis: 3000 })],
   })
   logEmitter = loggerProvider.getLogger('posthog.exporter')
 }
@@ -48,11 +48,14 @@ export async function logPostHogExport(
   body: string,
   attributes: LogAttributes,
 ) {
-  if (!loggerProvider || !logEmitter) return
-  const provider = loggerProvider
-  const emitter = logEmitter
-
   try {
+    // Instrumentation and routes can run in separate Next.js module graphs.
+    // Initialize in the graph that emits the log, before reading its state.
+    registerPostHogLogExporter()
+    if (!loggerProvider || !logEmitter) return
+    const provider = loggerProvider
+    const emitter = logEmitter
+
     after(async () => {
       try {
         emitter.emit({
