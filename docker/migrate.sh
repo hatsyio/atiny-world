@@ -1,45 +1,12 @@
 #!/bin/sh
 set -eu
 
-export PGHOST=db
-export PGPORT=5432
-export PGUSER=postgres
-export PGDATABASE=postgres
+# This runner is exclusively for Compose's local PostgreSQL, never the linked project.
+export PGHOST=db PGPORT=5432 PGUSER=postgres
+export PGDATABASE=${PGDATABASE:-postgres}
 : "${PGPASSWORD:?PGPASSWORD must match the local database password}"
+export MIGRATION_DATABASE_URL="postgresql://postgres:postgres@db:5432/$PGDATABASE?sslmode=disable"
 
-psql -X -v ON_ERROR_STOP=1 <<'SQL'
-create schema if not exists extensions;
-alter role postgres in database postgres set search_path to "$user", public, extensions;
-create schema if not exists app_migrations;
-create table if not exists app_migrations.applied (
-  filename text primary key,
-  applied_at timestamptz not null default now()
-);
-do $$
-begin
-  if not exists (select 1 from pg_roles where rolname = 'anon') then
-    create role anon nologin;
-  end if;
-  if not exists (select 1 from pg_roles where rolname = 'authenticated') then
-    create role authenticated nologin;
-  end if;
-  if not exists (select 1 from pg_roles where rolname = 'service_role') then
-    create role service_role nologin;
-  end if;
-end
-$$;
-SQL
-
-for migration in /migrations/*.sql; do
-  [ -f "$migration" ] || continue
-  filename=${migration##*/}
-  applied=$(psql -X -At -v ON_ERROR_STOP=1 -c "select count(*) from app_migrations.applied where filename = '$filename'")
-  if [ "$applied" = 0 ]; then
-    echo "Applying $filename"
-    {
-      printf 'begin;\n'
-      cat "$migration"
-      printf "\ninsert into app_migrations.applied (filename) values ('%s');\ncommit;\n" "$filename"
-    } | psql -X -v ON_ERROR_STOP=1
-  fi
-done
+/bin/sh /runner/reconcile-migrations.sh
+psql -X -v ON_ERROR_STOP=1 -f /runner/bootstrap-db.sql
+exec supabase migration up --db-url "$MIGRATION_DATABASE_URL"

@@ -1,0 +1,4 @@
+# Isolated test project: no published ports, no application, only disposable test data.
+services:
+  db:
+    ports: !reset []

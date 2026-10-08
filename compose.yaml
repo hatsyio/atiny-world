@@ -77,13 +77,14 @@ services:
 
   migrate:
     profiles: [local]
-    image: atiny-atlas-postgres:17.6-postgis
-    entrypoint: ["/bin/sh", "/migrate.sh"]
+    build:
+      context: .
+      dockerfile: docker/Migrate.Dockerfile
     environment:
       PGPASSWORD: postgres
     volumes:
-      - ./docker/migrate.sh:/migrate.sh:ro
-      - ./supabase/migrations:/migrations:ro
+      - ./supabase/config.toml:/workspace/supabase/config.toml:ro
+      - ./supabase/migrations:/workspace/supabase/migrations:ro
     depends_on:
       db:
         condition: service_healthy
