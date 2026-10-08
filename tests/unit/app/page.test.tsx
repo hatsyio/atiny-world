@@ -13,6 +13,7 @@ vi.mock('server-only', () => ({}))
 vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
 
 vi.mock('@clerk/nextjs', () => ({
+  useAuth: () => ({ isLoaded: true, isSignedIn: false }),
   Show: ({ children, when }: PropsWithChildren<{ when: string }>) => (
     when === 'signed-out' ? children : null
   ),

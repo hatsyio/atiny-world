@@ -11,6 +11,7 @@ vi.mock('server-only', () => ({}))
 vi.mock('next/navigation', () => ({ usePathname: () => '' }))
 
 vi.mock('@clerk/nextjs', () => ({
+  useAuth: () => ({ isLoaded: true, isSignedIn: clerkState.signedIn }),
   Show: ({ children, when }: { children: React.ReactNode; when: string }) => (
     clerkState.signedIn === (when === 'signed-in') ? children : null
   ),

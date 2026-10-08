@@ -8,8 +8,9 @@ import { useEffect, useId, useRef, useState } from 'react'
 import {LanguageSwitcher} from '@/components/i18n/language-switcher'
 import {useTranslations} from 'next-intl'
 
-export function AccountMenu({ active = false, visitor = false, canAdminister = false, onNavigate }: {
+export function AccountMenu({ active = false, visitor = false, disabled = false, canAdminister = false, onNavigate }: {
   visitor?: boolean
+  disabled?: boolean
   active?: boolean
   canAdminister?: boolean
   onNavigate?: () => void
@@ -41,7 +42,7 @@ export function AccountMenu({ active = false, visitor = false, canAdminister = f
         toggle.current?.focus()
       }
     }}>
-      <button type="button" ref={toggle} aria-expanded={expanded} aria-controls={linksId} aria-current={active ? 'page' : undefined} onClick={() => setExpanded(!expanded)}>{t('account')}</button>
+      <button type="button" ref={toggle} disabled={disabled} aria-expanded={expanded} aria-controls={linksId} aria-current={active ? 'page' : undefined} onClick={() => setExpanded(!expanded)}>{t('account')}</button>
       <div id={linksId} className="account-links" hidden={!expanded}>
         {visitor ? <>
           <Link className="account-sign-in" href="/sign-in" onClick={close}>{t('signIn')}</Link>

@@ -6,10 +6,11 @@ import { act, cleanup, fireEvent, render as testingRender, screen, within } from
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const state = vi.hoisted(() => ({ pathname: '/', signedIn: false, openUserProfile: vi.fn(), signOut: vi.fn() }))
+const state = vi.hoisted(() => ({ pathname: '/', signedIn: false, loaded: true, openUserProfile: vi.fn(), signOut: vi.fn() }))
 vi.mock('next/navigation', () => ({ usePathname: () => state.pathname, useRouter: () => ({refresh: vi.fn()}) }))
 vi.mock('@clerk/nextjs', () => ({
-  Show: ({ when, children }: { when: string; children: React.ReactNode }) => state.signedIn === (when === 'signed-in') ? children : null,
+  Show: ({ when, children }: { when: string; children: React.ReactNode }) => state.loaded && state.signedIn === (when === 'signed-in') ? children : null,
+  useAuth: () => ({ isLoaded: state.loaded, isSignedIn: state.loaded ? state.signedIn : undefined }),
   useClerk: () => ({ openUserProfile: state.openUserProfile, signOut: state.signOut }),
 }))
 import { SiteHeader } from '@/components/navigation/site-header'
@@ -25,9 +26,29 @@ import { getSessionIdentity } from '@/server/auth/session'
 import { authorizeProfile } from '@/server/auth/authorize'
 beforeEach(() => { vi.mocked(getSessionIdentity).mockResolvedValue(null) })
 
-afterEach(() => { cleanup(); testLocale = 'es'; state.pathname = '/'; state.signedIn = false; vi.clearAllMocks(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/'); })
+afterEach(() => { cleanup(); testLocale = 'es'; state.pathname = '/'; state.signedIn = false; state.loaded = true; vi.clearAllMocks(); vi.restoreAllMocks(); window.history.replaceState(null, '', '/'); })
 
 describe('shared navigation', () => {
+  it('keeps the same account button while the session loads, signs in and signs out', async () => {
+    state.loaded = false
+    const view = render(<SiteHeader />)
+    const account = screen.getByRole('button', { name: 'Mi cuenta' })
+    const navigation = screen.getByRole('navigation', { name: 'Navegación principal' })
+    const destinations = Array.from(navigation.children)
+    expect(account).toBeDisabled()
+
+    for (const signedIn of [false, true, false]) {
+      state.loaded = true
+      state.signedIn = signedIn
+      view.rerender(<IntlTestProvider locale="es"><SiteHeader /></IntlTestProvider>)
+      expect(screen.getByRole('button', { name: 'Mi cuenta' })).toBe(account)
+      expect(Array.from(navigation.children)).toEqual(destinations)
+      expect(account).toBeEnabled()
+      await userEvent.setup().click(account)
+      expect(screen.getByRole('link', { name: signedIn ? 'Mis cartas' : 'Entrar' })).toHaveAttribute('href', signedIn ? '/my-messages' : '/sign-in')
+      await userEvent.setup().click(account)
+    }
+  })
   it.each(['', '/messages/letter-1', '/messages/new', '/my-messages', '/my-messages/letter-1/edit', '/sign-in', '/sign-up', '/profile'])('keeps destinations and order on /es%s', (suffix) => {
     state.pathname = suffix || '/'
     render(<SiteHeader />)

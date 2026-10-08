@@ -1,6 +1,6 @@
 'use client'
 
-import { Show } from '@clerk/nextjs'
+import { useAuth } from '@clerk/nextjs'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -16,6 +16,7 @@ export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean 
   const lang = useLocale()
   const t = useTranslations('Navigation')
   const pathname = usePathname()
+  const { isLoaded, isSignedIn } = useAuth()
   const home = '/'
   const isHome = pathname === '/'
   const [section, setSection] = useState<Section>('home')
@@ -95,8 +96,13 @@ export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean 
         <Link href={`${home}#map`} aria-current={current('map')}>{t('map')}</Link>
         <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t('letters')}</Link>
         <Link className="navigation-write" href={writeHref} aria-current={writing ? 'page' : undefined}>{t('write')}</Link>
-        <Show when="signed-in"><AccountMenu canAdminister={canAdminister} active={Boolean(account)} onNavigate={close} /></Show>
-        <Show when="signed-out"><AccountMenu visitor active={Boolean(pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up'))} onNavigate={close} /></Show>
+        <AccountMenu
+          visitor={!isSignedIn}
+          disabled={!isLoaded}
+          canAdminister={canAdminister}
+          active={Boolean(isSignedIn ? account : pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up'))}
+          onNavigate={close}
+        />
       </nav>
     </header>
   )
