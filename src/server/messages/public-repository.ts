@@ -1,4 +1,5 @@
 import type { Fragment, Sql, TransactionSql } from 'postgres'
+import { parsePublicId } from '@/domain/contracts'
 
 import {
   type MapBounds,
@@ -210,6 +211,8 @@ export async function getVisibleMessage(
   sql: Sql,
   publicId: string,
 ): Promise<PublicMessageDetail | null> {
+  if (!parsePublicId(publicId).ok) return null
+
   const rows = await sql<FeatureRow[]>`
     select ${featureColumnsWithContent(sql, true)}
       from app_private.messages m
