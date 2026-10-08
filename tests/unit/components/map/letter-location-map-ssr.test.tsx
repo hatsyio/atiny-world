@@ -32,3 +32,13 @@ it('renders the interactive selector shell on the server without importing Leafl
   expect(html).toContain('location-picker__precise-map')
   expect(html).not.toContain('leaflet-marker-icon')
 })
+
+it('renders the public map shell on the server without importing Leaflet or markercluster', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+  const { LeafletMap } = await import('@/components/map/leaflet-map')
+  const html = renderToString(<NextIntlClientProvider locale="en" messages={{ Map: messages }} timeZone="UTC">
+    <LeafletMap features={[]} onSelect={() => {}} />
+  </NextIntlClientProvider>)
+  expect(html).toContain('map__canvas')
+  expect(html).not.toContain('leaflet-marker-icon')
+})

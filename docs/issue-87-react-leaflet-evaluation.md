@@ -1,6 +1,14 @@
 # Issue 87: evaluación de React Leaflet
 
-## Decisión
+## Estado de la evaluación
+
+Este documento recoge el piloto inicial de #92. La evaluación posterior del
+[selector](issue-87-selection-react-leaflet.md) y del
+[mapa principal](issue-87-public-react-leaflet.md) justifica extender la adopción
+a los tres mapas. Las siguientes conclusiones describen el alcance de ese
+primer piloto, no una restricción vigente.
+
+## Decisión del piloto inicial
 
 Adoptar React Leaflet 5.0.0 solo en `LetterLocationMap`, el mapa estático de una
 carta. Conservar las implementaciones actuales de `LeafletMap` y
