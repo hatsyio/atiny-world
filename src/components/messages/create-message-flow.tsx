@@ -1,7 +1,5 @@
 'use client'
 
-import type { Locale } from '@/i18n/locale'
-
 import { useQueryClient } from '@tanstack/react-query'
 import { publicMapQueryKey } from '@/components/map/map-queries'
 
@@ -10,11 +8,9 @@ import { useRouter } from 'next/navigation'
 import { CreateMessageForm, type CreateMessageSubmit } from './create-message-form'
 
 export function CreateMessageFlow({
-  lang,
   submitMessage,
   returnTo,
 }: {
-  lang: Locale
   returnTo?: string
   submitMessage?: CreateMessageSubmit
 }) {
@@ -31,5 +27,5 @@ export function CreateMessageFlow({
     }
   }
 
-  return <CreateMessageForm lang={lang} returnTo={returnTo} submitMessage={submitMessage} onPublished={onPublished} />
+  return <CreateMessageForm returnTo={returnTo} submitMessage={submitMessage} onPublished={onPublished} />
 }

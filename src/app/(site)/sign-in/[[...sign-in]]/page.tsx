@@ -3,7 +3,7 @@ import { authRoute, type AuthSearchParams } from '@/server/auth/auth-destination
 import { SignIn } from '@clerk/nextjs'
 import Link from 'next/link'
 
-export default async function SignInPage({ searchParams }: { params?: Promise<{lang?: string}>; searchParams: Promise<AuthSearchParams> }) {
+export default async function SignInPage({ searchParams }: { searchParams: Promise<AuthSearchParams> }) {
   const locale = await getLocale()
   const { next } = await searchParams
   const continuation = authRoute(locale, 'auth/continue', next)

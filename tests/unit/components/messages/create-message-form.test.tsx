@@ -76,14 +76,13 @@ async function flushEffects(): Promise<void> {
   await act(async () => {})
 }
 
-function renderForm(overrides: Partial<CreateMessageFormProps> = {}) {
+function renderForm({ locale = 'en', ...overrides }: Partial<CreateMessageFormProps> & {locale?: 'en' | 'es'} = {}) {
   const props: CreateMessageFormProps = {
-    lang: 'en',
     onPublished: () => {},
     submitMessage: async () => okResult('message-1'),
     ...overrides,
   }
-  return render(<CreateMessageForm {...props} />)
+  return render(<CreateMessageForm {...props} />, { locale })
 }
 
 function typeContent(text: string): HTMLTextAreaElement {
@@ -243,7 +242,7 @@ describe('CreateMessageForm', () => {
       messageKey: 'message.cooldown',
       retryAfterSeconds: 3,
     }))
-    renderForm({ submitMessage: submit, lang: 'es' })
+    renderForm({ submitMessage: submit, locale: 'es' })
 
     typeContent('Hola ATINY')
     selectLocation()
@@ -269,7 +268,7 @@ describe('CreateMessageForm', () => {
 
   it('muestra el límite con un enlace real a «Mis cartas» y mantiene la publicación bloqueada', async () => {
     const submit = vi.fn(async () => failResult('MESSAGE_LIMIT_REACHED', { messageKey: 'message.limitReached' }))
-    renderForm({ submitMessage: submit, lang: 'es' })
+    renderForm({ submitMessage: submit, locale: 'es' })
 
     typeContent('Hola ATINY')
     selectLocation()

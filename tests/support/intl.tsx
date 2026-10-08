@@ -1,7 +1,7 @@
 import { MapQueryProvider } from '@/components/map/map-query-provider'
 import { NextIntlClientProvider } from 'next-intl'
 import { render as testingRender, type RenderOptions } from '@testing-library/react'
-import { isValidElement, type ReactElement, type ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import enForms from '@/i18n/messages/en/forms.json'
 import esForms from '@/i18n/messages/es/forms.json'
 import enMap from '@/i18n/messages/en/map.json'
@@ -18,8 +18,6 @@ export function IntlTestProvider({ children, locale = 'en' }: {children: ReactNo
   return <NextIntlClientProvider locale={locale} messages={messages[locale]} timeZone="UTC"><MapQueryProvider>{children}</MapQueryProvider></NextIntlClientProvider>
 }
 
-export function render(ui: ReactElement, options?: RenderOptions) {
-  const props = isValidElement<{lang?: string}>(ui) ? ui.props : {}
-  const locale = props.lang === 'es' ? 'es' : 'en'
+export function render(ui: ReactElement, { locale = 'en', ...options }: RenderOptions & {locale?: 'en' | 'es'} = {}) {
   return testingRender(ui, { wrapper: ({children}) => <IntlTestProvider locale={locale}>{children}</IntlTestProvider>, ...options })
 }

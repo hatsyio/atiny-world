@@ -11,10 +11,9 @@ export function rememberLetterOrigin(origin: string) {
   if (window.location.pathname === path) window.history.replaceState(null, '', origin)
 }
 
-export function LetterLink({ lang, publicId, origin, children, ...props }: {
-  lang: 'en' | 'es'
+export function LetterLink({ publicId, origin, children, ...props }: {
   publicId: string
   origin: string
 } & Omit<ComponentProps<typeof Link>, 'href' | 'onNavigate'>) {
-  return <Link {...props} href={letterHref(lang, publicId, origin)} onNavigate={() => rememberLetterOrigin(origin)}>{children}</Link>
+  return <Link {...props} href={letterHref(publicId, origin)} onNavigate={() => rememberLetterOrigin(origin)}>{children}</Link>
 }

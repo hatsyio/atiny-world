@@ -70,8 +70,8 @@ it('keeps the map and marker identity, view and current callbacks on feature upd
 it('keeps group and filter panels mutually exclusive and available in fullscreen', async () => {
   const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const onFiltersChange = vi.fn()
-  const result = render(<LeafletMap initialView={initialView} features={[feature, second]} onSelect={() => {}} lang="es"
-    filters={{ city: '', country: '' }} onFiltersChange={onFiltersChange} />)
+  const result = render(<LeafletMap initialView={initialView} features={[feature, second]} onSelect={() => {}}
+    filters={{ city: '', country: '' }} onFiltersChange={onFiltersChange} />, { locale: 'es' })
   const map = await getMap(factory)
   const control = await result.findByRole('button', { name: 'Entrar en pantalla completa' })
   const zoom = result.container.querySelector('.leaflet-control-zoom')!
@@ -101,7 +101,7 @@ it('loads safe text into one popup, preserves it on equivalent features and uses
   const fetch = respond(content)
   const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const oldSelect = vi.fn()
-  const result = render(<LeafletMap initialView={initialView} features={[feature]} onSelect={oldSelect} lang="es" />)
+  const result = render(<LeafletMap initialView={initialView} features={[feature]} onSelect={oldSelect} />, { locale: 'es' })
   const map = await getMap(factory)
   const group = await getGroup(map)
   const marker = group.getLayers()[0] as leaflet.Marker
@@ -113,7 +113,7 @@ it('loads safe text into one popup, preserves it on equivalent features and uses
   expect(marker.getPopup()?.options).toMatchObject({ autoClose: true, closeOnClick: true })
   expect(fetch).toHaveBeenCalledWith(`/api/messages/${feature.publicId}`, expect.objectContaining({ cache: 'no-store' }))
   const select = vi.fn()
-  result.rerender(<LeafletMap initialView={initialView} features={[{ ...feature }]} onSelect={select} lang="es" />)
+  result.rerender(<LeafletMap initialView={initialView} features={[{ ...feature }]} onSelect={select} />)
   expect(marker.isPopupOpen()).toBe(true)
   expect(fetch).toHaveBeenCalledTimes(1)
   fireEvent.click(result.getByRole('button', { name: 'Leer completo' }))

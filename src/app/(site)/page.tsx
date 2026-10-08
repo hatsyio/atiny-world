@@ -1,5 +1,4 @@
-import {getLocale} from 'next-intl/server'
-import {useLocale, useTranslations, useFormatter} from 'next-intl'
+import {useTranslations, useFormatter} from 'next-intl'
 import Link from 'next/link'
 
 import { LetterLink } from '@/components/navigation/letter-link'
@@ -36,13 +35,11 @@ export function PublicHome({
   homepageStats = { letters: 0, countries: 0 },
   selectedMessage,
 }: {
-  lang?: 'en' | 'es'
   publicationPending?: boolean
   latestLetters?: PublicMessageDetail[]
   homepageStats?: PublicMessageStats
   selectedMessage?: PublicMapFeature
 }) {
-  const lang = useLocale()
   const t = useTranslations('Pages.home')
   const format = useFormatter()
   const writeUrl = '/messages/new'
@@ -76,7 +73,7 @@ export function PublicHome({
             <div className="map-heading"><h2 id="map-title">{t('mapTitle')}</h2><p>{t('mapNote')}</p></div>
             {publicationPending && <p className="profile-note" role="status">{t('publicationPending')}</p>}
             <p className="map-hint">{t('mapHint')}</p>
-            <div className="live-map-frame"><PublicMapController lang={lang} selectedMessage={selectedMessage} /></div>
+            <div className="live-map-frame"><PublicMapController selectedMessage={selectedMessage} /></div>
           </section>
 
           <section className="letters-section" id="letters" tabIndex={-1} aria-labelledby="letters-title">
@@ -84,7 +81,7 @@ export function PublicHome({
             <p className="letters-note">{t('lettersNote')}</p>
             <div className="letter-grid">
               {latestLetters.length === 0 ? <p role="status">{t('emptyLetters')}</p> : latestLetters.map((letter) => (
-                <LetterLink className="letter-card" id={`letters-${letter.publicId}`} key={letter.publicId} lang={lang} publicId={letter.publicId} origin={`/#letters-${letter.publicId}`} aria-label={`${locationLabel(letter)} — ${letter.author.displayName}`}>
+                <LetterLink className="letter-card" id={`letters-${letter.publicId}`} key={letter.publicId} publicId={letter.publicId} origin={`/#letters-${letter.publicId}`} aria-label={`${locationLabel(letter)} — ${letter.author.displayName}`}>
                   <div className="letter-place"><span role="img" aria-label={letter.country}>{countryFlag(letter.countryCode)}</span><span>{locationLabel(letter)}</span></div>
                   <p className="letter-body">{letter.content}</p>
                   <p className="letter-signature">— {letter.author.displayName}</p>
@@ -102,11 +99,9 @@ export function PublicHome({
 }
 
 export default async function Page({ searchParams }: {
-  params?: Promise<{lang?: string}>
   searchParams: Promise<{ publication?: string; letter?: string }>
 }) {
   const { publication, letter } = await searchParams
-  const locale = await getLocale()
   const db = getDb()
   const [latestLetters, homepageStats, selectedLetter] = await Promise.all([
     listLatestHomepageMessages(db),
@@ -118,5 +113,5 @@ export default async function Page({ searchParams }: {
     locality: selectedLetter.locality, country: selectedLetter.country, countryCode: selectedLetter.countryCode,
     publishedAt: selectedLetter.publishedAt, author: selectedLetter.author,
   } : undefined
-  return <PublicHome lang={locale} latestLetters={latestLetters} homepageStats={homepageStats} selectedMessage={selectedMessage} publicationPending={publication === 'pending'} />
+  return <PublicHome latestLetters={latestLetters} homepageStats={homepageStats} selectedMessage={selectedMessage} publicationPending={publication === 'pending'} />
 }

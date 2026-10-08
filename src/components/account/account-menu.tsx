@@ -9,7 +9,6 @@ import {LanguageSwitcher} from '@/components/i18n/language-switcher'
 import {useTranslations} from 'next-intl'
 
 export function AccountMenu({ active = false, visitor = false, canAdminister = false, onNavigate }: {
-  lang?: 'en' | 'es'
   visitor?: boolean
   active?: boolean
   canAdminister?: boolean

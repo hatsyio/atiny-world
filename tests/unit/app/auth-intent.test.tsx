@@ -38,11 +38,13 @@ beforeEach(() => { state.kind = 'anonymous' })
 afterEach(cleanup)
 
 it.each(['es', 'en'])('carries the write action from the protected page to sign-in in %s', async lang => {
-  await expect(NewMessage({ params: Promise.resolve({ lang: setServerLocale(lang) }), searchParams: Promise.resolve({}) })).rejects.toThrow('redirect:/sign-in?next=%2Fmessages%2Fnew')
+  setServerLocale(lang)
+  await expect(NewMessage({ searchParams: Promise.resolve({}) })).rejects.toThrow('redirect:/sign-in?next=%2Fmessages%2Fnew')
 })
 
 it.each([SignIn, SignUp])('keeps the destination when switching auth mode and forces completion through the account gate', async Page => {
-  render(await Page({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ next: '/messages/new' }) }))
+  setServerLocale('es')
+  render(await Page({ searchParams: Promise.resolve({ next: '/messages/new' }) }))
   const props = JSON.parse(screen.getByTestId('auth').getAttribute('data-props')!)
   expect(props.forceRedirectUrl).toBe('/auth/continue?next=%2Fmessages%2Fnew')
   expect(props.signUpUrl ?? props.signInUrl).toMatch(/^\/sign-(up|in)\?next=%2Fmessages%2Fnew$/)
@@ -51,14 +53,16 @@ it.each([SignIn, SignUp])('keeps the destination when switching auth mode and fo
 
 it('resumes the write action after successful account setup', async () => {
   state.kind = 'allowed'
-  const args = { params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ next: '/messages/new' }) }
+  setServerLocale('es')
+  const args = { searchParams: Promise.resolve({ next: '/messages/new' }) }
   await expect(Continue(args)).rejects.toThrow('redirect:/messages/new')
   await expect(Profile(args)).rejects.toThrow('redirect:/messages/new')
 })
 
 it('carries the action through incomplete setup and its retry', async () => {
   state.kind = 'incomplete'
-  const args = { params: Promise.resolve({ lang: setServerLocale('en') }), searchParams: Promise.resolve({ next: '/my-messages' }) }
+  setServerLocale('en')
+  const args = { searchParams: Promise.resolve({ next: '/my-messages' }) }
   await expect(Continue(args)).rejects.toThrow('redirect:/profile?next=%2Fmy-messages')
   render(await Profile(args))
   expect(screen.getByRole('link', { name: 'Try again' })).toHaveAttribute('href', '/auth/continue?next=%2Fmy-messages')
@@ -66,36 +70,42 @@ it('carries the action through incomplete setup and its retry', async () => {
 
 it.each([undefined, 'https://evil.test', '//evil.test', '/auth/continue', '/profile', '/sign-in', '/sign-up', '/../sign-in', '/messages/%2Fnew', '/messages/new', ['/messages/new'], '/messages/new\\evil', '/messages/new\n'])('uses home for missing or unsafe destination %j', async next => {
   state.kind = 'allowed'
-  await expect(Continue({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ next }) })).rejects.toThrow('redirect:/')
+  setServerLocale('es')
+  await expect(Continue({ searchParams: Promise.resolve({ next }) })).rejects.toThrow('redirect:/')
 })
 
 it.each(['suspended', 'deletion-pending'])('sends %s accounts to a readable account status without resuming a protected action', async kind => {
   state.kind = kind
-  await expect(Continue({ params: Promise.resolve({ lang: setServerLocale('en') }), searchParams: Promise.resolve({ next: '/messages/new' }) })).rejects.toThrow('redirect:/profile?next=%2Fmessages%2Fnew')
-  render(await Profile({ params: Promise.resolve({ lang: setServerLocale('en') }), searchParams: Promise.resolve({ next: '/messages/new' }) }))
+  setServerLocale('en')
+  await expect(Continue({ searchParams: Promise.resolve({ next: '/messages/new' }) })).rejects.toThrow('redirect:/profile?next=%2Fmessages%2Fnew')
+  render(await Profile({ searchParams: Promise.resolve({ next: '/messages/new' }) }))
   expect(screen.getByText('Your account is not available right now.')).toBeTruthy()
 })
 
 it('preserves access to own letters and edit while still enforcing ownership', async () => {
-  await expect(MyMessages({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({}) })).rejects.toThrow('redirect:/sign-in?next=%2Fmy-messages')
-  const args = { params: Promise.resolve({ lang: setServerLocale('es'), publicId: 'letter-1' }) }
+  setServerLocale('es')
+  await expect(MyMessages({ searchParams: Promise.resolve({}) })).rejects.toThrow('redirect:/sign-in?next=%2Fmy-messages')
+  const args = { params: Promise.resolve({ publicId: 'letter-1' }) }
   await expect(Edit(args)).rejects.toThrow('redirect:/sign-in?next=%2Fmy-messages%2Fletter-1%2Fedit')
   state.kind = 'allowed'
-  await expect(Continue({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ next: '/my-messages/letter-1/edit' }) })).rejects.toThrow('redirect:/my-messages/letter-1/edit')
+  await expect(Continue({ searchParams: Promise.resolve({ next: '/my-messages/letter-1/edit' }) })).rejects.toThrow('redirect:/my-messages/letter-1/edit')
   await expect(Edit(args)).rejects.toThrow('not-found')
 })
 
 it('preserves pagination when access to own letters requires sign-in', async () => {
-  await expect(MyMessages({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ cursor: 'older+page' }) })).rejects.toThrow('redirect:/sign-in?next=%2Fmy-messages%3Fcursor%3Dolder%252Bpage')
+  setServerLocale('es')
+  await expect(MyMessages({ searchParams: Promise.resolve({ cursor: 'older+page' }) })).rejects.toThrow('redirect:/sign-in?next=%2Fmy-messages%3Fcursor%3Dolder%252Bpage')
 })
 
 it('preserves the reading origin when writing requires sign-in', async () => {
-  await expect(NewMessage({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ returnTo: '/my-messages?cursor=older' }) })).rejects.toThrow('redirect:/sign-in?next=%2Fmessages%2Fnew%3FreturnTo%3D%252Fmy-messages%253Fcursor%253Dolder')
+  setServerLocale('es')
+  await expect(NewMessage({ searchParams: Promise.resolve({ returnTo: '/my-messages?cursor=older' }) })).rejects.toThrow('redirect:/sign-in?next=%2Fmessages%2Fnew%3FreturnTo%3D%252Fmy-messages%253Fcursor%253Dolder')
 })
 
 it.each([SignIn, SignUp])('uses a safe continuation when auth is opened without an action or with an external destination', async Page => {
   for (const next of [undefined, 'https://evil.test']) {
-    render(await Page({ params: Promise.resolve({ lang: setServerLocale('en') }), searchParams: Promise.resolve({ next }) }))
+    setServerLocale('en')
+    render(await Page({ searchParams: Promise.resolve({ next }) }))
     const props = JSON.parse(screen.getByTestId('auth').getAttribute('data-props')!)
     expect(props.forceRedirectUrl).toBe('/auth/continue')
     expect(props.signUpUrl ?? props.signInUrl).toMatch(/^\/sign-(up|in)$/)
@@ -104,7 +114,8 @@ it.each([SignIn, SignUp])('uses a safe continuation when auth is opened without 
 })
 
 it('keeps the action when the session expires before continuation', async () => {
-  await expect(Continue({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ next: '/my-messages' }) })).rejects.toThrow('redirect:/sign-in?next=%2Fmy-messages')
+  setServerLocale('es')
+  await expect(Continue({ searchParams: Promise.resolve({ next: '/my-messages' }) })).rejects.toThrow('redirect:/sign-in?next=%2Fmy-messages')
 })
 
 it.each([
@@ -113,5 +124,6 @@ it.each([
   ['/messages/new?redirect_url=https://evil.test', '/messages/new'],
 ])('resumes the sanitized action %s', async (next, destination) => {
   state.kind = 'allowed'
-  await expect(Continue({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ next }) })).rejects.toThrow(`redirect:${destination}`)
+  setServerLocale('es')
+  await expect(Continue({ searchParams: Promise.resolve({ next }) })).rejects.toThrow(`redirect:${destination}`)
 })

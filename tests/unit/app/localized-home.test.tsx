@@ -51,7 +51,7 @@ const letter = {
 
 describe('PublicHome', () => {
   it('places account header, introduction, map, publication entry point and footer in order', () => {
-    render(<Home lang="en" latestLetters={[letter]} />)
+    render(<Home latestLetters={[letter]} />, { locale: 'en' })
     expect(screen.getByRole('banner')).toBeTruthy()
     expect(screen.getByRole('main')).toBeTruthy()
     expect(screen.getByRole('contentinfo')).toBeTruthy()
@@ -67,7 +67,7 @@ describe('PublicHome', () => {
   })
 
   it('shows the localized private letters link separately from the public letters section', () => {
-    render(<Home lang="es" />)
+    render(<Home />, { locale: 'es' })
     fireEvent.click(screen.getByRole('button', { name: 'Mi cuenta' }))
 
     expect(screen.getByRole('link', { name: 'Mis cartas' })).toHaveAttribute('href', '/my-messages')
@@ -77,33 +77,33 @@ describe('PublicHome', () => {
   it('hides the private letters link for signed-out visitors', () => {
     clerkState.signedIn = false
 
-    render(<Home lang="en" />)
+    render(<Home />, { locale: 'en' })
 
     expect(screen.queryByRole('link', { name: 'My letters' })).not.toBeInTheDocument()
   })
 
   it('keeps the private letters link in the active locale', () => {
-    render(<Home lang="en" />)
+    render(<Home />, { locale: 'en' })
     fireEvent.click(screen.getByRole('button', { name: 'My account' }))
 
     expect(screen.getByRole('link', { name: 'My letters' })).toHaveAttribute('href', '/my-messages')
   })
 
   it('shows the pending publication beside the refreshed map without exposing a message link', () => {
-    render(<Home lang="es" publicationPending />)
+    render(<Home publicationPending />, { locale: 'es' })
     expect(screen.getByText(/pendiente de moderación/i)).toBeInTheDocument()
     expect(screen.getByLabelText('Mapa de mensajes')).toBeTruthy()
     expect(screen.queryByRole('link', { name: /stable-id/i })).not.toBeInTheDocument()
   })
 
   it('shows a clear localized empty state when no public letters exist', () => {
-    render(<Home lang="es" />)
+    render(<Home />, { locale: 'es' })
 
     expect(screen.getByRole('status')).toHaveTextContent(/todavía no hay cartas públicas/i)
   })
 
   it('shows the localized homepage statistics and the fixed number of pirates', () => {
-    render(<Home lang="en" homepageStats={{ letters: 12, countries: 5 }} />)
+    render(<Home homepageStats={{ letters: 12, countries: 5 }} />, { locale: 'en' })
 
     expect(screen.getByText('12')).toBeInTheDocument()
     expect(screen.getByText('Letters', { selector: 'span' })).toBeInTheDocument()
@@ -114,14 +114,14 @@ describe('PublicHome', () => {
   })
 
   it('uses singular labels when a statistic is exactly one', () => {
-    render(<Home lang="en" homepageStats={{ letters: 1, countries: 1 }} />)
+    render(<Home homepageStats={{ letters: 1, countries: 1 }} />, { locale: 'en' })
 
     expect(screen.getByText('Letter', { selector: 'span' })).toBeInTheDocument()
     expect(screen.getByText('Country', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('shows zero for letter and country statistics when the public collection is empty', () => {
-    render(<Home lang="es" homepageStats={{ letters: 0, countries: 0 }} />)
+    render(<Home homepageStats={{ letters: 0, countries: 0 }} />, { locale: 'es' })
 
     expect(screen.getAllByText('0')).toHaveLength(2)
     expect(screen.getByText('Cartas', { selector: 'span' })).toBeInTheDocument()
@@ -131,6 +131,6 @@ describe('PublicHome', () => {
 })
 
 it.each([['en', '12,345'], ['es', '12.345']] as const)('formats homepage statistics for the reader in %s', (lang, number) => {
-  render(<Home lang={lang} homepageStats={{letters: 12345, countries: 12345}} />)
+  render(<Home homepageStats={{letters: 12345, countries: 12345}} />, { locale: lang })
   expect(screen.getAllByText(number, {selector: 'strong'})).toHaveLength(2)
 })

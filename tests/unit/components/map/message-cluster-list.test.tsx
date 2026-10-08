@@ -11,7 +11,7 @@ afterEach(() => { cleanup(); clients.forEach(client => client.clear()); clients.
 function view(url: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   clients.push(client)
-  const element = (requestUrl: string) => <QueryClientProvider client={client}><MessageClusterList requestUrl={requestUrl} lang="en" onSelect={() => {}} /></QueryClientProvider>
+  const element = (requestUrl: string) => <QueryClientProvider client={client}><MessageClusterList requestUrl={requestUrl} onSelect={() => {}} /></QueryClientProvider>
   return { ...render(element(url)), element, client }
 }
 function response(content: string, nextCursor: string | null = null) {
