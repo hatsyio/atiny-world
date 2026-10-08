@@ -61,7 +61,7 @@ describe('message moderation', () => {
   it('withdraws a public pending letter but not a hidden pending letter', async () => {
     const { message } = await fixture()
     await db`update app_private.settings set premoderation_enabled = true where id = 1`
-    expect(await decide(message.public_id, 'withdraw', { reasonCode: 'spam' })).toMatchObject({ ok: false })
+    expect(await decide(message.public_id, 'withdraw', { reasonCode: 'spam' })).toEqual({ ok: false, error: { code: 'INVALID_MODERATION_TRANSITION' } })
     await db`update app_private.settings set premoderation_enabled = false where id = 1`
     expect(await decide(message.public_id, 'withdraw', { reasonCode: 'spam' })).toMatchObject({ ok: true })
   })

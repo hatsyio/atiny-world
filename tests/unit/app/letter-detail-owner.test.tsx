@@ -52,14 +52,14 @@ it('does not expose a pending letter to another signed-in account', async () => 
   expect(screen.queryByRole('button', { name: 'Edit letter' })).toBeNull()
 })
 it('shows a public letter without edit controls to a suspended account', async () => {
-  vi.mocked(authorizeSession).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.suspended' } })
+  vi.mocked(authorizeSession).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_SUSPENDED' } })
   vi.mocked(getVisibleMessage).mockResolvedValue(letter)
   render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }) }))
   expect(screen.getByText('Private pending letter')).toBeVisible()
   expect(screen.queryByRole('button', { name: 'Edit letter' })).toBeNull()
 })
 it('lets a suspended owner read their private letter without edit controls', async () => {
-  vi.mocked(authorizeSession).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.suspended' } })
+  vi.mocked(authorizeSession).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_SUSPENDED' } })
   vi.mocked(getOwnMessage).mockResolvedValue(letter)
   render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }) }))
   expect(screen.getByText('Private pending letter')).toBeVisible()
@@ -75,7 +75,7 @@ it('does not expose a private letter to an administrator who is not its owner', 
 })
 
 it('does not expose a private letter when its owner is pending deletion', async () => {
-  vi.mocked(authorizeSession).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.deletionPending' } })
+  vi.mocked(authorizeSession).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_DELETION_PENDING' } })
   vi.mocked(getOwnMessage).mockResolvedValue(letter)
   render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }) }))
   expect(screen.queryByText('Private pending letter')).toBeNull()

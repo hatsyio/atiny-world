@@ -10,7 +10,7 @@ export default async function SiteLayout({children}: {children: React.ReactNode}
   const identity = await getSessionIdentity()
   const profile = identity ? await authorizeProfile(getDb(), identity) : null
   const canAdminister = !!profile?.ok && (profile.data.role === 'admin' || profile.data.role === 'owner')
-  const suspended = !!identity && !!profile && !profile.ok && profile.error.messageKey === 'account.suspended'
+  const suspended = !!identity && !!profile && !profile.ok && profile.error.code === 'ACCOUNT_SUSPENDED'
   const reasonCode = suspended ? await readOwnSuspensionReason(getDb(), identity!.clerkUserId) : null
   return <div className="site-shell"><SiteHeader canAdminister={canAdminister} />{suspended && <SuspensionNotice reasonCode={reasonCode} />}{children}<SiteFooter /></div>
 }

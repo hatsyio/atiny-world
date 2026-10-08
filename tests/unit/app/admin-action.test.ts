@@ -20,3 +20,15 @@ it('uses the session actor and ignores a forged actor in the form', async () => 
   expect(await setAdministratorRoleAction({ status: 'idle' }, form)).toEqual({ status: 'saved' })
   expect(setAdministratorRole).toHaveBeenCalledWith({}, { clerkUserId: 'real_actor', publicId: 'target', role: 'admin', expectedRole: 'fan', expectedRoleVersion: 1 })
 })
+
+it.each([
+  ['ROLE_VERSION_CONFLICT', 'conflict'],
+  ['VALIDATION_ERROR', 'invalid'],
+  ['NOT_FOUND', 'denied'],
+] as const)('presents %s using its business code', async (code, status) => {
+  vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'actor' })
+  vi.mocked(setAdministratorRole).mockResolvedValue({ ok: false, error: { code } })
+  const form = new FormData()
+  for (const [key, value] of Object.entries({ publicId: 'target', role: 'admin', expectedRole: 'fan', expectedRoleVersion: '1' })) form.set(key, value)
+  expect(await setAdministratorRoleAction({ status: 'idle' }, form)).toEqual({ status })
+})

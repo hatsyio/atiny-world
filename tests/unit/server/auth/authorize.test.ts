@@ -71,7 +71,7 @@ describe('toAuthorizeActionResult', () => {
       displayName: 'ATINY',
       role: 'fan',
     }
-    expect(toAuthorizeActionResult({ ok: true, profile })).toEqual({
+    expect(toAuthorizeActionResult({ ok: true, data: profile })).toEqual({
       ok: true,
       data: profile,
     })
@@ -79,16 +79,16 @@ describe('toAuthorizeActionResult', () => {
 
   it('maps every denial reason to a stable problem', () => {
     expect(
-      toAuthorizeActionResult({ ok: false, error: { kind: 'PROFILE_INCOMPLETE' } }),
-    ).toMatchObject({ ok: false, error: { code: 'PROFILE_INCOMPLETE' } })
+      toAuthorizeActionResult({ ok: false, error: { code: 'PROFILE_INCOMPLETE' } }),
+    ).toEqual({ ok: false, error: { code: 'PROFILE_INCOMPLETE', messageKey: 'profile.incomplete' } })
 
     expect(
-      toAuthorizeActionResult({ ok: false, error: { kind: 'ACCOUNT_SUSPENDED' } }),
-    ).toMatchObject({ ok: false, error: { code: 'ACCOUNT_SUSPENDED' } })
+      toAuthorizeActionResult({ ok: false, error: { code: 'ACCOUNT_SUSPENDED' } }),
+    ).toEqual({ ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.suspended' } })
 
     expect(
-      toAuthorizeActionResult({ ok: false, error: { kind: 'ACCOUNT_DELETION_PENDING' } }),
-    ).toMatchObject({ ok: false, error: { code: 'ACCOUNT_SUSPENDED' } })
+      toAuthorizeActionResult({ ok: false, error: { code: 'ACCOUNT_DELETION_PENDING' } }),
+    ).toEqual({ ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.deletionPending' } })
   })
 })
 
@@ -111,6 +111,14 @@ describe('authorizeProfile', () => {
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error.code).toBe('PROFILE_INCOMPLETE')
   })
+})
+
+it.each([
+  [{ suspended_at: '2026-10-08T00:00:00Z' }, 'ACCOUNT_SUSPENDED'],
+  [{ account_state: 'deletion_pending', suspended_at: '2026-10-08T00:00:00Z' }, 'ACCOUNT_DELETION_PENDING'],
+] as const)('keeps the account denial semantic before presentation: %s', async (overrides, code) => {
+  expect(await authorizeProfile({} as Sql, { clerkUserId: 'fan' }, async () => row(overrides)))
+    .toEqual({ ok: false, error: { code } })
 })
 
 describe('authorizeSession', () => {

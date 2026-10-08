@@ -16,7 +16,7 @@ vi.mock('next-intl/server', () => import('@/../tests/support/server-intl'))
 vi.mock('server-only', () => ({}))
 vi.mock('@/components/map/public-map-controller', () => ({ PublicMapController: () => null }))
 vi.mock('@/server/messages/public-repository', () => ({ getVisibleMessage: vi.fn(async () => null) }))
-vi.mock('@/server/auth/authorize', () => ({ authorizeSession: vi.fn(async () => ({ ok: false, error: { code: 'NOT_FOUND', messageKey: 'auth.unauthenticated' } })) }))
+vi.mock('@/server/auth/authorize', () => ({ authorizeSession: vi.fn(async () => ({ ok: false, error: { code: 'NOT_FOUND' } })) }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 
 import { PublicHome } from '@/app/(site)/page'

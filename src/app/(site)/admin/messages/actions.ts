@@ -27,7 +27,7 @@ export async function moderateMessageAction(_previous: ModerationActionState, fo
       ...(typeof reasonCode === 'string' ? { reasonCode } : {}),
       ...(typeof note === 'string' ? { note } : {}),
     })
-    if (!result.ok) return { status: result.error.code === 'MESSAGE_VERSION_CONFLICT' ? 'conflict' : result.error.messageKey === 'admin.moderation.transition' ? 'transition' : result.error.code === 'VALIDATION_ERROR' ? 'invalid' : 'denied' }
+    if (!result.ok) return { status: result.error.code === 'MESSAGE_VERSION_CONFLICT' ? 'conflict' : result.error.code === 'INVALID_MODERATION_TRANSITION' ? 'transition' : result.error.code === 'VALIDATION_ERROR' ? 'invalid' : 'denied' }
   } catch { return { status: 'error' } }
   await captureServerEvent(identity.clerkUserId, 'message_moderated', {
     decision: validated.data.decision,

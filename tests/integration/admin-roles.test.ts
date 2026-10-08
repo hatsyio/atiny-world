@@ -33,7 +33,7 @@ describe('administration roles', () => {
     try {
       const results = await Promise.all([setAdministratorRole(db, input), setAdministratorRole(other, input)])
       expect(results.filter(result => result.ok)).toHaveLength(1)
-      expect(results.find(result => !result.ok)).toMatchObject({ ok: false, error: { messageKey: 'admin.conflict' } })
+      expect(results.find(result => !result.ok)).toMatchObject({ ok: false, error: { code: 'ROLE_VERSION_CONFLICT' } })
       expect(await db`select * from app_private.admin_audit`).toHaveLength(1)
     } finally { await other.end() }
   })
@@ -99,7 +99,7 @@ describe('administration roles', () => {
         setAdministratorRole(other, { clerkUserId: 'second', publicId: first.public_id, role: 'fan', expectedRole: 'admin', expectedRoleVersion: 2 }),
       ])
       expect(results.filter(result => result.ok)).toHaveLength(1)
-      expect(results.find(result => !result.ok)).toMatchObject({ ok: false, error: { messageKey: 'admin.denied' } })
+      expect(results.find(result => !result.ok)).toMatchObject({ ok: false, error: { code: 'NOT_FOUND' } })
       const rows = await db`select role from app_private.profiles order by role`
       expect(rows.map(row => row.role)).toEqual(['admin', 'fan'])
       expect(await db`select * from app_private.admin_audit`).toHaveLength(1)
@@ -151,7 +151,7 @@ describe('administration roles', () => {
     const input = { clerkUserId: 'owner', publicId: fan.public_id, role: 'admin', expectedRole: 'fan', expectedRoleVersion: 1 }
     expect(await setAdministratorRole(db, input)).toMatchObject({ ok: true })
     expect(await setAdministratorRole(db, { ...input, role: 'fan', expectedRole: 'admin', expectedRoleVersion: 2 })).toMatchObject({ ok: true })
-    expect(await setAdministratorRole(db, input)).toMatchObject({ ok: false, error: { messageKey: 'admin.conflict' } })
+    expect(await setAdministratorRole(db, input)).toMatchObject({ ok: false, error: { code: 'ROLE_VERSION_CONFLICT' } })
   })
   it('does not disclose accounts to fans, and searches names literally', async () => {
     await insertProfile(db, 'admin', { role: 'admin' })

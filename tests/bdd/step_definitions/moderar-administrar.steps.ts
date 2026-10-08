@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { After, AfterAll, Given, Then, When } from '@cucumber/cucumber'
-import { moderateMessage, type ModerateMessageSuccess } from '../../../src/server/moderation/moderate-message'
+import { moderateMessage, type ModerateMessageResult } from '../../../src/server/moderation/moderate-message'
 import { searchModerationMessages } from '../../../src/server/moderation/message-repository'
 import { getVisibleMessage, listFeaturesInViewport } from '../../../src/server/messages/public-repository'
 import { pageOwnMessages } from '../../../src/server/messages/own-message-repository'
@@ -11,7 +11,7 @@ import { createTestDb, insertMessage, insertProfile, truncateProductTables } fro
 import type { AtinyAtlasWorld } from '../support/world'
 
 type ModerationWorld = AtinyAtlasWorld & {
-  moderationResult?: ActionResult<ModerateMessageSuccess>
+  moderationResult?: ModerateMessageResult
   sourceStatus: string
   sourceContent: string
   settingsResult?: ActionResult<UpdateSettingsSuccess>
