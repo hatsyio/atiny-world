@@ -6,7 +6,7 @@ import {
   type ActionResult,
 } from '@/domain/contracts'
 import type { LocationSelectionInput } from '@/domain/location/selection'
-import { authorizeProfile } from '@/server/auth/authorize'
+import { authorizeProfile, toAuthorizeActionResult } from '@/server/auth/authorize'
 import {
   getSessionIdentity,
   readProfileByClerkUserId,
@@ -65,7 +65,7 @@ export async function createMessageForSession(
   if (!identity) return errorResult('NOT_FOUND', { messageKey: 'auth.unauthenticated' })
 
   const auth = await authorizeProfile(sql, identity, readProfile)
-  if (!auth.ok) return auth
+  if (!auth.ok) return toAuthorizeActionResult(auth)
 
   const content = validateActionContent(input?.content)
   if (!content.ok) {

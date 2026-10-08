@@ -34,13 +34,13 @@ describe('moderation session action', () => {
     expect(moderateMessage).not.toHaveBeenCalled()
   })
   it.each([
-    ['MESSAGE_VERSION_CONFLICT', 'admin.moderation.conflict', 'conflict'],
-    ['VALIDATION_ERROR', 'admin.moderation.transition', 'transition'],
-    ['VALIDATION_ERROR', 'admin.moderation.invalid', 'invalid'],
-    ['NOT_FOUND', 'admin.moderation.denied', 'denied'],
-  ] as const)('surfaces %s without revalidation or automatic retry', async (code, messageKey, status) => {
+    ['MESSAGE_VERSION_CONFLICT', 'conflict'],
+    ['INVALID_MODERATION_TRANSITION', 'transition'],
+    ['VALIDATION_ERROR', 'invalid'],
+    ['NOT_FOUND', 'denied'],
+  ] as const)('surfaces %s without revalidation or automatic retry', async (code, status) => {
     vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'actor' })
-    vi.mocked(moderateMessage).mockResolvedValue({ ok: false, error: { code, messageKey } })
+    vi.mocked(moderateMessage).mockResolvedValue({ ok: false, error: { code } })
     expect(await moderateMessageAction({ status: 'idle' }, form())).toEqual({ status })
     expect(revalidatePath).not.toHaveBeenCalled()
   })

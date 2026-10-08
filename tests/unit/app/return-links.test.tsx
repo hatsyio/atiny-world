@@ -12,7 +12,7 @@ vi.mock('@/server/auth/account-gate', () => ({
   resolveAccountGate: async () => ({ kind: state.kind }),
   writeLetterRedirect: () => null,
 }))
-vi.mock('@/server/auth/authorize', () => ({ authorizeSession: async () => ({ ok: false, error: { code: 'NOT_FOUND', messageKey: 'auth.unauthenticated' } }) }))
+vi.mock('@/server/auth/authorize', () => ({ authorizeSession: async () => ({ ok: false, error: { code: 'NOT_FOUND' } }) }))
 vi.mock('@/components/messages/letter-detail', () => ({ LetterDetail: () => null }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: async () => ({ clerkUserId: 'user' }) }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))

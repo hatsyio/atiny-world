@@ -59,12 +59,16 @@ export async function searchAccounts(sql: Sql, clerkUserId: string, query: strin
   })
 }
 
+export type SetAdministratorRoleResult =
+  | { ok: true; data: { publicId: string; role: 'fan' | 'admin' } }
+  | { ok: false; error: { code: 'VALIDATION_ERROR' | 'NOT_FOUND' | 'ROLE_VERSION_CONFLICT' } }
+
 export async function setAdministratorRole(sql: Sql, input: {
   clerkUserId: string; publicId: string; role: string; expectedRole: string; expectedRoleVersion: number
-}): Promise<ActionResult<{ publicId: string; role: 'fan' | 'admin' }>> {
+}): Promise<SetAdministratorRoleResult> {
   const targetId = parsePublicId(input.publicId)
   if (!targetId.ok || (input.role !== 'fan' && input.role !== 'admin') || !isProfileRole(input.expectedRole) || !Number.isSafeInteger(input.expectedRoleVersion) || input.expectedRoleVersion < 1) {
-    return errorResult('VALIDATION_ERROR', { messageKey: 'admin.invalid' })
+    return { ok: false, error: { code: 'VALIDATION_ERROR' } }
   }
   const role = input.role
   return sql.begin(async tx => {
@@ -76,10 +80,10 @@ export async function setAdministratorRole(sql: Sql, input: {
       order by id for update
     `
     const actor = rows.find(row => row.clerk_user_id === input.clerkUserId)
-    if (!active(actor) || (actor.role !== 'admin' && actor.role !== 'owner')) return denied()
+    if (!active(actor) || (actor.role !== 'admin' && actor.role !== 'owner')) return { ok: false, error: { code: 'NOT_FOUND' } }
     const target = rows.find(row => row.public_id === targetId.value)
-    if (!target || target.id === actor.id || target.role === 'owner' || target.account_state !== 'active' || !target.display_name.trim()) return denied()
-    if (target.role !== input.expectedRole || target.role_version !== input.expectedRoleVersion) return errorResult('VALIDATION_ERROR', { messageKey: 'admin.conflict' })
+    if (!target || target.id === actor.id || target.role === 'owner' || target.account_state !== 'active' || !target.display_name.trim()) return { ok: false, error: { code: 'NOT_FOUND' } }
+    if (target.role !== input.expectedRole || target.role_version !== input.expectedRoleVersion) return { ok: false, error: { code: 'ROLE_VERSION_CONFLICT' } }
     if (target.role === role) return okResult({ publicId: target.public_id, role })
     await tx`update app_private.profiles set role = ${role}, updated_at = now() where id = ${target.id}`
     await tx`

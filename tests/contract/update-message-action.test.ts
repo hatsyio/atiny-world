@@ -104,6 +104,22 @@ describe('updateMessage server action contract', () => {
     })
   })
 
+  it('preserves the public deletion-pending problem before any write', async () => {
+    const write = vi.fn()
+    const result = await updateMessageForSession(stubSql, textInput, deps({
+      readProfile: async () => ({
+        id: 'profile-1', public_id: '00000000-0000-4000-8000-000000000002',
+        display_name: 'ATINY', role: 'fan', account_state: 'deletion_pending',
+        suspended_at: '2026-10-08T00:00:00Z',
+      }),
+      update: write,
+    }))
+    expect(result).toEqual({
+      ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.deletionPending' },
+    })
+    expect(write).not.toHaveBeenCalled()
+  })
+
   it('rejects an invalid publicId and a non-positive expectedVersion', async () => {
     const badId = await updateMessageForSession(stubSql, {
       ...textInput,

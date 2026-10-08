@@ -1,7 +1,7 @@
 import type { Sql } from 'postgres'
 
 import { errorResult, okResult, parsePublicId, type ActionResult } from '@/domain/contracts'
-import { authorizeProfile } from '@/server/auth/authorize'
+import { authorizeProfile, toAuthorizeActionResult } from '@/server/auth/authorize'
 import {
   getSessionIdentity,
   readProfileByClerkUserId,
@@ -63,7 +63,7 @@ export async function updateMessageForSession(
   if (!identity) return errorResult('NOT_FOUND', { messageKey: 'auth.unauthenticated' })
 
   const auth = await authorizeProfile(sql, identity, readProfile)
-  if (!auth.ok) return auth
+  if (!auth.ok) return toAuthorizeActionResult(auth)
 
   const rawPublicId = input?.publicId
   const publicId = parsePublicId(rawPublicId ?? '')

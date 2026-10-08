@@ -20,7 +20,7 @@ import { searchAccounts } from '@/server/moderation/accounts'
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 
 it.each(['fan', null])('does not render the admin layout for %s', async role => {
-  vi.mocked(authorizeSession).mockResolvedValue(role ? { ok: true, data: { profileId: '1', publicId: 'id', displayName: 'Fan', role: 'fan' } } : { ok: false, error: { code: 'NOT_FOUND', messageKey: 'auth.unauthenticated' } })
+  vi.mocked(authorizeSession).mockResolvedValue(role ? { ok: true, data: { profileId: '1', publicId: 'id', displayName: 'Fan', role: 'fan' } } : { ok: false, error: { code: 'NOT_FOUND' } })
   await expect(AdminLayout({ children: <p>Private</p> })).rejects.toThrow('NOT_FOUND')
 })
 it('does not query users when a fan requests the page directly', async () => {

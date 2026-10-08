@@ -91,7 +91,7 @@ describe('shared navigation', () => {
     if (kind !== 'anonymous') vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'user_fan' })
     vi.mocked(authorizeProfile).mockResolvedValue(kind === 'fan'
       ? { ok: true, data: { profileId: '1', publicId: 'profile', displayName: 'Fan', role: 'fan' } }
-      : { ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.suspended' } })
+      : { ok: false, error: { code: 'ACCOUNT_SUSPENDED' } })
     render(await LocalizedLayout({ children: <main>Content</main> }))
     await userEvent.setup().click(screen.getByRole('button', { name: 'Mi cuenta' }))
     expect(screen.queryByRole('link', { name: 'Administración' })).toBeNull()
@@ -193,8 +193,16 @@ it.each(['/my-messages', '/messages/letter-1'])('carries the reading origin into
 it('shows the suspended account a translated reason in the shared layout', async () => {
   state.signedIn = true
   vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'suspended' })
-  vi.mocked(authorizeProfile).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_SUSPENDED', messageKey: 'account.suspended' } })
+  vi.mocked(authorizeProfile).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_SUSPENDED' } })
   render(await LocalizedLayout({ children: <main>Content</main> }))
   expect(screen.getByRole('status')).toHaveTextContent('Tu cuenta está suspendida')
   expect(screen.getByRole('status')).toHaveTextContent('Datos personales o información privada')
+})
+
+it('does not present pending deletion as suspension', async () => {
+  state.signedIn = true
+  vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'deleting' })
+  vi.mocked(authorizeProfile).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_DELETION_PENDING' } })
+  render(await LocalizedLayout({ children: <main>Content</main> }))
+  expect(screen.queryByRole('status')).toBeNull()
 })

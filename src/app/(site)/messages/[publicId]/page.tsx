@@ -16,7 +16,7 @@ export default async function PublicMessagePage({ params, searchParams }: { para
   const db = getDb()
   const publicMessage = await getVisibleMessage(db, publicId)
   const authorization = await authorizeSession(db)
-  const suspended = !authorization.ok && authorization.error.messageKey === 'account.suspended'
+  const suspended = !authorization.ok && authorization.error.code === 'ACCOUNT_SUSPENDED'
   const identity = authorization.ok || suspended ? await getSessionIdentity() : null
   const ownMessage = identity ? await getOwnMessage(db, { clerkUserId: identity.clerkUserId, publicId }) ?? undefined : undefined
   const ownerProfile = ownMessage && identity && suspended ? await readProfileByClerkUserId(db, identity.clerkUserId) : null

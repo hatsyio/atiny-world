@@ -19,7 +19,7 @@ export async function setAdministratorRoleAction(_previous: RoleActionState, for
   const expectedRoleVersion = Number(version)
   try {
     const result = await setAdministratorRole(getDb(), { clerkUserId: identity.clerkUserId, publicId, role, expectedRole, expectedRoleVersion })
-    if (!result.ok) return { status: result.error.messageKey === 'admin.conflict' ? 'conflict' : result.error.code === 'VALIDATION_ERROR' ? 'invalid' : 'denied' }
+    if (!result.ok) return { status: result.error.code === 'ROLE_VERSION_CONFLICT' ? 'conflict' : result.error.code === 'VALIDATION_ERROR' ? 'invalid' : 'denied' }
   } catch { return { status: 'error' } }
   await captureServerEvent(identity.clerkUserId, 'administrator_role_updated', { role })
   revalidatePath('/admin', 'layout')

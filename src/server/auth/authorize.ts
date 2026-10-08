@@ -30,6 +30,11 @@ export type ProfileResolutionError =
   | 'ACCOUNT_SUSPENDED'
   | 'ACCOUNT_DELETION_PENDING'
 
+// Internal authorization never carries presentation keys.
+export type AuthorizationResult<T = AuthorizedProfile> =
+  | { ok: true; data: T }
+  | { ok: false; error: { code: ProfileResolutionError | 'NOT_FOUND' } }
+
 export type AuthorizeProfileError = {
   kind: ProfileResolutionError
 }
@@ -66,19 +71,19 @@ export function resolveProfileState(
 }
 
 export function toAuthorizeActionResult<T>(
-  result:
-    | { ok: true; profile: T }
-    | { ok: false; error: AuthorizeProfileError },
+  result: AuthorizationResult<T>,
 ): ActionResult<T> {
-  if (result.ok) return okResult(result.profile)
+  if (result.ok) return okResult(result.data)
 
-  switch (result.error.kind) {
+  switch (result.error.code) {
     case 'ACCOUNT_SUSPENDED':
       return errorResult('ACCOUNT_SUSPENDED', { messageKey: 'account.suspended' })
     case 'ACCOUNT_DELETION_PENDING':
       return errorResult('ACCOUNT_SUSPENDED', { messageKey: 'account.deletionPending' })
     case 'PROFILE_INCOMPLETE':
       return errorResult('PROFILE_INCOMPLETE', { messageKey: 'profile.incomplete' })
+    case 'NOT_FOUND':
+      return errorResult('NOT_FOUND', { messageKey: 'auth.unauthenticated' })
   }
 }
 
@@ -86,7 +91,7 @@ export async function authorizeSession(
   sql: Sql,
   readAuth: ClerkAuthReader = auth,
   readProfile: ProfileReader = readProfileByClerkUserId,
-): Promise<ActionResult<AuthorizedProfile>> {
+): Promise<AuthorizationResult> {
   const identity = await getSessionIdentity(readAuth)
 
   return identity ? authorizeProfile(sql, identity, readProfile) : notAuthenticated()
@@ -96,20 +101,23 @@ export async function authorizeProfile(
   sql: Sql,
   identity: SessionIdentity,
   readProfile: ProfileReader = readProfileByClerkUserId,
-): Promise<ActionResult<AuthorizedProfile>> {
+): Promise<AuthorizationResult> {
   const row = await readProfile(sql, identity.clerkUserId)
 
-  return toAuthorizeActionResult(resolveProfileState(row))
+  const resolved = resolveProfileState(row)
+  return resolved.ok
+    ? { ok: true, data: resolved.profile }
+    : { ok: false, error: { code: resolved.error.kind } }
 }
 
 export async function requireRole(
   profile: AuthorizedProfile,
   allowedRoles: readonly ProfileRole[],
-): Promise<ActionResult<AuthorizedProfile>> {
+): Promise<AuthorizationResult> {
   if (allowedRoles.includes(profile.role)) return okResult(profile)
-  return errorResult('NOT_FOUND', { messageKey: 'auth.roleRequired' })
+  return { ok: false, error: { code: 'NOT_FOUND' } }
 }
 
-function notAuthenticated(): ActionResult<never> {
-  return errorResult('NOT_FOUND', { messageKey: 'auth.unauthenticated' })
+function notAuthenticated(): AuthorizationResult<never> {
+  return { ok: false, error: { code: 'NOT_FOUND' } }
 }
