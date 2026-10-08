@@ -1,4 +1,5 @@
 @import '../components/admin/admin.css';
+@import '../components/ui/app-select.css';
 
 :root {
   --wood: #241a17;
@@ -34,13 +35,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .site-header :focus-visible, .site-footer a:focus-visible { outline: 2px solid #f4dbad; outline-offset: 4px; }
 .site-header .navigation-toggle { display: none; padding: .65rem .9rem; }
 .language-switcher { display: grid; gap: .35rem; min-width: 0; margin: 1rem 0; text-align: left; font-family: var(--font-interface), sans-serif; }
-.language-switcher label { font-weight: 700; font-size: .85rem; }
-.language-switcher select { width: 100%; max-width: 100%; min-height: 44px; padding: .55rem .7rem; border: 1px solid #6b3e20; background: #faf0da; color: #171b20; }
-.language-switcher select:disabled { opacity: .6; }
 .language-switcher [role='status'] { min-height: 1.2em; font-size: .75rem; overflow-wrap: anywhere; }
 .site-header .language-switcher { width: 12rem; max-width: 100%; margin: 0; gap: .15rem; font-size: .75rem; }
-.site-header .language-switcher label { font-size: .7rem; }
-.site-header .language-switcher select { border-color: #756047; background: #181b21; color: #f0d8a9; font-size: .75rem; }
 .account-menu { position: relative; }
 .account-menu > button { padding: .65rem .9rem; }
 .account-links { position: absolute; right: 0; top: calc(100% + .5rem); min-width: 190px; display: grid; gap: .3rem; padding: .6rem; background: #181b21; border: 1px solid #756047; box-shadow: 0 6px 18px #0006; }
@@ -92,8 +88,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .live-map-frame { max-width: 1200px; margin: 0 auto 4.5rem; }
 .live-map-frame > section { background: transparent; }
 .map-filters { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .6rem; padding: .8rem; }
+.map-filters > .app-select { grid-column: 1 / -1; }
 .map-filters label { font-size: .82rem; }
-.map-filters input, .map-filters select { width: 100%; min-width: 0; padding: .35rem; background: #fff5df; color: #291910; border: 1px solid #8b603a; border-radius: 0; }
+.map-filters input { width: 100%; min-width: 0; padding: .35rem; background: #fff5df; color: #291910; border: 1px solid #8b603a; border-radius: 0; }
 .map-feedback { display: grid; place-items: center; }
 .map-feedback [role='status'] { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem; width: 100%; padding: .5rem 1rem; text-align: center; }
 .map-feedback p { margin: 0; }
@@ -277,9 +274,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .account-preferences h2 { margin: 0 0 1rem; font-family: inherit; font-size: 1.25rem; font-weight: 700; }
 .account-preferences > p { color: #747479; font-size: .875rem; line-height: 1.5; }
 .account-preferences .language-switcher { margin-top: 1.5rem; }
-.account-preferences .language-switcher label { font-size: .8125rem; font-weight: 500; }
-.account-preferences .language-switcher select { border: 1px solid #d9d9de; border-radius: .375rem; background: white; color: inherit; font-family: inherit; font-size: .875rem; }
-.account-preferences .language-switcher select:focus-visible { outline: 2px solid #6c47ff; outline-offset: 2px; }
 
 /* A letter stays on the same desk when switching between reading and writing. */
 .letter-panel { width: min(100%, 1100px); }

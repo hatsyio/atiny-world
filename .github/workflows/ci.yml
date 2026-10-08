@@ -59,6 +59,27 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Check shared dropdown visuals
+        id: visual-check
+        run: |
+          node scripts/visual-select-server.mjs &
+          fixture_pid=$!
+          trap 'kill "$fixture_pid"' EXIT
+          curl --retry 30 --retry-connrefused --retry-delay 1 --max-time 2 --fail --silent http://127.0.0.1:8770/ > /dev/null
+          docker run --rm --network host --ipc host \
+            -e CI=true -e VISUAL_BASE_URL=http://127.0.0.1:8770 \
+            -v "$PWD:/work" -w /work \
+            mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f \
+            node node_modules/@playwright/test/cli.js test
+
+      - name: Upload visual failure screenshots and traces
+        if: ${{ failure() && steps.visual-check.outcome == 'failure' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dropdown-visual-failures
+          path: test-results/
+          retention-days: 7
+
       - name: Stop isolated test database
         if: ${{ always() && steps.configure-db.outcome == 'success' }}
         run: supabase stop --project-id "$CI_SUPABASE_PROJECT_ID" --no-backup --yes

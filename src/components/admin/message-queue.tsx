@@ -7,7 +7,7 @@ import type { ModerationMessage } from '@/server/moderation/message-repository'
 import type { ModerationDecision } from '@/domain/moderation/policies'
 import { MODERATION_REASON_CODES, isModerationReasonCode } from '@/i18n/moderation-reasons'
 import { AdminRefresh } from './admin-refresh'
-import { AdminSelect } from './admin-select'
+import { AppSelect } from '@/components/ui/app-select'
 
 function MessageDecisionForm({ message, onSaved }: { message: ModerationMessage; onSaved: () => void }) {
   const t = useTranslations('Pages.admin.moderation')
@@ -23,9 +23,9 @@ function MessageDecisionForm({ message, onSaved }: { message: ModerationMessage;
   return <form action={action} className="admin-decision-form">
     <input type="hidden" name="publicId" value={message.publicId} />
     <input type="hidden" name="expectedVersion" value={message.version} />
-    <AdminSelect label={t('decision')} name="decision" value={decision} disabled={pending || stale} onChange={value => setDecision(value as ModerationDecision)} options={message.decisions.map(value => ({ value, label: t(`decisions.${value}`) }))} />
+    <AppSelect variant="admin-messages" label={t('decision')} name="decision" value={decision} disabled={pending || stale} onChange={value => setDecision(value as ModerationDecision)} options={message.decisions.map(value => ({ value, label: t(`decisions.${value}`) }))} />
     {decision !== 'approve' && <>
-      <AdminSelect label={t('reason')} name="reasonCode" placeholder={t('chooseReason')} required disabled={pending || stale} options={MODERATION_REASON_CODES.map(value => ({ value, label: reasons(`reasons.${value}`) }))} />
+      <AppSelect variant="admin-messages" label={t('reason')} name="reasonCode" placeholder={t('chooseReason')} required disabled={pending || stale} options={MODERATION_REASON_CODES.map(value => ({ value, label: reasons(`reasons.${value}`) }))} />
     </>}
     <label htmlFor={`${id}-note`}>{t('note')}</label>
     <textarea id={`${id}-note`} name="note" maxLength={1000} rows={3} disabled={pending || stale} />

@@ -90,9 +90,22 @@ describe('MapFilters', () => {
     render(<MapFilters value={defaults} onChange={() => {}} />)
 
     expect(screen.getByRole('textbox', { name: /city/i })).toBeTruthy()
-    expect(screen.getByRole('combobox', { name: /country/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /country/i })).toBeTruthy()
     expect(screen.queryByRole('textbox', { name: /fan|autor|usuario/i })).not.toBeInTheDocument()
     expect(screen.getByRole('group', { name: /filters/i })).toBeTruthy()
+  })
+
+  it('changes country and clears it without losing the city filter', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const { rerender } = render(<MapFilters value={{ city: 'Seoul', country: 'kr' }} onChange={onChange} />)
+    await user.click(screen.getByRole('button', { name: /Country/ }))
+    await user.click(await screen.findByRole('option', { name: 'ES' }))
+    expect(onChange).toHaveBeenLastCalledWith({ city: 'Seoul', country: 'es' })
+    rerender(<MapFilters value={{ city: 'Seoul', country: 'es' }} onChange={onChange} />)
+    await user.click(screen.getByRole('button', { name: /Country/ }))
+    await user.click(await screen.findByRole('option', { name: 'All' }))
+    expect(onChange).toHaveBeenLastCalledWith({ city: 'Seoul', country: '' })
   })
 
 })

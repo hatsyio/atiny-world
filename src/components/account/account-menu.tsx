@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 
 import {LanguageSwitcher} from '@/components/i18n/language-switcher'
 import {useTranslations} from 'next-intl'
+import { containsOverlayTarget } from '@/components/ui/contains-overlay-target'
 
 export function AccountMenu({ active = false, visitor = false, disabled = false, canAdminister = false, onNavigate }: {
   visitor?: boolean
@@ -24,7 +25,7 @@ export function AccountMenu({ active = false, visitor = false, disabled = false,
 
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
-      if (!container.current?.contains(event.target as Node)) setExpanded(false)
+      if (!containsOverlayTarget(container.current, event.target)) setExpanded(false)
     }
     document.addEventListener('pointerdown', closeOutside)
     return () => document.removeEventListener('pointerdown', closeOutside)
@@ -34,9 +35,9 @@ export function AccountMenu({ active = false, visitor = false, disabled = false,
 
   return (
     <div className="account-menu" ref={container} onBlur={event => {
-      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setExpanded(false)
+      if (!containsOverlayTarget(event.currentTarget, event.relatedTarget)) setExpanded(false)
     }} onKeyDown={event => {
-      if (event.key === 'Escape' && expanded) {
+      if (event.key === 'Escape' && expanded && !event.defaultPrevented) {
         event.preventDefault()
         setExpanded(false)
         toggle.current?.focus()
@@ -47,7 +48,7 @@ export function AccountMenu({ active = false, visitor = false, disabled = false,
         {visitor ? <>
           <Link className="account-sign-in" href="/sign-in" onClick={close}>{t('signIn')}</Link>
           <Link href="/sign-up" onClick={close}>{t('signUp')}</Link>
-          <div className="account-language"><LanguageSwitcher /></div>
+          <div className="account-language"><LanguageSwitcher variant="header" /></div>
         </> : <>
           <Link href="/my-messages" onClick={close}>{t('myLetters')}</Link>
           <Link href="/settings" onClick={close}>{t('settings')}</Link>

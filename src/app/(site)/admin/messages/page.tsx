@@ -7,7 +7,7 @@ import { getDb } from '@/server/db/client'
 import { searchModerationMessages } from '@/server/moderation/message-repository'
 import { MESSAGE_STATUSES } from '@/domain/contracts'
 import { MessageQueue } from '@/components/admin/message-queue'
-import { AdminSelect } from '@/components/admin/admin-select'
+import { AppSelect } from '@/components/ui/app-select'
 
 export default async function AdminMessagesPage({ searchParams }: { searchParams: Promise<{ q?: string | string[]; status?: string | string[]; page?: string | string[] }> }) {
   await requireAdminPage()
@@ -44,7 +44,7 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
       <div><input id="admin-message-query" name="q" type="search" maxLength={100} defaultValue={query} /><button type="submit">{pagination('search')}</button></div>
       </div>
       <div className="admin-search-field">
-      <AdminSelect key={status} label={t('state')} name="status" defaultValue={status} options={[{ value: 'all', label: t('all') }, ...MESSAGE_STATUSES.map(value => ({ value, label: states(value) }))]} />
+      <AppSelect variant="admin-messages" key={status} label={t('state')} name="status" defaultValue={status} options={[{ value: 'all', label: t('all') }, ...MESSAGE_STATUSES.map(value => ({ value, label: states(value) }))]} />
       </div>
     </form>
     <MessageQueue messages={messages} />

@@ -35,7 +35,7 @@ it.each(['en', 'es'] as const)('embeds the language preference inside the accoun
   setServerLocale(locale)
   render(<IntlTestProvider locale={locale}>{await SettingsPage()}</IntlTestProvider>)
   expect(screen.getByRole('heading', {name: locale === 'es' ? 'Ajustes de cuenta' : 'Account settings'})).toBeInTheDocument()
-  expect(within(screen.getByRole('region', {name: 'Clerk profile'})).getByRole('combobox', {name: locale === 'es' ? 'Idioma' : 'Language'})).toBeInTheDocument()
+  expect(within(screen.getByRole('region', {name: 'Clerk profile'})).getByRole('button', {name: locale === 'es' ? /Idioma/ : /Language/})).toBeInTheDocument()
   expect(screen.getByRole('heading', {name: locale === 'es' ? 'Preferencias' : 'Preferences'})).toBeInTheDocument()
 })
 

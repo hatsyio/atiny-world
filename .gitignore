@@ -7,6 +7,9 @@ node_modules/
 dist/
 build/
 coverage/
+.visual-test-build/
+test-results/
+playwright-report/
 .DS_Store
 *.log
 *.tsbuildinfo
