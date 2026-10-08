@@ -68,6 +68,9 @@
     "intro": "Choose your Atiny Atlas language and manage your account security."
   },
   "admin": {
+    "manage": "Manage",
+    "permissions": "Permissions",
+    "accountAccess": "Account access",
     "title": "Administration",
     "navigation": "Administration navigation",
     "back": "Back to the map",
@@ -125,6 +128,7 @@
       "limitsHint": "Control how many letters each account can publish and the time between submissions."
     },
     "moderation": {
+      "moderate": "Moderate",
       "title": "Message moderation",
       "intro": "Review letters without changing their text. Each decision is recorded privately.",
       "searchLabel": "Search by letter text, author name or letter ID",

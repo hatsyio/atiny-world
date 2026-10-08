@@ -6,6 +6,7 @@ import { moderateMessageAction, type ModerationActionState } from '@/app/(site)/
 import type { ModerationMessage } from '@/server/moderation/message-repository'
 import type { ModerationDecision } from '@/domain/moderation/policies'
 import { MODERATION_REASON_CODES, isModerationReasonCode } from '@/i18n/moderation-reasons'
+import { AdminDisclosure } from './admin-disclosure'
 import { AdminRefresh } from './admin-refresh'
 import { AppSelect } from '@/components/ui/app-select'
 
@@ -47,17 +48,17 @@ export function MessageQueue({ messages }: { messages: ModerationQueueMessage[] 
     {messages.length === 0 ? <p role="status">{t('empty')}</p> : <ul className="admin-message-list">
     {messages.map(message => <li key={message.publicId}>
       <article aria-label={t('letterBy', { name: message.authorName })}>
-        <h3>{message.authorName}</h3>
-        <p className="admin-badges"><span className="admin-badge" data-state={message.authorState}>{accounts(message.authorState)}</span><span className="admin-badge" data-state={message.status}>{own(`status.${message.status}`)}</span><span className="admin-message-version">{t('version', { version: message.version })}</span></p>
+        <header className="admin-message-header">
+          <h3>{message.authorName}</h3>
+          <p className="admin-badges"><span className="admin-badge" data-state={message.authorState}>{accounts(message.authorState)}</span><span className="admin-badge" data-state={message.status}>{own(`status.${message.status}`)}</span><span className="admin-message-version">{t('version', { version: message.version })}</span></p>
+          <div className="admin-message-meta"><span>{[message.locality, message.country].filter(Boolean).join(', ')}</span><time dateTime={message.publishedAt}>{message.publishedAtLabel} UTC</time><span>{t(message.publicVisible ? 'public' : 'hidden')}</span></div>
+        </header>
         <p className="admin-message-content">{message.content}</p>
-        <p>{[message.locality, message.country].filter(Boolean).join(', ')}</p>
-        <time dateTime={message.publishedAt}>{message.publishedAtLabel} UTC</time>
-        <p>{t(message.publicVisible ? 'public' : 'hidden')}</p>
         <small>{t('letterId')}: {message.publicId}</small>
         {message.reasonCode && <p>{isModerationReasonCode(message.reasonCode) ? own(`reasons.${message.reasonCode}`) : own('reasonFallback')}</p>}
         {message.note && <p>{message.note}</p>}
       </article>
-      {message.decisions.length > 0 ? <MessageDecisionForm key={`${message.publicId}-${message.version}-${message.decisions.join(',')}`} message={message} onSaved={() => setSaved(true)} /> : <p className="profile-note">{t('noDecisions')}</p>}
+      {message.decisions.length > 0 ? <AdminDisclosure label={t('moderate')} context={message.authorName}><MessageDecisionForm key={`${message.publicId}-${message.version}-${message.decisions.join(',')}`} message={message} onSaved={() => setSaved(true)} /></AdminDisclosure> : <p className="profile-note">{t('noDecisions')}</p>}
     </li>)}
     </ul>}
   </>

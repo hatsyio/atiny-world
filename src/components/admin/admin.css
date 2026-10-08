@@ -36,28 +36,30 @@
 .admin-search-field > .app-select { display: grid; gap: .5rem; }
 .admin-search-field select { width: 100%; }
 .admin-users { padding: 0; list-style: none; }
-.admin-users > li { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 1.5rem; padding-block: 1.5rem; border-top: 1px solid #d9d2c6; overflow-wrap: anywhere; }
+.admin-users > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1.5rem; align-items: start; padding-block: 1.25rem; border-top: 1px solid #d9d2c6; overflow-wrap: anywhere; }
 .admin-users h3, .admin-message-list h3 { margin: 0 0 .75rem; font-size: 1.1rem; }
-.admin-account-summary { padding: .5rem 0; }
+.admin-account-summary { min-width: 0; padding: .25rem 0; }
+.admin-account-summary h3 { margin-bottom: .5rem; font-size: 1.2rem; }
+.admin-account-summary .admin-badges { margin: 0 0 .5rem; }
 .admin-account-summary small, .admin-message-list small { display: block; font-size: .75rem; line-height: 1.6; color: #606971; }
 .admin-badges { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .5rem 0 1rem; }
 .admin-badge { display: inline-flex; padding: .2rem .6rem; border: 1px solid #d1d7d4; border-radius: 0; background: #f1f3f2; font-size: .75rem; font-weight: 600; line-height: 1.5; }
 .admin-badge[data-state='active'], .admin-badge[data-state='approved'] { color: #28533d; background: #edf5ed; border-color: #bbd0be; }
 .admin-badge[data-state='suspended'], .admin-badge[data-state='rejected'], .admin-badge[data-state='withdrawn'] { color: #7e3431; background: #faf0ed; border-color: #dfc2ba; }
 .admin-badge[data-state='pending'], .admin-badge[data-state='deletion_pending'] { color: #72531b; background: #faf3df; border-color: #d9cba6; }
-.admin-account-controls { display: grid; gap: 1.25rem; align-content: start; min-width: 0; }
-.admin-account-controls > form { padding: 1rem; background: var(--admin-tint); border: 1px solid #d7dcd8; border-radius: 0; }
+.admin-account-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; align-items: start; align-content: start; min-width: 0; }
+.admin-account-controls > section { padding: 1.25rem; background: var(--admin-tint); border: 1px solid #d7dcd8; border-radius: 0; }
 .admin-role-form, .admin-decision-form { display: grid; gap: .65rem; align-content: start; min-width: 0; }
 .admin-role-form label { display: flex; align-items: start; gap: .65rem; font-weight: 400; }
 .admin-role-form p { margin: 0; font-size: .85rem; line-height: 1.6; }
 .admin-account-controls .admin-decision-form > p { margin: 0 0 .5rem; font-size: .85rem; line-height: 1.6; }
 .admin-decision-form label:has(input[type='checkbox']) { display: flex; align-items: start; gap: .65rem; font-weight: 400; }
 .admin-message-list { padding: 0; list-style: none; display: grid; gap: 1.5rem; }
-.admin-message-list > li { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); border: 1px solid #cbd6dc; border-radius: 0; overflow: clip; overflow-wrap: anywhere; }
-.admin-message-list article { min-width: 0; padding: 1.5rem; }
+.admin-message-list > li { display: grid; grid-template-columns: minmax(0, 1fr); border: 1px solid #cbd6dc; border-radius: 0; overflow: clip; overflow-wrap: anywhere; }
+.admin-message-list article { min-width: 0; padding: clamp(1.25rem, 3vw, 2rem); }
 .admin-message-list time, .admin-message-version { font-size: .75rem; color: #606971; }
-.admin-message-content { margin-block: 1.5rem; padding-block: 1rem; border-block: 1px solid #e3d9ca; white-space: pre-wrap; font-family: Georgia, serif; font-size: 1.05rem; line-height: 1.8; }
-.admin-message-list .admin-decision-form, .admin-message-list > li > .profile-note { margin: 0; padding: 1.5rem; border-left: 1px solid #cbd6dc; background: var(--admin-tint); }
+.admin-message-content { margin-block: 1.5rem; padding-block: 1rem; border-block: 1px solid #e3d9ca; white-space: pre-wrap; font-family: Georgia, serif; font-size: 1.15rem; line-height: 1.85; max-width: 75ch; }
+.admin-message-list .admin-decision-form, .admin-message-list > li > .profile-note { margin: 0; padding: 1.5rem; border-top: 1px solid #cbd6dc; background: var(--admin-tint); }
 .admin-settings-form { display: grid; gap: 1.5rem; margin-top: 2rem; }
 .admin-settings-group { min-width: 0; margin: 0; padding: 1.5rem; border: 1px solid #d9ced6; border-radius: 0; }
 .admin-settings-group legend { padding-inline: .5rem; font-weight: 700; color: var(--admin-accent); }
@@ -73,7 +75,7 @@
 @media (max-width: 1000px) {
   .admin-panel { grid-template-columns: 200px minmax(0, 1fr); }
   .admin-message-search { grid-template-columns: minmax(0, 1fr); }
-  .admin-message-list > li, .admin-users > li { grid-template-columns: minmax(0, 1fr); }
+  .admin-account-controls { grid-template-columns: minmax(0, 1fr); }
   .admin-message-list .admin-decision-form, .admin-message-list > li > .profile-note { border-left: 0; border-top: 1px solid #cbd6dc; }
 }
 @media (max-width: 700px) {
@@ -92,4 +94,35 @@
   .admin-settings-group { padding: 1rem; }
   .admin-settings-group > label:not(.admin-settings-check) { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
   .admin-settings-group input[type='number'] { max-width: 9rem; }
+}
+
+.admin-account-controls h4 { margin: 0 0 1rem; color: var(--admin-accent); font-size: 1rem; }
+.admin-disclosure-toggle { display: inline-flex; align-items: center; justify-content: center; gap: .75rem; }
+.admin-panel .admin-disclosure-toggle { background: transparent; color: var(--admin-accent); }
+.admin-panel .admin-disclosure-toggle:hover { background: var(--admin-tint); }
+.admin-disclosure-toggle svg { transition: transform .15s ease; }
+.admin-disclosure-toggle[aria-expanded='true'] svg { transform: rotate(180deg); }
+.admin-disclosure-content[hidden] { display: none; }
+.admin-users > li > .admin-disclosure { display: contents; }
+.admin-users .admin-disclosure-toggle { justify-self: end; margin-top: .25rem; }
+.admin-users .admin-disclosure-content { grid-column: 1 / -1; padding-top: 1rem; }
+.admin-message-list .admin-disclosure { padding: 0 clamp(1.25rem, 3vw, 2rem) 1.25rem; }
+.admin-message-list .admin-disclosure-content { margin-top: 1rem; }
+.admin-message-list .admin-decision-form { border: 1px solid #cbd6dc; max-width: 42rem; gap: .8rem; }
+.admin-message-list .admin-decision-form > button { justify-self: start; }
+.admin-message-header { padding-bottom: .25rem; }
+.admin-message-header .admin-badges { margin-bottom: .75rem; }
+.admin-message-meta { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; color: #606971; font-size: .8rem; line-height: 1.6; }
+.admin-message-meta time { font-size: inherit; }
+.admin-message-list > li > .profile-note { border-top: 1px solid #cbd6dc; font-size: .85rem; }
+@media (max-width: 700px) {
+  .admin-users > li { gap: .5rem .75rem; }
+  .admin-account-summary h3 { font-size: 1.05rem; }
+  .admin-panel .admin-users .admin-disclosure-toggle { padding-inline: .65rem; gap: .35rem; }
+  .admin-account-controls > section { padding: 1rem; }
+  .admin-message-content { font-size: 1.05rem; }
+  .admin-message-list .admin-decision-form { padding: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-disclosure-toggle svg { transition: none; }
 }

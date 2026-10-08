@@ -39,6 +39,7 @@ it('hydrates the server date unchanged when the browser Intl format differs', as
 })
 it('shows text for review and only allowed decisions, without an edit control', async () => {
   render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
   expect(screen.getByText('Letter to review')).toBeVisible()
   expect(screen.getByText('ATINY')).toBeVisible()
   fireEvent.click(screen.getByRole('button', { name: /Decision/ }))
@@ -49,6 +50,7 @@ it('shows text for review and only allowed decisions, without an edit control', 
 it('requires a reason for rejection and withdrawal, and submits the exact reviewed version', async () => {
   vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'saved' })
   render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
   expect(screen.queryByRole('button', { name: /Reason/ })).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: /Decision/ }))
   fireEvent.click(await screen.findByRole('option', { name: 'Reject' }))
@@ -67,6 +69,7 @@ it('requires a reason for rejection and withdrawal, and submits the exact review
 it('shows a conflict, disables resubmission and offers an explicit reload', async () => {
   vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'conflict' })
   render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
   fireEvent.click(screen.getByRole('button', { name: 'Apply decision' }))
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('This letter has changed. Reload and review the current version.'))
   expect(screen.getByRole('button', { name: 'Apply decision' })).toBeDisabled()
@@ -75,6 +78,7 @@ it('shows a conflict, disables resubmission and offers an explicit reload', asyn
 it('keeps success feedback after the moderated letter leaves the pending queue', async () => {
   vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'saved' })
   const { rerender } = render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
   fireEvent.click(screen.getByRole('button', { name: 'Apply decision' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Decision saved.'))
   rerender(<MessageQueue messages={[]} />)
@@ -83,6 +87,7 @@ it('keeps success feedback after the moderated letter leaves the pending queue',
 it('allows a fresh decision after reloading changed visibility without a content version change', async () => {
   vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'transition' })
   const { rerender } = render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
   fireEvent.click(screen.getByRole('button', { name: /Decision/ }))
   fireEvent.click(await screen.findByRole('option', { name: 'Withdraw' }))
   fireEvent.click(screen.getByRole('button', { name: /Reason/ }))
@@ -99,4 +104,17 @@ it('shows translated current reasons and offers no controls for final states', (
   expect(screen.getByText('Datos personales o información privada')).toBeVisible()
   expect(screen.getByText('Nota privada')).toBeVisible()
   expect(screen.queryByRole('button', { name: 'Aplicar decisión' })).not.toBeInTheDocument()
+})
+
+it('keeps the letter visible while moderation controls are collapsed', () => {
+  render(<MessageQueue messages={[message]} />)
+  expect(screen.getByText('Letter to review')).toBeVisible()
+  expect(screen.queryByRole('button', { name: 'Apply decision' })).not.toBeInTheDocument()
+  const toggle = screen.getByRole('button', { name: /^Moderate:/ })
+  expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  fireEvent.click(toggle)
+  expect(screen.getByRole('button', { name: 'Apply decision' })).toBeVisible()
+  fireEvent.click(toggle)
+  expect(screen.getByText('Letter to review')).toBeVisible()
+  expect(toggle).toHaveAttribute('aria-expanded', 'false')
 })
