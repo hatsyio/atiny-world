@@ -1,4 +1,5 @@
 /** @vitest-environment jsdom */
+import { act } from 'react'
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { render } from '../../../support/intl'
@@ -15,12 +16,14 @@ it('blocks saving an unfinished replacement and preserves the original when the 
   const submitUpdate = vi.fn()
   render(<EditMessageForm message={message} submitUpdate={submitUpdate} />)
   const save = screen.getByRole('button', { name: 'Save changes' })
-  const search = screen.getByRole('textbox', { name: 'Search for a city or area' })
+  const search = screen.getByRole('combobox', { name: 'Search for a city or area' })
   expect(save).toBeEnabled()
+  act(() => search.focus())
   fireEvent.change(search, { target: { value: 'Seoul' } })
   expect(save).toBeDisabled()
   fireEvent.click(save)
   expect(submitUpdate).not.toHaveBeenCalled()
+  act(() => search.focus())
   fireEvent.change(search, { target: { value: '' } })
   expect(save).toBeEnabled()
 })
@@ -32,7 +35,8 @@ it('blocks saving an exact replacement until its public point is confirmed', asy
   }] }), { status: 200, headers: { 'content-type': 'application/json' } })))
   const submitUpdate = vi.fn(async () => ({ ok: false as const, error: { code: 'MESSAGE_VERSION_CONFLICT' as const, messageKey: 'message.versionConflict' } }))
   render(<EditMessageForm message={message} submitUpdate={submitUpdate} />)
-  fireEvent.change(screen.getByRole('textbox', { name: 'Search for a city or area' }), { target: { value: 'Seoul' } })
+  act(() => screen.getByRole('combobox', { name: 'Search for a city or area' }).focus())
+  fireEvent.change(screen.getByRole('combobox', { name: 'Search for a city or area' }), { target: { value: 'Seoul' } })
   fireEvent.click(await screen.findByRole('option', { name: 'Seoul, South Korea' }))
   const save = screen.getByRole('button', { name: 'Save changes' })
   expect(save).toBeEnabled()

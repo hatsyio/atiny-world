@@ -59,7 +59,7 @@ const textInput: UpdateMessageActionInput = {
 const preciseInput: UpdateMessageActionInput = {
   ...textInput,
   location: {
-    selectionId: validSelectionId(),
+    selectionId: await validSelectionId(),
     precision: 'precise',
     confirmedPublicPoint: { latitude: 40.42, longitude: -3.69 },
     preciseLocationConfirmed: true,
@@ -165,7 +165,7 @@ describe('updateMessage server action contract', () => {
 
     const tampered = await updateMessageForSession(stubSql, {
       ...textInput,
-      location: { selectionId: `${validSelectionId()}tampered`, precision: 'approximate' },
+      location: { selectionId: `${await validSelectionId()}tampered`, precision: 'approximate' },
     }, deps())
     expect(tampered).toEqual({
       ok: false,
@@ -174,7 +174,7 @@ describe('updateMessage server action contract', () => {
 
     const expired = await updateMessageForSession(stubSql, {
       ...textInput,
-      location: { selectionId: signLocationSelection(SELECTION, SECRET, new Date('2026-09-20T11:50:00Z')), precision: 'approximate' },
+      location: { selectionId: await signLocationSelection(SELECTION, SECRET, new Date('2026-09-20T11:50:00Z')), precision: 'approximate' },
     }, deps())
     expect(expired).toEqual({
       ok: false,
@@ -185,7 +185,7 @@ describe('updateMessage server action contract', () => {
   it('rejects a precise location that was not explicitly confirmed', async () => {
     const result = await updateMessageForSession(stubSql, {
       ...textInput,
-      location: { selectionId: validSelectionId(), precision: 'precise' },
+      location: { selectionId: await validSelectionId(), precision: 'precise' },
     } as unknown as UpdateMessageActionInput, deps())
 
     expect(result).toEqual({
@@ -200,7 +200,7 @@ describe('updateMessage server action contract', () => {
 
     const approximate = await updateMessageForSession(stubSql, {
       ...textInput,
-      location: { selectionId: validSelectionId(), precision: 'approximate' },
+      location: { selectionId: await validSelectionId(), precision: 'approximate' },
     }, deps({ update: spy }))
     expect(approximate).toMatchObject({ ok: true })
     expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({

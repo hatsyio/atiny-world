@@ -52,7 +52,7 @@ async function selectLocation(world: AtinyAtlasWorld) {
   assert.equal(body.suggestions.length, 1)
   assert.equal(body.suggestions[0].locality, 'Seoul')
   assert.equal(body.suggestions[0].displayLabel, address)
-  const verified = verifyLocationSelectionResult(body.suggestions[0].selectionToken, selectionSecret)
+  const verified = await verifyLocationSelectionResult(body.suggestions[0].selectionToken, selectionSecret)
   assert.ok(verified.ok)
   assert.ok(!JSON.stringify(verified.selection).includes(address))
   world.locationSelectionId = body.suggestions[0].selectionToken

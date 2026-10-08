@@ -105,13 +105,14 @@ jobs:
       - name: Validate Compose
         run: docker compose --profile local config --quiet
 
-      - name: Build application and database images
-        run: docker compose --profile local build app-local db
+      - name: Build application image
+        run: docker compose --profile local build app-local
 
-      - name: Start database and apply migrations
-        run: |
-          docker compose --profile local up --detach --wait db
-          docker compose --profile local run --rm migrate
+      - name: Set up Node.js for migration checks
+        uses: pnpm/setup@5d160c5bc68a09337ad0d5654e237e03253b5879 # v1
+        with:
+          install: false
+          runtime: node@24.16.0
 
-      - name: Verify migrated database
-        run: docker compose --profile local exec -T db psql -U postgres -d postgres -Atqc 'select count(*) from app_private.settings where id = 1' | grep -qx 1
+      - name: Verify CLI migrations on fresh and existing databases
+        run: node scripts/test-migrations.mjs

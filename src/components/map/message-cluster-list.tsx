@@ -4,9 +4,8 @@ import type { Locale } from '@/i18n/locale'
 
 import { useTranslations } from 'next-intl'
 
-import { useEffect, useState } from 'react'
-
-import type { PublicMessageDetail } from '@/domain/messages/public-message'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
+import { isInvalidMapCursor, mapMessagesQuery } from './map-queries'
 
 interface Props {
   requestUrl: string
@@ -15,65 +14,17 @@ interface Props {
 }
 
 export function MessageClusterList({ requestUrl, onSelect }: Props) {
-  const [page, setPage] = useState<PublicMessageDetail[]>([])
-  const [nextCursor, setNextCursor] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(false)
-  const [retry, setRetry] = useState(0)
-
-  useEffect(() => {
-    const controller = new AbortController()
-    void fetch(requestUrl, { cache: 'no-store', signal: controller.signal })
-      .then(async (response) => {
-        if (!response.ok) throw new Error('group unavailable')
-        return response.json() as Promise<{ items: PublicMessageDetail[]; nextCursor: string | null }>
-      })
-      .then((result) => {
-        if (!controller.signal.aborted) {
-          setPage(result.items)
-          setNextCursor(result.nextCursor)
-        }
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setError(true)
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false)
-      })
-    return () => controller.abort()
-  }, [requestUrl, retry])
-
-  async function loadMore() {
-    if (!nextCursor || isLoading) return
-    const url = new URL(requestUrl, window.location.origin)
-    url.searchParams.set('cursor', nextCursor)
-    setIsLoading(true)
-    setError(false)
-    try {
-      const response = await fetch(`${url.pathname}?${url.searchParams.toString()}`, {
-        cache: 'no-store',
-      })
-      if (!response.ok) throw new Error('group unavailable')
-      const result = await response.json() as {
-        items: PublicMessageDetail[]
-        nextCursor: string | null
-      }
-      setPage((current) => [...current, ...result.items])
-      setNextCursor(result.nextCursor)
-    } catch {
-      setError(true)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
+  const queryClient = useQueryClient()
+  const options = mapMessagesQuery(requestUrl)
+  const query = useInfiniteQuery(options)
+  const page = query.isError && !query.isFetchNextPageError ? [] : query.data?.pages.flatMap(page => page.items) ?? []
   const t = useTranslations('Map.cluster')
+  const isLoading = query.isPending
+  const error = query.isError
   function retryLoad() {
-    setPage([])
-    setNextCursor(null)
-    setError(false)
-    setIsLoading(true)
-    setRetry((current) => current + 1)
+    if (isInvalidMapCursor(query.error)) void queryClient.resetQueries({ queryKey: options.queryKey, exact: true })
+    else if (query.isFetchNextPageError) void query.fetchNextPage()
+    else void query.refetch()
   }
 
   return (
@@ -93,7 +44,7 @@ export function MessageClusterList({ requestUrl, onSelect }: Props) {
           ))}
         </ul>
       ) : null}
-      {nextCursor && !error ? <button className="cluster-list__more" type="button" disabled={isLoading} onClick={() => void loadMore()}>{t('more')}</button> : null}
+      {query.hasNextPage && !error ? <button className="cluster-list__more" type="button" disabled={query.isFetching} onClick={() => { if (!query.isFetching) void query.fetchNextPage() }}>{t('more')}</button> : null}
     </div>
   )
 }

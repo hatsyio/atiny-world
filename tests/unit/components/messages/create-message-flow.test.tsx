@@ -1,8 +1,11 @@
 /** @vitest-environment jsdom */
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { publicMapQueryKey } from '@/components/map/map-queries'
+
 import { act } from 'react'
 import { cleanup, fireEvent,  screen } from '@testing-library/react'
-import { render } from '../../../support/intl'
+import { render, IntlTestProvider } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { CreateMessageFlow } from '@/components/messages/create-message-flow'
@@ -31,30 +34,31 @@ async function publish(publicVisible: boolean) {
     ok: true,
     data: { publicId: 'stable-id', version: 1, status: 'pending', publicVisible },
   })
-  const refreshed = vi.fn()
-  window.addEventListener('atiny:message-published', refreshed)
+  const client = new QueryClient()
+  const key = [...publicMapQueryKey, 'features', 'viewport']
+  client.setQueryData(key, { features: [] })
   try {
-    render(<CreateMessageFlow lang="es" submitMessage={submitMessage} />)
+    render(<IntlTestProvider locale="es"><QueryClientProvider client={client}><CreateMessageFlow lang="es" submitMessage={submitMessage} /></QueryClientProvider></IntlTestProvider>)
     fireEvent.change(screen.getByLabelText('Tu carta'), { target: { value: 'Hola ATINY' } })
     act(() => picker.onChange?.({ selectionId: 'place', precision: 'approximate' }))
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Publicar carta' })))
-    return refreshed
+    return client.getQueryData(key)
   } finally {
-    window.removeEventListener('atiny:message-published', refreshed)
+    client.clear()
   }
 }
 
 describe('CreateMessageFlow', () => {
   it('refresca el mapa y abre el enlace estable en el idioma actual si la carta es pública', async () => {
     const refreshed = await publish(true)
-    expect(refreshed).toHaveBeenCalledOnce()
+    expect(refreshed).toBeUndefined()
     expect(navigation.refresh).toHaveBeenCalledOnce()
     expect(navigation.push).toHaveBeenCalledWith('/messages/stable-id')
   })
 
   it('refresca el mapa y muestra el estado pendiente sin abrir el enlace oculto', async () => {
     const refreshed = await publish(false)
-    expect(refreshed).toHaveBeenCalledOnce()
+    expect(refreshed).toBeUndefined()
     expect(navigation.refresh).toHaveBeenCalledOnce()
     expect(navigation.push).toHaveBeenCalledWith('/?publication=pending#map')
     expect(screen.queryByRole('link', { name: /stable-id/i })).not.toBeInTheDocument()

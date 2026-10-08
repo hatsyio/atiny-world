@@ -6,6 +6,9 @@ import { useFormatter, useLocale, useTranslations } from 'next-intl'
 
 import 'leaflet/dist/leaflet.css'
 
+import { ComboBox, Input, Label, ListBox, ListBoxItem, Popover, I18nProvider } from 'react-aria-components'
+import type { LocationSelectionInput } from '@/domain/location/selection'
+
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { PublicPoint } from '@/domain/location/public-point'
@@ -18,14 +21,7 @@ const MIN_QUERY_LENGTH = 2
 const DEBOUNCE_MS = 400
 
 
-export type LocationPickerSelection =
-  | { selectionId: string; precision: 'approximate' }
-  | {
-      selectionId: string
-      precision: 'precise'
-      confirmedPublicPoint: PublicPoint
-      preciseLocationConfirmed: true
-    }
+export type LocationPickerSelection = LocationSelectionInput
 
 export type LocationSearchStatus =
   | 'idle'
@@ -194,6 +190,7 @@ export function LocationPicker({ onChange, initialLocation, onPendingChange, rea
     lastMapPoint.current = null
     setFocusPoint(suggestion.point)
     setSelected(suggestion)
+    setQuery(suggestionLabel(suggestion))
     onPendingChange?.(false)
     setPrecision('approximate')
     setPrecisePoint(null)
@@ -237,53 +234,66 @@ export function LocationPicker({ onChange, initialLocation, onPendingChange, rea
   const displayedPrecision = readOnly ? initialLocation?.precision ?? precision : precision
   const failure = status === 'rateLimited' || status === 'unavailable'
 
+  const searchFeedback = (
+    <div className="location-picker__search-feedback">
+      {status === 'loading' && selected === null && (
+        <p id="location-search-status" role="status">{t('loading')}</p>
+      )}
+      {status === 'empty' && selected === null && (
+        <p id="location-search-status" role="status">{t('noResults')}</p>
+      )}
+      {failure && selected === null && (
+        <div id="location-search-status" role="alert">
+          <p>{status === 'rateLimited' ? t('rateLimited') : t('unavailable')}</p>
+          <button type="button" onClick={retrySearch}>{t('retry')}</button>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <fieldset className="location-picker">
       <legend>{t('fieldset')}</legend>
 
-      <label htmlFor="location-address">{t('addressLabel')}</label>
-      <input
-        id="location-address"
-        type="text"
-        autoComplete="off"
-        value={readOnly ? [initialLocation?.locality, initialLocation?.country].filter(Boolean).join(', ') : query}
-        readOnly={readOnly}
-        placeholder={t('addressPlaceholder')}
-        aria-describedby={status !== 'idle' && selected === null ? 'location-search-status' : undefined}
-        onChange={(event) => handleQueryChange(event.target.value)}
-      />
+      <I18nProvider locale={lang}>
+        <ComboBox<LocationSuggestion>
+          className="location-picker__combobox"
+          items={selected ? [selected] : suggestions}
+          inputValue={readOnly ? [initialLocation?.locality, initialLocation?.country].filter(Boolean).join(', ') : query}
+          value={selected?.selectionToken ?? null}
+          onInputChange={handleQueryChange}
+          onChange={key => {
+            const suggestion = suggestions.find(item => item.selectionToken === key)
+            if (suggestion) selectSuggestion(suggestion)
+          }}
+          allowsEmptyCollection
+          allowsCustomValue
+          isReadOnly={readOnly}
+        >
+          {({ isOpen }) => (
+            <>
+              <Label>{t('addressLabel')}</Label>
+              <Input
+                autoComplete="off"
+                placeholder={t('addressPlaceholder')}
+                aria-describedby={status !== 'idle' && selected === null ? 'location-search-status' : undefined}
+              />
+              <Popover className="location-picker__popover" placement="bottom start">
+                {searchFeedback}
+                <ListBox<LocationSuggestion> className="location-picker__suggestions" aria-label={t('suggestionsLabel')}>
+                  {suggestion => (
+                    <ListBoxItem id={suggestion.selectionToken} textValue={suggestionLabel(suggestion)} className="location-picker__option">
+                      {suggestionLabel(suggestion)}
+                    </ListBoxItem>
+                  )}
+                </ListBox>
+              </Popover>
+              {!isOpen ? searchFeedback : null}
+            </>
+          )}
+        </ComboBox>
+      </I18nProvider>
 
-      <div className="location-picker__search-feedback">
-        {status === 'loading' && !failure && selected === null && (
-          <p id="location-search-status" role="status">{t('loading')}</p>
-        )}
-        {status === 'empty' && selected === null && (
-          <p id="location-search-status" role="status">{t('noResults')}</p>
-        )}
-        {failure && selected === null && (
-          <div id="location-search-status" role="alert">
-            <p>{status === 'rateLimited' ? t('rateLimited') : t('unavailable')}</p>
-            <button type="button" onClick={retrySearch}>{t('retry')}</button>
-          </div>
-        )}
-
-        {status === 'ready' && selected === null && (
-          <div role="listbox" aria-label={t('suggestionsLabel')}>
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion.selectionToken}
-                type="button"
-                role="option"
-                aria-selected={false}
-                onClick={() => selectSuggestion(suggestion)}
-              >
-                {suggestionLabel(suggestion)}
-              </button>
-            ))}
-          </div>
-        )}
-
-      </div>
       <div className="location-picker__summary">
         {selected !== null ? (
           <section aria-label={t('selectedLabel')} className="location-picker__selection">

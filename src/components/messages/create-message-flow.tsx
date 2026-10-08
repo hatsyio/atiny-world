@@ -2,6 +2,9 @@
 
 import type { Locale } from '@/i18n/locale'
 
+import { useQueryClient } from '@tanstack/react-query'
+import { publicMapQueryKey } from '@/components/map/map-queries'
+
 import { useRouter } from 'next/navigation'
 
 import { CreateMessageForm, type CreateMessageSubmit } from './create-message-form'
@@ -16,9 +19,10 @@ export function CreateMessageFlow({
   submitMessage?: CreateMessageSubmit
 }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   function onPublished(publicId: string, publicVisible: boolean) {
-    window.dispatchEvent(new Event('atiny:message-published'))
+    void queryClient.resetQueries({ queryKey: publicMapQueryKey })
     router.refresh()
     if (publicVisible) {
       router.push(`/messages/${publicId}`)

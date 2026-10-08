@@ -5,7 +5,10 @@ import type { Locale } from '@/i18n/locale'
 
 import { useTranslations } from 'next-intl'
 
-import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { publicMapQueryKey } from '@/components/map/map-queries'
+
+import { startTransition, useActionState, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import {
@@ -13,6 +16,7 @@ import {
   type UpdateMessageActionResult,
 } from '@/app/(site)/my-messages/actions'
 import { LocationPicker, type LocationPickerSelection } from '@/components/map/location-picker'
+import { errorResult } from '@/domain/contracts'
 import { MAX_GRAPHEMES, countGraphemes } from '@/domain/messages/content'
 import type { OwnMessage } from '@/domain/messages/own-message'
 import type { UpdateMessageActionInput } from '@/server/actions/update-message'
@@ -38,62 +42,47 @@ export function EditMessageForm({
 }: EditMessageFormProps) {
   const t = useTranslations('Forms.edit')
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [content, setContent] = useState(message.content)
   const [location, setLocation] = useState<LocationPickerSelection | null>(null)
   const [locationPending, setLocationPending] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<'conflict' | 'unavailable' | 'suspended' | 'invalid' | 'error' | null>(null)
+  // Block same-turn submits before React renders pending; Actions otherwise queue them.
+  const submissionInFlight = useRef(false)
+  const [result, save, saving] = useActionState<UpdateMessageActionResult | null, UpdateMessageActionInput>(handleUpdate, null)
+  const error = result?.ok === false ? updateError(result.error.code) : null
   const characterCount = countGraphemes(content)
   const invalidContent = characterCount === 0 || characterCount > MAX_GRAPHEMES
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (saving || invalidContent || locationPending) return
-
-    setSaving(true)
-    setError(null)
+  async function handleUpdate(_previous: UpdateMessageActionResult | null, input: UpdateMessageActionInput): Promise<UpdateMessageActionResult> {
     try {
-      const result = await submitUpdate({
-        publicId: message.publicId,
-        expectedVersion: message.version,
-        content,
-        ...(location !== null ? { location } : {}),
-      })
+      const result = await submitUpdate(input)
       if (result.ok) {
-        if (onSaved) onSaved()
-        else router.push('/my-messages')
-        return
+        startTransition(() => {
+          void queryClient.resetQueries({ queryKey: publicMapQueryKey })
+          if (onSaved) onSaved()
+          else router.push('/my-messages')
+        })
       }
-
-      switch (result.error.code) {
-        case 'MESSAGE_VERSION_CONFLICT':
-          setError('conflict')
-          break
-        case 'NOT_FOUND':
-          setError('unavailable')
-          break
-        case 'ACCOUNT_SUSPENDED':
-          setError('suspended')
-          break
-        case 'VALIDATION_ERROR':
-        case 'LOCATION_SELECTION_REQUIRED':
-        case 'LOCATION_SELECTION_EXPIRED':
-        case 'LOCATION_SELECTION_INVALID':
-          setError('invalid')
-          break
-        default:
-          setError('error')
-          break
-      }
+      return result
     } catch {
-      setError('error')
+      return errorResult('INTERNAL_ERROR', { messageKey: 'error.internal' })
     } finally {
-      setSaving(false)
+      submissionInFlight.current = false
     }
   }
 
   return (
-    <form className="profile-form" onSubmit={(event) => void handleSubmit(event)}>
+    <form className="profile-form" onSubmit={(event) => {
+      event.preventDefault()
+      if (submissionInFlight.current || saving || invalidContent || locationPending) return
+      submissionInFlight.current = true
+      startTransition(() => save({
+        publicId: message.publicId,
+        expectedVersion: message.version,
+        content,
+        ...(location !== null ? { location } : {}),
+      }))
+    }}>
       <LetterWorkspace content={
         <div className="profile-field">
           <label htmlFor="edit-message-content">{t('content')}</label>
@@ -117,7 +106,7 @@ export function EditMessageForm({
       } />
 
       <div className="letter-workspace__feedback">
-        {error ? <p className="profile-error profile-error--general" role="alert">{t(error)}</p> : null}
+        {!saving && error ? <p className="profile-error profile-error--general" role="alert">{t(error)}</p> : null}
       </div>
       <div className="profile-actions">
         <button type="submit" className="profile-submit" disabled={saving || invalidContent || locationPending}>
@@ -134,4 +123,18 @@ export function EditMessageForm({
       </div>
     </form>
   )
+}
+
+
+function updateError(code: Extract<UpdateMessageActionResult, { ok: false }>['error']['code']) {
+  switch (code) {
+    case 'MESSAGE_VERSION_CONFLICT': return 'conflict'
+    case 'NOT_FOUND': return 'unavailable'
+    case 'ACCOUNT_SUSPENDED': return 'suspended'
+    case 'VALIDATION_ERROR':
+    case 'LOCATION_SELECTION_REQUIRED':
+    case 'LOCATION_SELECTION_EXPIRED':
+    case 'LOCATION_SELECTION_INVALID': return 'invalid'
+    default: return 'error'
+  }
 }

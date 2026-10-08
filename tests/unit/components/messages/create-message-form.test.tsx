@@ -319,3 +319,41 @@ it('retains exact draft, selected location and submission error through a live l
   await screen.findByText('No pudimos publicar tu carta. Inténtalo pronto de nuevo.')
   expect(submitMessage).toHaveBeenLastCalledWith({content, location})
 })
+
+it('ignores repeated keyboard submissions in the same event turn while publishing', async () => {
+  vi.useRealTimers()
+  let resolve!: (value: CreateMessageActionResult) => void
+  const submit = vi.fn<CreateMessageSubmit>(() => new Promise(done => { resolve = done }))
+  const onPublished = vi.fn()
+  const { container } = renderForm({ submitMessage: submit, onPublished })
+  typeContent('One letter only')
+  selectLocation()
+  act(() => {
+    fireEvent.submit(container.querySelector('form')!)
+    fireEvent.submit(container.querySelector('form')!)
+  })
+  expect(submit).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole('button', { name: /publishing/i })).toBeDisabled()
+  await act(async () => { resolve(okResult('only-letter')) })
+  expect(onPublished).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole('textbox', { name: /your letter/i })).toHaveValue('')
+})
+
+
+it('preserves the draft after an exception and allows a fresh successful submission', async () => {
+  vi.useRealTimers()
+  const submit = vi.fn<CreateMessageSubmit>().mockRejectedValueOnce(new Error('network unavailable')).mockResolvedValueOnce(okResult('retry-letter'))
+  const onPublished = vi.fn()
+  renderForm({ submitMessage: submit, onPublished })
+  typeContent('안녕 👩🏽‍🚀\nRetry this draft')
+  selectLocation()
+  fireEvent.click(screen.getByRole('button', { name: 'Publish letter' }))
+  await screen.findByRole('alert')
+  expect(screen.getByRole('textbox', { name: 'Your letter' })).toHaveValue('안녕 👩🏽‍🚀\nRetry this draft')
+  expect(screen.getByRole('button', { name: 'Publish letter' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: 'Publish letter' }))
+  await screen.findByText('Letter sent!')
+  expect(submit).toHaveBeenCalledTimes(2)
+  expect(submit.mock.calls[1][0]).toEqual(submit.mock.calls[0][0])
+  expect(onPublished).toHaveBeenCalledTimes(1)
+})

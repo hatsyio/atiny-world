@@ -1,4 +1,7 @@
-export type PublicPoint = { latitude: number; longitude: number }
+import { publicPointSchema } from './selection'
+import type { z } from 'zod'
+
+export type PublicPoint = z.infer<typeof publicPointSchema>
 export type LocationPrecision = 'approximate' | 'precise'
 
 export type PublicLocationInput = PublicPoint & {
@@ -11,8 +14,7 @@ export type PublicLocationValidation =
   | { ok: false; code: 'VALIDATION_ERROR' }
 
 export function validatePublicLocation(input: PublicLocationInput): PublicLocationValidation {
-  if (!Number.isFinite(input.latitude) || !Number.isFinite(input.longitude)
-    || input.latitude < -90 || input.latitude > 90 || input.longitude < -180 || input.longitude > 180) {
+  if (!publicPointSchema.safeParse(input).success) {
     return { ok: false, code: 'VALIDATION_ERROR' }
   }
   const precision = input.precision ?? 'approximate'

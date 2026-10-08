@@ -1,5 +1,7 @@
 /** @vitest-environment jsdom */
 
+import leaflet from 'leaflet'
+import '@/components/map/location-selection-map-react-leaflet'
 import { act } from 'react'
 import { cleanup, fireEvent,  screen } from '@testing-library/react'
 import { render, IntlTestProvider } from '../../../support/intl'
@@ -11,51 +13,25 @@ import { LocationPicker, type LocationPickerSelection } from '@/components/map/l
 
 const advance = (ms: number) => vi.advanceTimersByTime(ms)
 
-const leafletCallbacks = vi.hoisted(() => {
-  const handlers = new Map<string, (...args: unknown[]) => void>()
-  return { handlers, map: vi.fn(), setView: vi.fn(), remove: vi.fn(), marker: vi.fn() }
-})
-
-vi.mock('leaflet', () => {
-  const map = {
-    setView: (...args: unknown[]) => { leafletCallbacks.setView(...args); return map },
-    remove: () => leafletCallbacks.remove(),
-    on: (event: string, handler: (...args: unknown[]) => void) => leafletCallbacks.handlers.set(event, handler),
-    getCenter: () => ({ lat: 37.5665, lng: 126.978 }),
-    getBounds: () => ({ contains: () => true }),
-    panTo: vi.fn(),
-    getZoom: () => 14,
-  }
-  const mapFactory = () => {
-    leafletCallbacks.map()
-    return map
-  }
-  const markerFactory = (_point: unknown, options: {alt?:string;title?:string}) => {
-    leafletCallbacks.marker()
-    const image = document.createElement('img')
-    image.alt = options.alt ?? 'Marker'
-    image.title = options.title ?? ''
-    const marker = {
-      on(event: string, handler: (...args: unknown[]) => void) { leafletCallbacks.handlers.set(event, handler) },
-      setLatLng: vi.fn(),
-      remove: vi.fn(),
-      getLatLng: () => ({lat:40.51,lng:-3.72}),
-      getElement: () => image,
-      addTo: () => { document.querySelector('.location-picker__precise-map')?.append(image); return marker },
-    }
-    return marker
-  }
-  const control = {zoom: (options: {zoomInTitle:string;zoomOutTitle:string}) => ({addTo: () => {
-    for (const [name,title] of [['in',options.zoomInTitle],['out',options.zoomOutTitle]]) {
-      const button = document.createElement('a')
-      button.className = `leaflet-control-zoom-${name}`
-      button.title = title
-      document.querySelector('.location-picker__precise-map')?.append(button)
-    }
-  }})}
-  const tileLayer = () => ({addTo: () => {}})
-  const Icon = {Default:{imagePath:undefined as string|undefined}}
-  return {default:{map:mapFactory,marker:markerFactory,control,tileLayer,Icon},map:mapFactory,marker:markerFactory,control,tileLayer,Icon}
+const leafletCallbacks = { handlers: new Map<string, (...args: unknown[]) => void>(), map: vi.fn(), setView: vi.fn(), remove: vi.fn() }
+const mapState: { current?: leaflet.Map } = {}
+beforeEach(() => {
+  const seen = new Set<leaflet.Map>()
+  const original = leaflet.Map.prototype.setView
+  vi.spyOn(leaflet.Map.prototype, 'setView').mockImplementation(function (this: leaflet.Map, ...args) {
+    mapState.current = this
+    if (!seen.has(this)) { seen.add(this); leafletCallbacks.map() }
+    leafletCallbacks.setView(...args)
+    leafletCallbacks.handlers.set('click', event => { this.fire('click', event as object) })
+    leafletCallbacks.handlers.set('dragend', () => {
+      const marker = Object.values((this as unknown as { _layers: Record<string, leaflet.Layer> })._layers).find(layer => layer instanceof leaflet.Marker) as leaflet.Marker
+      marker.setLatLng([40.51, -3.72])
+      marker.fire('dragend')
+    })
+    return original.apply(this, args)
+  })
+  const remove = leaflet.Map.prototype.remove
+  vi.spyOn(leaflet.Map.prototype, 'remove').mockImplementation(function (this: leaflet.Map) { leafletCallbacks.remove(); return remove.call(this) })
 })
 
 function deferred<T>() {
@@ -111,7 +87,9 @@ afterEach(() => {
   vi.unstubAllGlobals()
   vi.unstubAllEnvs()
   leafletCallbacks.handlers.clear()
+  vi.restoreAllMocks()
   vi.clearAllMocks()
+  mapState.current = undefined
 })
 
 describe('LocationPicker', () => {
@@ -140,7 +118,7 @@ describe('LocationPicker', () => {
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
     expect(screen.getByRole('region', { name: 'Selected place' })).toHaveTextContent('Seoul, South Korea')
     expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-1', precision: 'approximate' })
-    expect(screen.getByRole('textbox')).toHaveValue('Seoul, South Korea')
+    expect(screen.getByRole('combobox')).toHaveValue('Seoul, South Korea')
   })
 
   it('ignores an older map lookup after a second click', async () => {
@@ -164,6 +142,7 @@ describe('LocationPicker', () => {
     const fetchMock = stubFetch(requests)
     render(<LocationPicker onChange={() => {}} />)
     await act(async () => {})
+    act(() => { mapState.current?.setView([37.5665, 126.978], 14) })
     fireEvent.click(screen.getByRole('button', { name: 'Choose the map center' }))
     expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({ point: { latitude: 37.5665, longitude: 126.978 }, language: 'en' })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -212,7 +191,8 @@ describe('LocationPicker', () => {
     const requests: Array<ReturnType<typeof deferred<Response>>> = []
     stubFetch(requests)
     render(<LocationPicker onChange={() => {}} />)
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Seoul' } })
+    act(() => screen.getByRole('combobox').focus())
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
     fireEvent.click(screen.getByRole('option', { name: 'Seoul, South Korea' }))
@@ -228,7 +208,8 @@ describe('LocationPicker', () => {
     stubFetch(requests)
     const onChange = vi.fn()
     render(<LocationPicker lang="es" onChange={onChange} />)
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'torrejon de ard' } })
+    act(() => screen.getByRole('combobox').focus())
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'torrejon de ard' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([
       { ...madridSuggestion, locality: 'Torrejón de Ardoz', displayLabel: '28850 Torrejón de Ardoz, España', selectionToken: 'city-token' },
@@ -247,10 +228,12 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={() => {}} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seo' } })
     await act(async () => { advance(300) })
     expect(fetchMock).not.toHaveBeenCalled()
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     expect(fetchMock).toHaveBeenCalledTimes(1)
@@ -268,10 +251,12 @@ describe('LocationPicker', () => {
     render(<LocationPicker onChange={() => {}} />)
     const input = screen.getByLabelText(/search/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seo' } })
     await act(async () => { advance(400) })
     expect(fetchMock).toHaveBeenCalledTimes(1)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -291,6 +276,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={() => {}} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seou' } })
     await act(async () => { advance(400) })
     expect(screen.getByRole('status')).toHaveTextContent(/buscando lugares/i)
@@ -298,6 +284,7 @@ describe('LocationPicker', () => {
     await resolveSearch(requests[0], suggestionsResponse([]))
     expect(screen.getByRole('status')).toHaveTextContent(/no se encontraron/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoud' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[1], new Response(null, { status: 429 }))
@@ -317,6 +304,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker onChange={() => {}} />)
     const input = screen.getByLabelText(/search/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await act(async () => { await fetchMock.mock.results[0].value })
@@ -338,6 +326,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={onChange} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'La casa de Seúl' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -360,6 +349,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={onChange} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -367,6 +357,7 @@ describe('LocationPicker', () => {
     fireEvent.click(screen.getByRole('option', { name: 'Seoul, South Korea' }))
     expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-1', precision: 'approximate' })
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul zone' } })
     expect(onChange).toHaveBeenLastCalledWith(null)
     expect(screen.queryByLabelText(/lugar seleccionado/i)).toBeNull()
@@ -380,6 +371,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={onChange} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -417,6 +409,7 @@ describe('LocationPicker', () => {
     render(<LocationPicker lang="es" onChange={onChange} />)
     const input = screen.getByLabelText(/busca/i)
 
+    act(() => input.focus())
     fireEvent.change(input, { target: { value: 'Seoul' } })
     await act(async () => { advance(400) })
     await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -437,6 +430,7 @@ it('keeps the chosen place and precise public point when the provider locale cha
   const onChange = vi.fn()
   const view = (locale:'en'|'es') => <IntlTestProvider locale={locale}><LocationPicker onChange={onChange}/></IntlTestProvider>
   const result = render(view('en'))
+  act(() => screen.getByLabelText('Search for a city or area').focus())
   fireEvent.change(screen.getByLabelText('Search for a city or area'), {target:{value:'Seoul'}})
   await act(async () => { await advance(400) })
   await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
@@ -445,12 +439,12 @@ it('keeps the chosen place and precise public point when the provider locale cha
   await act(async () => { await Promise.resolve() })
   expect(result.container.querySelector('.leaflet-control-zoom-in')).toHaveAttribute('title', 'Zoom in')
   expect(result.container.querySelector('.leaflet-control-zoom-out')).toHaveAttribute('title', 'Zoom out')
-  expect(screen.getByRole('img', {name:'Exact public point'})).toHaveAttribute('title', 'Exact public point')
+  expect(screen.getByRole('button', {name:'Exact public point'})).toHaveAttribute('title', 'Exact public point')
   expect(result.container.querySelector('.location-picker__coordinates')).toHaveTextContent('37.56650, 126.97800')
   fireEvent.click(screen.getByRole('button', {name:'I understand, make this point public'}))
   const retained = onChange.mock.calls.at(-1)?.[0] as LocationPickerSelection
   result.rerender(view('es'))
-  expect(screen.getByLabelText('Busca una ciudad o zona')).toHaveValue('Seoul')
+  expect(screen.getByLabelText('Busca una ciudad o zona')).toHaveValue('Seoul, South Korea')
   expect(screen.getByRole('region', {name:'Lugar seleccionado'})).toHaveTextContent('Seoul, South Korea')
   expect(screen.getByRole('radio', {name:'Ubicación exacta'})).toBeChecked()
   expect(screen.getByText('Punto exacto confirmado.')).toBeVisible()
@@ -458,10 +452,52 @@ it('keeps the chosen place and precise public point when the provider locale cha
   expect(fetchMock).toHaveBeenCalledTimes(1)
   expect(result.container.querySelector('.leaflet-control-zoom-in')).toHaveAttribute('title', 'Acercar')
   expect(result.container.querySelector('.leaflet-control-zoom-out')).toHaveAttribute('title', 'Alejar')
-  expect(screen.getByRole('img', {name:'Punto público exacto'})).toHaveAttribute('title', 'Punto público exacto')
+  expect(screen.getByRole('button', {name:'Punto público exacto'})).toHaveAttribute('title', 'Punto público exacto')
   expect(result.container.querySelector('.location-picker__coordinates')).toHaveTextContent('37,56650, 126,97800')
   expect(leafletCallbacks.map).toHaveBeenCalledTimes(1)
-  expect(leafletCallbacks.marker).toHaveBeenCalledTimes(1)
-  expect(leafletCallbacks.setView).toHaveBeenCalledTimes(2)
+  expect(Object.values((mapState.current as unknown as { _layers: Record<string, leaflet.Layer> })._layers).filter(layer => layer instanceof leaflet.Marker)).toHaveLength(1)
+  expect(mapState.current?.getCenter().lat).toBeCloseTo(37.5665)
+  expect(mapState.current?.getZoom()).toBe(14)
   expect(leafletCallbacks.remove).not.toHaveBeenCalled()
+})
+
+it('links the combobox to suggestions and selects the active option with arrows and Enter', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-map-key')
+  vi.useFakeTimers()
+  const requests: Array<ReturnType<typeof deferred<Response>>> = []
+  stubFetch(requests)
+  const onChange = vi.fn()
+  render(<LocationPicker onChange={onChange} />)
+  const input = screen.getByRole('combobox', { name: 'Search for a city or area' })
+  act(() => input.focus())
+  fireEvent.change(input, { target: { value: 'city' } })
+  await act(async () => { advance(400) })
+  await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion, madridSuggestion]))
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  expect(input).toHaveAttribute('aria-expanded', 'true')
+  expect(input.getAttribute('aria-controls')).toBe(screen.getByRole('listbox').id)
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  const active = document.getElementById(input.getAttribute('aria-activedescendant')!)
+  expect(active).toHaveTextContent('Madrid, España')
+  fireEvent.keyDown(input, { key: 'Enter' })
+  expect(onChange).toHaveBeenLastCalledWith({ selectionId: 'opaque-selection-2', precision: 'approximate' })
+  expect(input).toHaveAttribute('aria-expanded', 'false')
+})
+
+it('closes suggestions on Escape without selecting a public location', async () => {
+  vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-map-key')
+  vi.useFakeTimers()
+  const requests: Array<ReturnType<typeof deferred<Response>>> = []
+  stubFetch(requests)
+  const onChange = vi.fn()
+  render(<LocationPicker onChange={onChange} />)
+  const input = screen.getByRole('combobox', { name: 'Search for a city or area' })
+  act(() => input.focus())
+  fireEvent.change(input, { target: { value: 'Seoul' } })
+  await act(async () => { advance(400) })
+  await resolveSearch(requests[0], suggestionsResponse([seoulSuggestion]))
+  fireEvent.keyDown(input, { key: 'ArrowDown' })
+  fireEvent.keyDown(input, { key: 'Escape' })
+  expect(input).toHaveAttribute('aria-expanded', 'false')
+  expect(onChange).not.toHaveBeenCalled()
 })

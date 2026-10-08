@@ -168,17 +168,17 @@ export async function pagePublicMessages(
     country?: string | null
   },
 ): Promise<PublicMessagePage> {
-  const bound = args.cursor ? verifyCursor(args.cursor) : null
+  const bound = args.cursor ? await verifyCursor(args.cursor) : null
   const limit = args.limit ?? 20
   const extra = extraConditions(sql, {
     city: args.city,
     country: args.country,
   })
 
-  const cursorCondition: Fragment = bound
+  const cursorCondition: Fragment = bound?.publishedAt
     ? sql`
-      (m.published_at < ${bound.publishedAt!}
-       or (m.published_at = ${bound.publishedAt!} and m.id < ${bound.id}::bigint))
+      (m.published_at < ${bound.publishedAt}
+       or (m.published_at = ${bound.publishedAt} and m.id < ${bound.id}::bigint))
     `
     : sql`true`
 
@@ -202,7 +202,7 @@ export async function pagePublicMessages(
       ...projectPublicFeature(row),
       content: row.content ?? '',
     })),
-    nextCursor: hasMore && last ? signCursor({ publishedAt: last.published_at, id: last.id }) : null,
+    nextCursor: hasMore && last ? await signCursor({ publishedAt: last.published_at, id: last.id }) : null,
   }
 }
 

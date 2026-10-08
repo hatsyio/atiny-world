@@ -9,6 +9,7 @@ import { loadMessages } from '@/i18n/messages'
 import { metadataBase } from '@/i18n/metadata-base'
 import { LanguagePreferenceProvider } from '@/components/i18n/language-context'
 import { LanguageSynchronizer } from '@/components/i18n/language-synchronizer'
+import { MapQueryProvider } from '@/components/map/map-query-provider'
 import './globals.css'
 
 const displayFont = Fraunces({ subsets: ['latin'], variable: '--font-display' })
@@ -29,8 +30,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <ClerkProvider localization={locale === 'es' ? esES : enUS}>
           <NextIntlClientProvider locale={locale} messages={messages} timeZone="UTC">
             <LanguagePreferenceProvider preference={preference}>
-              <LanguageSynchronizer />
-              {children}
+              <MapQueryProvider>
+                <LanguageSynchronizer />
+                {children}
+              </MapQueryProvider>
             </LanguagePreferenceProvider>
           </NextIntlClientProvider>
         </ClerkProvider>

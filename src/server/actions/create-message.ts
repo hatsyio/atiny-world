@@ -5,7 +5,7 @@ import {
   okResult,
   type ActionResult,
 } from '@/domain/contracts'
-import type { PublicPoint } from '@/domain/location/public-point'
+import type { LocationSelectionInput } from '@/domain/location/selection'
 import { authorizeProfile } from '@/server/auth/authorize'
 import {
   getSessionIdentity,
@@ -25,14 +25,7 @@ import {
 
 export type { SelectionVerifier } from './location-input'
 
-export type CreateMessageLocationInput =
-  | { selectionId: string; precision: 'approximate' }
-  | {
-      selectionId: string
-      precision: 'precise'
-      confirmedPublicPoint: PublicPoint
-      preciseLocationConfirmed: true
-    }
+export type CreateMessageLocationInput = LocationSelectionInput
 
 export type CreateMessageActionInput = {
   content: string
@@ -82,7 +75,7 @@ export async function createMessageForSession(
     })
   }
 
-  const location = resolveLocationSelection(input?.location, verifySelection)
+  const location = await resolveLocationSelection(input?.location, verifySelection)
   if (!location.ok) return location
 
   const created = await publish({

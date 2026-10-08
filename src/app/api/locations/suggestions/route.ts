@@ -43,7 +43,7 @@ type LocationSuggestionRequest = z.infer<typeof locationSuggestionRequestSchema>
 type LocationSuggestionsDependencies = {
   reverse?: (point: PublicPoint, language: 'en' | 'es' | 'ko') => Promise<GeoapifyLocationSuggestion | null>
   search?: (query: GeoapifyLocationQuery) => Promise<GeoapifyLocationSuggestion[]>
-  signSelection?: (selection: LocationSelection) => string
+  signSelection?: (selection: LocationSelection) => string | Promise<string>
   clientKey?: (request: Request) => string
   rateLimiter?: RateLimiter
 }
@@ -145,16 +145,16 @@ export function createLocationSuggestionsPostHandler(
       const suggestions = 'point' in input ? (resolved ? [resolved] : []) : await search(input)
       const limit = 'limit' in input ? input.limit : 1
       return Response.json({
-        suggestions: suggestions.slice(0, limit).map((suggestion) => publicSuggestion(
+        suggestions: await Promise.all(suggestions.slice(0, limit).map(async (suggestion) => publicSuggestion(
           suggestion,
-          signSelection({
+          await signSelection({
             locality: suggestion.locality,
             country: suggestion.country,
             countryCode: suggestion.countryCode,
             point: suggestion.point,
             attribution: suggestion.attribution,
           }),
-        )),
+        ))),
         providerAttribution: GEOAPIFY_ATTRIBUTION,
       }, { headers: { 'cache-control': 'no-store' } })
     } catch (error) {

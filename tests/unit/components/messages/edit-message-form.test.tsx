@@ -1,7 +1,9 @@
 /** @vitest-environment jsdom */
 
+import { act } from 'react'
+import type { UpdateMessageActionResult } from '@/app/(site)/my-messages/actions'
 import { cleanup, fireEvent,  screen, waitFor } from '@testing-library/react'
-import { render } from '../../../support/intl'
+import { render, IntlTestProvider } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { okResult } from '@/domain/contracts'
@@ -119,4 +121,55 @@ it('cancels an embedded edit without navigating or saving', () => {
   expect(onCancel).toHaveBeenCalledTimes(1)
   expect(submitUpdate).not.toHaveBeenCalled()
   expect(push).not.toHaveBeenCalled()
+})
+
+
+it('ignores repeated keyboard submissions in the same event turn while saving', async () => {
+  let resolve!: (value: UpdateMessageActionResult) => void
+  const submitUpdate = vi.fn<EditMessageSubmit>(() => new Promise(done => { resolve = done }))
+  const onSaved = vi.fn()
+  const { container } = render(<EditMessageForm message={message} submitUpdate={submitUpdate} onSaved={onSaved} />)
+  act(() => {
+    fireEvent.submit(container.querySelector('form')!)
+    fireEvent.submit(container.querySelector('form')!)
+  })
+  expect(submitUpdate).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole('button', { name: 'Saving…' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled()
+  await act(async () => { resolve(okResult({ publicId: message.publicId, version: 5, status: 'pending' })) })
+  expect(onSaved).toHaveBeenCalledTimes(1)
+})
+
+
+it('retains the edited draft, place and conflict across a locale change and retries the same version', async () => {
+  const submitUpdate = vi.fn<EditMessageSubmit>().mockResolvedValue({ ok: false, error: { code: 'MESSAGE_VERSION_CONFLICT', messageKey: 'message.versionConflict' } })
+  const view = (locale: 'en' | 'es') => <IntlTestProvider locale={locale}><EditMessageForm message={message} submitUpdate={submitUpdate} /></IntlTestProvider>
+  const result = render(view('en'))
+  fireEvent.change(screen.getByRole('textbox', { name: 'Your letter' }), { target: { value: '안녕 👩🏽‍🚀\nEdited draft' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Choose a new place' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+  await screen.findByRole('alert')
+  result.rerender(view('es'))
+  expect(screen.getByRole('textbox', { name: 'Tu carta' })).toHaveValue('안녕 👩🏽‍🚀\nEdited draft')
+  expect(screen.getByRole('alert')).toBeVisible()
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+  await waitFor(() => expect(submitUpdate).toHaveBeenCalledTimes(2))
+  expect(submitUpdate.mock.calls[1][0]).toEqual(submitUpdate.mock.calls[0][0])
+  expect(submitUpdate.mock.calls[1][0]).toMatchObject({ expectedVersion: 4, location: { selectionId: 'new-location-token' } })
+  expect(push).not.toHaveBeenCalled()
+})
+
+it('preserves the edit after an exception and unlocks a fresh retry', async () => {
+  const submitUpdate = vi.fn<EditMessageSubmit>().mockRejectedValueOnce(new Error('network unavailable')).mockResolvedValueOnce(okResult({ publicId: message.publicId, version: 5, status: 'pending' }))
+  const onSaved = vi.fn()
+  render(<EditMessageForm message={message} submitUpdate={submitUpdate} onSaved={onSaved} />)
+  fireEvent.change(screen.getByRole('textbox', { name: 'Your letter' }), { target: { value: 'Retained edit' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+  await screen.findByRole('alert')
+  expect(screen.getByRole('textbox', { name: 'Your letter' })).toHaveValue('Retained edit')
+  expect(screen.getByRole('button', { name: 'Save changes' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+  await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1))
+  expect(submitUpdate).toHaveBeenCalledTimes(2)
+  expect(submitUpdate.mock.calls[1][0]).toEqual(submitUpdate.mock.calls[0][0])
 })
