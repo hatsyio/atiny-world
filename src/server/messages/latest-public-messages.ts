@@ -6,12 +6,8 @@ import type { Sql } from 'postgres'
 import type { PublicMessageDetail, PublicPoint } from '@/domain/messages/public-message'
 import { reverseGeoapifyLocality } from '@/server/locations/geoapify'
 import {
-  getPublicMessageStats,
   listLatestPublicMessages,
-  type PublicMessageStats,
 } from '@/server/messages/public-repository'
-
-export type { PublicMessageStats } from '@/server/messages/public-repository'
 
 type LocalityResolver = (point: PublicPoint) => Promise<string | null>
 
@@ -40,8 +36,4 @@ export async function enrichMissingLocalities(
 export async function listLatestHomepageMessages(sql: Sql): Promise<PublicMessageDetail[]> {
   const messages = await listLatestPublicMessages(sql)
   return enrichMissingLocalities(messages, resolveCachedLocality)
-}
-
-export function getHomepageStats(sql: Sql): Promise<PublicMessageStats> {
-  return getPublicMessageStats(sql)
 }

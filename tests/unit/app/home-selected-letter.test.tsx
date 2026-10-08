@@ -3,14 +3,16 @@ import { beforeEach, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 vi.mock('next-intl/server', () => import('../../support/server-intl'))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
-vi.mock('@/server/messages/public-repository', () => ({ getVisibleMessage: vi.fn() }))
+vi.mock('@/server/messages/public-repository', () => ({
+  getVisibleMessage: vi.fn(),
+  getPublicMessageStats: vi.fn(async () => ({ letters: 0, countries: 0 })),
+}))
 vi.mock('@/server/messages/latest-public-messages', () => ({
   listLatestHomepageMessages: async () => [],
-  getHomepageStats: async () => ({ letters: 0, countries: 0 }),
 }))
 
 import Page from '@/app/(site)/page'
-import { getVisibleMessage } from '@/server/messages/public-repository'
+import { getPublicMessageStats, getVisibleMessage } from '@/server/messages/public-repository'
 
 beforeEach(() => vi.resetAllMocks())
 
@@ -37,4 +39,10 @@ it('ignores malformed map selections', async () => {
   const home = await Page({ searchParams: Promise.resolve({ letter: '../private' }) })
   expect(getVisibleMessage).not.toHaveBeenCalled()
   expect(home.props.selectedMessage).toBeUndefined()
+})
+
+it('passes public repository statistics to the homepage', async () => {
+  vi.mocked(getPublicMessageStats).mockResolvedValue({ letters: 12, countries: 3 })
+  const home = await Page({ searchParams: Promise.resolve({}) })
+  expect(home.props.homepageStats).toEqual({ letters: 12, countries: 3 })
 })

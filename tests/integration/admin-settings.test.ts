@@ -49,8 +49,9 @@ describe('administrative settings', () => {
     })
   })
 
-  it('updates settings and audit atomically without rewriting messages', async () => {
+  it.each(['admin', 'owner'])('allows %s to update settings and audit atomically without rewriting messages', async role => {
     const { actor, pending } = await fixture()
+    await db`update app_private.profiles set role = ${role} where id = ${actor.id}`
     const before = await db`select content, status, public_point::text, published_at from app_private.messages where id = ${pending.id}`
     await db`set role atiny_app_runtime`
     try {
@@ -227,6 +228,7 @@ describe('administrative settings', () => {
     try {
       await expect(change()).rejects.toThrow()
       expect(await currentSettings(db)).toMatchObject({ premoderation_enabled: false, message_limit: 10, cooldown_seconds: 10, version: 1 })
+      expect(await db`select * from app_private.admin_audit`).toHaveLength(0)
     } finally {
       await db`alter table app_private.admin_audit drop constraint test_reject_settings_audit`
     }

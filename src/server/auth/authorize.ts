@@ -110,14 +110,6 @@ export async function authorizeProfile(
     : { ok: false, error: { code: resolved.error.kind } }
 }
 
-export async function requireRole(
-  profile: AuthorizedProfile,
-  allowedRoles: readonly ProfileRole[],
-): Promise<AuthorizationResult> {
-  if (allowedRoles.includes(profile.role)) return okResult(profile)
-  return { ok: false, error: { code: 'NOT_FOUND' } }
-}
-
 function notAuthenticated(): AuthorizationResult<never> {
   return { ok: false, error: { code: 'NOT_FOUND' } }
 }

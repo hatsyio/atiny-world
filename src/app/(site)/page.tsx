@@ -5,12 +5,10 @@ import { LetterLink } from '@/components/navigation/letter-link'
 
 import { PublicMapController } from '@/components/map/public-map-controller'
 import type { PublicMapFeature, PublicMessageDetail } from '@/domain/messages/public-message'
-import { getVisibleMessage } from '@/server/messages/public-repository'
+import { getPublicMessageStats, getVisibleMessage, type PublicMessageStats } from '@/server/messages/public-repository'
 import { getDb } from '@/server/db/client'
 import {
-  getHomepageStats,
   listLatestHomepageMessages,
-  type PublicMessageStats,
 } from '@/server/messages/latest-public-messages'
 
 export const dynamic = 'force-dynamic'
@@ -105,7 +103,7 @@ export default async function Page({ searchParams }: {
   const db = getDb()
   const [latestLetters, homepageStats, selectedLetter] = await Promise.all([
     listLatestHomepageMessages(db),
-    getHomepageStats(db),
+    getPublicMessageStats(db),
     typeof letter === 'string' && /^[a-zA-Z0-9-]{1,100}$/.test(letter) ? getVisibleMessage(db, letter) : Promise.resolve(null),
   ])
   const selectedMessage = selectedLetter ? {

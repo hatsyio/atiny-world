@@ -6,7 +6,6 @@ vi.mock('server-only', () => ({}))
 
 import {
   signLocationSelection,
-  verifyLocationSelection,
   verifyLocationSelectionResult,
 } from '../../../../src/server/locations/selection-token'
 
@@ -16,8 +15,8 @@ describe('location selection token', () => {
   it('signs only public normalized location data and expires it', async () => {
     const token = await signLocationSelection(payload, 'test-secret', new Date('2026-09-15T10:00:00Z'))
     expect(token).not.toContain('Gangnam')
-    expect(await verifyLocationSelection(token, 'test-secret', new Date('2026-09-15T10:04:00Z'))).toEqual(payload)
-    expect(await verifyLocationSelection(token, 'test-secret', new Date('2026-09-15T10:06:00Z'))).toBeNull()
+    expect(await verifyLocationSelectionResult(token, 'test-secret', new Date('2026-09-15T10:04:00Z'))).toEqual({ ok: true, selection: payload })
+    expect(await verifyLocationSelectionResult(token, 'test-secret', new Date('2026-09-15T10:06:00Z'))).toEqual({ ok: false, reason: 'EXPIRED' })
   })
 
   it('distinguishes tampered tokens from expired ones', async () => {
