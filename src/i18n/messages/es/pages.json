@@ -70,7 +70,7 @@
   "admin": {
     "title": "Administración",
     "navigation": "Navegación de administración",
-    "back": "Volver a ajustes",
+    "back": "Volver al mapa",
     "users": "Usuarios y roles",
     "ownerIntro": "Gestiona los roles de administrador y suspende o reactiva cuentas. Cada cambio queda registrado de forma privada.",
     "adminIntro": "Gestiona los roles de administrador de otras cuentas y suspende o reactiva cuentas de fans. Cada cambio queda registrado de forma privada. Solo el propietario puede suspender administradores.",
@@ -118,7 +118,11 @@
       "denied": "Ya no tienes permiso para cambiar esta configuración.",
       "invalid": "Revisa los valores de configuración e inténtalo de nuevo.",
       "conflict": "La configuración o su impacto han cambiado. Recarga antes de volver a intentarlo.",
-      "error": "No se ha podido guardar la configuración. Inténtalo de nuevo."
+      "error": "No se ha podido guardar la configuración. Inténtalo de nuevo.",
+      "moderationGroup": "Moderación",
+      "moderationHint": "Decide si las cartas necesitan revisión antes de aparecer en el mapa.",
+      "limitsGroup": "Límites de publicación",
+      "limitsHint": "Controla cuántas cartas puede publicar cada cuenta y el tiempo entre envíos."
     },
     "moderation": {
       "title": "Moderación de mensajes",

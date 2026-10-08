@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { AppSelect } from '@/components/ui/app-select'
 
 export interface MapFilterValues {
   city?: string
@@ -43,24 +44,7 @@ export function MapFilters({ value, onChange }: Props) {
         }
       />
 
-      <label htmlFor="country-filter">{t('country')}</label>
-      <select
-        id="country-filter"
-        name="country"
-        aria-label={t('country')}
-        value={normalizeCountry(value.country ?? '')}
-        onChange={(event) =>
-          onChange({ ...value, country: normalizeCountry(event.target.value) })
-        }
-      >
-        <option value="">{t('all')}</option>
-        {ISO_ALPHA_2_COUNTRIES.map((country) => (
-          <option key={country} value={country}>
-            {country.toUpperCase()}
-          </option>
-        ))}
-      </select>
-
+      <AppSelect label={t('country')} name="country" variant="paper" value={normalizeCountry(value.country ?? '')} onChange={country => onChange({ ...value, country: normalizeCountry(country) })} options={[{ value: '', label: t('all') }, ...ISO_ALPHA_2_COUNTRIES.map(country => ({ value: country, label: country.toUpperCase() }))]} />
     </div>
   )
 }

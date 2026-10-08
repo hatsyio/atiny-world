@@ -70,7 +70,7 @@
   "admin": {
     "title": "Administration",
     "navigation": "Administration navigation",
-    "back": "Back to settings",
+    "back": "Back to the map",
     "users": "Users and roles",
     "ownerIntro": "Manage administrator roles and suspend or reactivate accounts. Each change is recorded privately.",
     "adminIntro": "Manage administrator roles for other accounts and suspend or reactivate fan accounts. Each change is recorded privately. Only the owner can suspend administrators.",
@@ -118,7 +118,11 @@
       "denied": "You no longer have permission to change these settings.",
       "invalid": "Check the settings values and try again.",
       "conflict": "The settings or their impact changed. Reload before trying again.",
-      "error": "Could not save the settings. Try again."
+      "error": "Could not save the settings. Try again.",
+      "moderationGroup": "Moderation",
+      "moderationHint": "Choose whether letters need review before appearing on the map.",
+      "limitsGroup": "Publishing limits",
+      "limitsHint": "Control how many letters each account can publish and the time between submissions."
     },
     "moderation": {
       "title": "Message moderation",

@@ -7,6 +7,7 @@ import { getDb } from '@/server/db/client'
 import { searchModerationMessages } from '@/server/moderation/message-repository'
 import { MESSAGE_STATUSES } from '@/domain/contracts'
 import { MessageQueue } from '@/components/admin/message-queue'
+import { AppSelect } from '@/components/ui/app-select'
 
 export default async function AdminMessagesPage({ searchParams }: { searchParams: Promise<{ q?: string | string[]; status?: string | string[]; page?: string | string[] }> }) {
   await requireAdminPage()
@@ -32,17 +33,19 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
     ...message,
     publishedAtLabel: format.dateTime(new Date(message.publishedAt), { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }),
   }))
-  return <section aria-labelledby="admin-messages-title">
+  return <section className="admin-section admin-section--messages" aria-labelledby="admin-messages-title">
+    <header className="admin-section-header">
     <h2 id="admin-messages-title">{t('title')}</h2>
     <p>{t('intro')}</p>
+    </header>
     <form className="admin-search admin-message-search" action="/admin/messages" method="get">
+      <div className="admin-search-field">
       <label htmlFor="admin-message-query">{t('searchLabel')}</label>
       <div><input id="admin-message-query" name="q" type="search" maxLength={100} defaultValue={query} /><button type="submit">{pagination('search')}</button></div>
-      <label htmlFor="admin-message-state">{t('state')}</label>
-      <select id="admin-message-state" name="status" defaultValue={status}>
-        <option value="all">{t('all')}</option>
-        {MESSAGE_STATUSES.map(value => <option key={value} value={value}>{states(value)}</option>)}
-      </select>
+      </div>
+      <div className="admin-search-field">
+      <AppSelect variant="admin-messages" key={status} label={t('state')} name="status" defaultValue={status} options={[{ value: 'all', label: t('all') }, ...MESSAGE_STATUSES.map(value => ({ value, label: states(value) }))]} />
+      </div>
     </form>
     <MessageQueue messages={messages} />
     <nav className="admin-pagination" aria-label={t('pagination')}>

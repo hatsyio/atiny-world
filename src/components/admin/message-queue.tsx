@@ -7,6 +7,7 @@ import type { ModerationMessage } from '@/server/moderation/message-repository'
 import type { ModerationDecision } from '@/domain/moderation/policies'
 import { MODERATION_REASON_CODES, isModerationReasonCode } from '@/i18n/moderation-reasons'
 import { AdminRefresh } from './admin-refresh'
+import { AppSelect } from '@/components/ui/app-select'
 
 function MessageDecisionForm({ message, onSaved }: { message: ModerationMessage; onSaved: () => void }) {
   const t = useTranslations('Pages.admin.moderation')
@@ -22,16 +23,9 @@ function MessageDecisionForm({ message, onSaved }: { message: ModerationMessage;
   return <form action={action} className="admin-decision-form">
     <input type="hidden" name="publicId" value={message.publicId} />
     <input type="hidden" name="expectedVersion" value={message.version} />
-    <label htmlFor={`${id}-decision`}>{t('decision')}</label>
-    <select id={`${id}-decision`} name="decision" value={decision} disabled={pending || stale} onChange={event => setDecision(event.target.value as ModerationDecision)}>
-      {message.decisions.map(value => <option key={value} value={value}>{t(`decisions.${value}`)}</option>)}
-    </select>
+    <AppSelect variant="admin-messages" label={t('decision')} name="decision" value={decision} disabled={pending || stale} onChange={value => setDecision(value as ModerationDecision)} options={message.decisions.map(value => ({ value, label: t(`decisions.${value}`) }))} />
     {decision !== 'approve' && <>
-      <label htmlFor={`${id}-reason`}>{t('reason')}</label>
-      <select id={`${id}-reason`} name="reasonCode" defaultValue="" required disabled={pending || stale}>
-        <option value="" disabled>{t('chooseReason')}</option>
-        {MODERATION_REASON_CODES.map(code => <option key={code} value={code}>{reasons(`reasons.${code}`)}</option>)}
-      </select>
+      <AppSelect variant="admin-messages" label={t('reason')} name="reasonCode" placeholder={t('chooseReason')} required disabled={pending || stale} options={MODERATION_REASON_CODES.map(value => ({ value, label: reasons(`reasons.${value}`) }))} />
     </>}
     <label htmlFor={`${id}-note`}>{t('note')}</label>
     <textarea id={`${id}-note`} name="note" maxLength={1000} rows={3} disabled={pending || stale} />
@@ -54,7 +48,7 @@ export function MessageQueue({ messages }: { messages: ModerationQueueMessage[] 
     {messages.map(message => <li key={message.publicId}>
       <article aria-label={t('letterBy', { name: message.authorName })}>
         <h3>{message.authorName}</h3>
-        <p>{accounts(message.authorState)} · {own(`status.${message.status}`)} · {t('version', { version: message.version })}</p>
+        <p className="admin-badges"><span className="admin-badge" data-state={message.authorState}>{accounts(message.authorState)}</span><span className="admin-badge" data-state={message.status}>{own(`status.${message.status}`)}</span><span className="admin-message-version">{t('version', { version: message.version })}</span></p>
         <p className="admin-message-content">{message.content}</p>
         <p>{[message.locality, message.country].filter(Boolean).join(', ')}</p>
         <time dateTime={message.publishedAt}>{message.publishedAtLabel} UTC</time>

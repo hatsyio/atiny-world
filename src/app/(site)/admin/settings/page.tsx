@@ -17,9 +17,11 @@ export default async function AdminSettingsPage() {
     return <p role="alert">{t('invalid')}</p>
   }
   const t = await getTranslations('Pages.admin.settingsPanel')
-  return <section aria-labelledby="admin-settings-title">
+  return <section className="admin-section admin-section--settings" aria-labelledby="admin-settings-title">
+    <header className="admin-section-header">
     <h2 id="admin-settings-title">{t('title')}</h2>
     <p>{t('intro')}</p>
+    </header>
     <AdminSettingsControl settings={result.data} />
   </section>
 }

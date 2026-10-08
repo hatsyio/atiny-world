@@ -9,6 +9,7 @@ import { AccountMenu } from '@/components/account/account-menu'
 import { getPublicAppIdentity } from '@/app-identity'
 import {useLocale, useTranslations} from 'next-intl'
 import { returnDestination } from './return-destination'
+import { containsOverlayTarget } from '@/components/ui/contains-overlay-target'
 
 type Section = 'home' | 'map' | 'letters'
 
@@ -56,7 +57,7 @@ export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean 
 
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
-      if (!header.current?.contains(event.target as Node)) setOpenedPath(null)
+      if (!containsOverlayTarget(header.current, event.target)) setOpenedPath(null)
     }
     document.addEventListener('pointerdown', closeOutside)
     return () => document.removeEventListener('pointerdown', closeOutside)

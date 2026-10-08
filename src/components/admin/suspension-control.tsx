@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { setSuspensionAction, type SuspensionActionState } from '@/app/(site)/admin/users/actions'
 import type { AdminAccount } from '@/server/moderation/accounts'
 import { MODERATION_REASON_CODES } from '@/i18n/moderation-reasons'
+import { AppSelect } from '@/components/ui/app-select'
 
 function SuspensionForm({ account }: { account: AdminAccount }) {
   const t = useTranslations('Pages.admin.suspension')
@@ -26,11 +27,7 @@ function SuspensionForm({ account }: { account: AdminAccount }) {
     <input type="hidden" name="suspended" value={String(suspended)} />
     <p>{t(suspended ? 'hideWarning' : 'restoreWarning')}</p>
     {suspended && <>
-      <label htmlFor={`${id}-reason`}>{t('reason')}</label>
-      <select id={`${id}-reason`} name="reasonCode" defaultValue="" required disabled={pending || stale}>
-        <option value="" disabled>{t('chooseReason')}</option>
-        {MODERATION_REASON_CODES.map(code => <option key={code} value={code}>{reasons(`reasons.${code}`)}</option>)}
-      </select>
+      <AppSelect label={t('reason')} name="reasonCode" placeholder={t('chooseReason')} required disabled={pending || stale} variant="admin-users" options={MODERATION_REASON_CODES.map(value => ({ value, label: reasons(`reasons.${value}`) }))} />
       <label htmlFor={`${id}-note`}>{t('note')}</label>
       <textarea id={`${id}-note`} name="note" maxLength={1000} rows={3} disabled={pending || stale} />
     </>}

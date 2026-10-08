@@ -15,7 +15,8 @@ describe('accessible language selector', () => {
   it('saves auto and refreshes while preserving draft DOM state and original content', async () => {
     mocks.save.mockResolvedValue({ ok: true })
     render(<NextIntlClientProvider locale="en" messages={loadMessages('en')} timeZone="UTC"><LanguagePreferenceProvider preference="es"><LanguageSwitcher /><textarea aria-label="Letter draft" defaultValue={'서울 🌙\nATINY'} /></LanguagePreferenceProvider></NextIntlClientProvider>)
-    fireEvent.change(screen.getByRole('combobox', { name: 'Language' }), { target: { value: 'auto' } })
+    fireEvent.click(screen.getByRole('button', { name: /Language/ }))
+    fireEvent.click(await screen.findByRole('option', { name: 'Automatic (browser language)' }))
     await waitFor(() => expect(mocks.refresh).toHaveBeenCalledOnce())
     expect(mocks.save).toHaveBeenCalledWith('auto')
     expect(screen.getByRole('textbox', { name: 'Letter draft' })).toHaveValue('서울 🌙\nATINY')
@@ -24,7 +25,8 @@ describe('accessible language selector', () => {
   it('announces a failed persistence attempt without refreshing', async () => {
     mocks.save.mockResolvedValue({ ok: false })
     render(<NextIntlClientProvider locale="es" messages={loadMessages('es')} timeZone="UTC"><LanguageSwitcher /></NextIntlClientProvider>)
-    fireEvent.change(screen.getByRole('combobox', { name: 'Idioma' }), { target: { value: 'en' } })
+    fireEvent.click(screen.getByRole('button', { name: /Idioma/ }))
+    fireEvent.click(await screen.findByRole('option', { name: 'English' }))
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('No se pudo guardar el idioma.'))
     expect(mocks.refresh).not.toHaveBeenCalled()
   })

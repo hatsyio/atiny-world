@@ -22,16 +22,18 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
     return <p role="alert">{t('invalid')}</p>
   }
   const href = (number: number) => `/admin/users?q=${encodeURIComponent(query)}&page=${number}`
-  return <section aria-labelledby="admin-users-title">
+  return <section className="admin-section admin-section--users" aria-labelledby="admin-users-title">
+    <header className="admin-section-header">
     <h2 id="admin-users-title">{t('users')}</h2>
     <p>{t(result.data.actorRole === 'owner' ? 'ownerIntro' : 'adminIntro')}</p>
+    </header>
     <form className="admin-search" action="/admin/users" method="get">
       <label htmlFor="admin-query">{t('searchLabel')}</label>
       <div><input id="admin-query" name="q" type="search" maxLength={100} defaultValue={query} /><button type="submit">{t('search')}</button></div>
     </form>
     {result.data.items.length === 0 ? <p role="status">{t('empty')}</p> : <ul className="admin-users">
       {result.data.items.map(account => <li key={account.publicId}>
-        <div><h3>{account.displayName}</h3><p>{t(`roles.${account.role}`)} · {t(`states.${account.state}`)}</p><small>{t('accountId')}: {account.publicId}</small></div>
+        <div className="admin-account-summary"><h3>{account.displayName}</h3><p className="admin-badges"><span className="admin-badge">{t(`roles.${account.role}`)}</span><span className="admin-badge" data-state={account.state}>{t(`states.${account.state}`)}</span></p><small>{t('accountId')}: {account.publicId}</small></div>
         <div className="admin-account-controls">
           {account.publicId !== actor.publicId && account.role !== 'owner' && account.state !== 'deletion_pending' ? <RoleControl account={account} /> : null}
           {account.state !== 'deletion_pending' && (account.role === 'fan' || (account.role === 'admin' && result.data.actorRole === 'owner')) ? <SuspensionControl account={account} /> : null}
