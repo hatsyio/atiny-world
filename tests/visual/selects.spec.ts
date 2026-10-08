@@ -1,6 +1,25 @@
 import { expect, test } from '@playwright/test'
 
 for (const width of [1440, 390]) {
+  test(`language dropdown closes with its account menu on pointer down at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1100 })
+    await page.goto('/?variant=header')
+    if (width < 1120) await page.getByRole('button', { name: 'Menú', exact: true }).click()
+    const account = page.getByRole('button', { name: 'Mi cuenta', exact: true })
+    await account.click()
+    await page.locator('.app-select-trigger').click()
+    await expect(page.getByRole('listbox')).toBeVisible()
+    const outside = await page.getByRole('link', { name: 'Atiny Atlas', exact: true }).boundingBox()
+    await page.mouse.move(outside!.x + outside!.width / 2, outside!.y + outside!.height / 2)
+    await page.mouse.down()
+    try {
+      await expect(account).toHaveAttribute('aria-expanded', 'false')
+      await expect(page.locator('.app-select-popover')).toHaveCount(0)
+    } finally {
+      await page.mouse.up()
+    }
+  })
+
   for (const variant of ['header', 'light', 'paper', 'admin-messages', 'admin-users']) {
     test(`${variant}: closed and open at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 1100 })

@@ -15,7 +15,7 @@ Usa `AppSelect` de `@/components/ui/app-select` para los campos de selección. E
 
 Las variantes disponibles son `light` (formularios, por defecto), `header` (cabecera oscura), `paper` (mapa), `admin-messages` y `admin-users`. Los colores se definen una sola vez en `src/components/ui/app-select.css` y se aplican al botón y al menú. Añade variantes aquí cuando haga falta otra superficie; evita sobrescribir el selector desde cada pantalla.
 
-El menú se renderiza en un portal y conserva su propietario mediante `data-overlay-owner`. Los contenedores que se cierran al perder el foco o al pulsar fuera deben usar `containsOverlayTarget`, como `AccountMenu` y `SiteHeader`. En pantalla completa el portal se aloja dentro del elemento que está en ese modo.
+El menú se renderiza en un portal y conserva su propietario mediante `data-overlay-owner`. Los contenedores que se cierran al perder el foco o al pulsar fuera deben usar `containsOverlayTarget`, como `AccountMenu` y `SiteHeader`. Al cerrar un menú padre, desmonta su contenido: ocultarlo con `hidden` deja el portal abierto temporalmente sin un botón visible al que anclarse. En pantalla completa el portal se aloja dentro del elemento que está en ese modo.
 
 ## Controles que evitan regresiones
 

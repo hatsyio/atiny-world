@@ -43,8 +43,8 @@ export function AccountMenu({ active = false, visitor = false, disabled = false,
         toggle.current?.focus()
       }
     }}>
-      <button type="button" ref={toggle} disabled={disabled} aria-expanded={expanded} aria-controls={linksId} aria-current={active ? 'page' : undefined} onClick={() => setExpanded(!expanded)}>{t('account')}</button>
-      <div id={linksId} className="account-links" hidden={!expanded}>
+      <button type="button" ref={toggle} disabled={disabled} aria-expanded={expanded} aria-controls={expanded ? linksId : undefined} aria-current={active ? 'page' : undefined} onClick={() => setExpanded(!expanded)}>{t('account')}</button>
+      {expanded && <div id={linksId} className="account-links">
         {visitor ? <>
           <Link className="account-sign-in" href="/sign-in" onClick={close}>{t('signIn')}</Link>
           <Link href="/sign-up" onClick={close}>{t('signUp')}</Link>
@@ -55,7 +55,7 @@ export function AccountMenu({ active = false, visitor = false, disabled = false,
           {canAdminister ? <Link href="/admin" onClick={close}>{t('administration')}</Link> : null}
           <button type="button" onClick={() => { close(); posthog.reset(); void signOut({ redirectUrl: '/' }) }}>{t('signOut')}</button>
         </>}
-      </div>
+      </div>}
     </div>
   )
 }
