@@ -23,9 +23,9 @@ export default clerkMiddleware((_auth, request: NextRequest) => {
 
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Missing assets render the root not-found layout, which also reads Clerk auth.
+    // File extensions cannot safely distinguish assets from those render requests.
+    '/((?!_next/).*)',
     '/(api|trpc)(.*)',
-    // Next renders the not-found page for the missing icon through ClerkProvider.
-    '/favicon.ico',
   ],
 }

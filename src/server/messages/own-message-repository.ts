@@ -1,4 +1,5 @@
 import type { Fragment, Sql } from 'postgres'
+import { parsePublicId } from '@/domain/contracts'
 
 import {
   projectOwnMessage,
@@ -82,6 +83,8 @@ export async function getOwnMessage(
   sql: Sql,
   args: { clerkUserId: string; publicId: string },
 ): Promise<(OwnMessage & { publicVisible: boolean }) | null> {
+  if (!parsePublicId(args.publicId).ok) return null
+
   const rows = await sql<OwnMessageRow[]>`
     select ${ownMessageColumns(sql)}
       from app_private.messages m
