@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
@@ -22,9 +22,14 @@ type Props = Pick<LeafletMapProps, 'features' | 'onSelect' | 'initialView' | 'on
   onToggleFullscreen: () => void
 }
 
-function MessageContent({ publicId, onSelect }: { publicId: string; onSelect: Props['onSelect'] }) {
+function MessageContent({ publicId, onSelect, popup }: { publicId: string; onSelect: Props['onSelect']; popup: RefObject<leaflet.Popup | null> }) {
   const t = useTranslations('Map.leaflet')
   const result = useQuery(publicMessageQuery(publicId))
+  useLayoutEffect(() => {
+    // The query updates inside the portal, so React Leaflet cannot detect its new size.
+    // Recalculate before paint so auto-pan uses the loaded letter's height.
+    popup.current?.update()
+  }, [popup, result.data?.content, result.isError, t])
   if (result.isError || !result.data) return <p className="map-message-popup">{t(result.isError ? 'messageUnavailable' : 'loadingMessage')}</p>
   return <div className="map-message-letter">
     <p className="map-message-popup">{result.data.content}</p>
@@ -89,7 +94,7 @@ function PublicMarker({ feature, onSelect, selected, centered }: { feature: Publ
     eventHandlers={{ popupopen: () => setOpen(true), popupclose: () => setOpen(false) }}>
     <Popup ref={popup} className="map-letter-popup" autoClose closeOnClick minWidth={340} maxWidth={340} autoPanPadding={[16, 16]}
       eventHandlers={{ add: labelCloseButton }}>
-      {open ? <MessageContent publicId={feature.publicId} onSelect={onSelect} /> : null}
+      {open ? <MessageContent publicId={feature.publicId} onSelect={onSelect} popup={popup} /> : null}
     </Popup>
   </Marker>
 }

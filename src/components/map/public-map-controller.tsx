@@ -103,7 +103,20 @@ function MapExploration({ selectedPublicId, selectedMessage, initialView, initia
   const [bounds, setBounds] = useState<MapBounds>(WORLD_BOUNDS)
   const [filters, setFilters] = useState<MapFilterValues>(initialFilters)
   const hasBasemap = Boolean(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY)
-  const query = useQuery({ ...mapFeaturesQuery(buildFeatureRequest(bounds, filters)), enabled: hasBasemap })
+  const query = useQuery({
+    ...mapFeaturesQuery(buildFeatureRequest(bounds, filters)),
+    enabled: hasBasemap,
+    placeholderData: (previousData, previousQuery) => {
+      const previousUrl = previousQuery?.queryKey[2]
+      if (typeof previousUrl !== 'string') return undefined
+      const previousFilters = new URLSearchParams(previousUrl.split('?')[1])
+      // A viewport refresh must not remove the marker that owns the open popup.
+      // Filter changes still clear the old results immediately.
+      if ((previousFilters.get('city') ?? '') === filters.city &&
+        (previousFilters.get('country') ?? '') === filters.country) return previousData
+      return undefined
+    },
+  })
   const features = query.isError ? [] : query.data?.features ?? (query.isPending && selectedMessage && !filters.city && !filters.country ? [selectedMessage] : [])
 
   const selectMessage = useCallback((publicId: string) => {
