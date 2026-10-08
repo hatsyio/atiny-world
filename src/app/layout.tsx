@@ -9,6 +9,7 @@ import { loadMessages } from '@/i18n/messages'
 import { metadataBase } from '@/i18n/metadata-base'
 import { LanguagePreferenceProvider } from '@/components/i18n/language-context'
 import { LanguageSynchronizer } from '@/components/i18n/language-synchronizer'
+import { AnalyticsIdentity } from '@/components/analytics/analytics-identity'
 import { MapQueryProvider } from '@/components/map/map-query-provider'
 import './globals.css'
 
@@ -28,6 +29,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang={locale} className={`${displayFont.variable} ${interfaceFont.variable}`}>
       <body>
         <ClerkProvider localization={locale === 'es' ? esES : enUS}>
+          <AnalyticsIdentity />
           <NextIntlClientProvider locale={locale} messages={messages} timeZone="UTC">
             <LanguagePreferenceProvider preference={preference}>
               <MapQueryProvider>

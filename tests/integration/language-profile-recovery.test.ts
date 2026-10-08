@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Sql } from 'postgres'
-import { createSecondConnection, createTestDb, truncateProductTables } from '../support/database'
+import { createSecondConnection, createTestDb, insertProfile, truncateProductTables } from '../support/database'
 
 const boundary = vi.hoisted(() => ({
   clerk: vi.fn(), database: vi.fn(), setCookie: vi.fn(),
@@ -28,6 +28,19 @@ beforeEach(async () => {
 afterAll(async () => { await truncateProductTables(db); await db.end() })
 
 describe('language actions recover the local profile', () => {
+  it('reads an existing preference with one database request and no Clerk lookup', async () => {
+    await insertProfile(db, 'fan')
+    await saveLanguagePreferenceForSession(db, 'es', async () => ({ clerkUserId: 'fan' }))
+    const queries: string[] = []
+    boundary.database.mockReturnValue((async (strings: TemplateStringsArray, ...values: never[]) => {
+      queries.push(strings.join(''))
+      return db(strings, ...values)
+    }) as unknown as Sql)
+    expect(await synchronizeLanguagePreference()).toEqual({ ok: true, locale: 'es', preference: 'es' })
+    expect(queries).toHaveLength(1)
+    expect(boundary.clerk).not.toHaveBeenCalled()
+  })
+
   it('persists a chosen language while creating a missing profile', async () => {
     expect(await setLanguagePreference('es')).toEqual({ ok: true })
     expect(await readLanguagePreference(db, 'fan')).toBe('es')

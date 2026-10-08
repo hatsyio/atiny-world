@@ -23,6 +23,14 @@ beforeEach(() => {
 })
 
 describe('language action cookie ownership', () => {
+  it.each(['es', 'en', 'auto'] as const)('uses the recovered %s preference without another database read', async (preference) => {
+    mocks.identity.mockResolvedValue({ clerkUserId: 'a' })
+    mocks.complete.mockResolvedValue({ kind: 'available', profile: { language_preference: preference } })
+    expect(await synchronizeLanguagePreference()).toEqual({ ok: true, locale: preference === 'auto' ? 'en' : preference, preference })
+    expect(mocks.read).not.toHaveBeenCalled()
+    expect(mocks.sql).not.toHaveBeenCalled()
+    expect(mocks.set).toHaveBeenCalledWith(ACCOUNT_LANGUAGE_COOKIE, encodeAccountPreference('a', preference), expect.any(Object))
+  })
   it('auto for a visitor clears their stale manual choice', async () => {
     expect(await setLanguagePreference('auto')).toEqual({ ok: true })
     expect(mocks.remove).toHaveBeenCalledWith(VISITOR_LANGUAGE_COOKIE)

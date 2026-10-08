@@ -51,9 +51,10 @@ export async function synchronizeLanguagePreference(): Promise<{ ok: boolean; lo
         where clerk_user_id = ${identity.clerkUserId} and language_preference is null`
     }
     // Incomplete signups retain their owner-bound cookie until navigation retries.
-    const preference = recovery.kind === 'incomplete'
+    // Only adoption needs a read-back to observe a concurrent explicit choice.
+    const preference = profilePreference ?? (recovery.kind === 'incomplete'
       ? language.preference
-      : await readLanguagePreference(db, identity.clerkUserId) ?? language.preference
+      : await readLanguagePreference(db, identity.clerkUserId) ?? language.preference)
     store.set(ACCOUNT_LANGUAGE_COOKIE, encodeAccountPreference(identity.clerkUserId, preference), cookieOptions)
     return { ok: true, ...resolveLanguage({ userId: identity.clerkUserId, profilePreference: preference, acceptLanguage: requestHeaders.get('accept-language') }) }
   } catch { return { ok: false } }
