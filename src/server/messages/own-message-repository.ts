@@ -48,13 +48,7 @@ export async function pageOwnMessages(
     : sql`true`
 
   const rows = await sql<OwnMessageRow[]>`
-    select m.id, m.public_id, m.version, m.status, m.moderation_reason_code,
-           m.moderation_note, m.content,
-           st_y(m.public_point::geometry) as latitude,
-           st_x(m.public_point::geometry) as longitude,
-           m.location_precision, m.locality, m.country,
-           m.created_at, m.published_at,
-           (${visibilityCondition(sql)}) as public_visible
+    select ${ownMessageColumns(sql)}
       from app_private.messages m
       join app_private.profiles p on p.id = m.author_id
      where p.clerk_user_id = ${args.clerkUserId}
@@ -71,4 +65,31 @@ export async function pageOwnMessages(
     items: page.map(row => ({ ...projectOwnMessage(row), publicVisible: row.public_visible })),
     nextCursor: hasMore && last ? await signCursor({ id: last.id }) : null,
   }
+}
+
+function ownMessageColumns(sql: Sql): Fragment {
+  return sql`m.id, m.public_id, m.version, m.status, m.moderation_reason_code,
+           m.moderation_note, m.content,
+           st_y(m.public_point::geometry) as latitude,
+           st_x(m.public_point::geometry) as longitude,
+           m.location_precision, m.locality, m.country,
+           m.created_at, m.published_at,
+           (${visibilityCondition(sql)}) as public_visible`
+}
+
+// Ownership is enforced in the query, independently of role or suspension.
+export async function getOwnMessage(
+  sql: Sql,
+  args: { clerkUserId: string; publicId: string },
+): Promise<(OwnMessage & { publicVisible: boolean }) | null> {
+  const rows = await sql<OwnMessageRow[]>`
+    select ${ownMessageColumns(sql)}
+      from app_private.messages m
+      join app_private.profiles p on p.id = m.author_id
+     where p.clerk_user_id = ${args.clerkUserId}
+       and m.public_id = ${args.publicId}
+     limit 1
+  `
+  const row = rows[0]
+  return row ? { ...projectOwnMessage(row), publicVisible: row.public_visible } : null
 }

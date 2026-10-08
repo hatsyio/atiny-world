@@ -7,7 +7,7 @@ import { EditMessageForm } from '@/components/messages/edit-message-form'
 import { resolveAccountGate } from '@/server/auth/account-gate'
 import { getSessionIdentity } from '@/server/auth/session'
 import { getDb } from '@/server/db/client'
-import { pageOwnMessages } from '@/server/messages/own-message-repository'
+import { getOwnMessage } from '@/server/messages/own-message-repository'
 
 
 
@@ -32,8 +32,7 @@ export default async function EditOwnMessagePage({
 
   // This owner-only query prevents an administrator or another account from
   // loading someone else's text into the edit form.
-  const page = await pageOwnMessages(db, { clerkUserId: identity.clerkUserId, limit: 100 })
-  const message = page.items.find((item) => item.publicId === publicId)
+  const message = await getOwnMessage(db, { clerkUserId: identity.clerkUserId, publicId })
   if (!message) notFound()
 
   return (

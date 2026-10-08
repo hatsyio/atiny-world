@@ -16,7 +16,7 @@ vi.mock('@/server/auth/authorize', () => ({ authorizeSession: async () => ({ ok:
 vi.mock('@/components/messages/letter-detail', () => ({ LetterDetail: () => null }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: async () => ({ clerkUserId: 'user' }) }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
-vi.mock('@/server/messages/own-message-repository', () => ({ pageOwnMessages: async () => ({ items: [{ publicId: 'letter-id' }], nextCursor: null }) }))
+vi.mock('@/server/messages/own-message-repository', () => ({ pageOwnMessages: async () => ({ items: [], nextCursor: null }), getOwnMessage: async (_db: unknown, args: { publicId: string }) => args.publicId === 'letter-id' ? { publicId: 'letter-id' } : null }))
 vi.mock('@/server/messages/public-repository', () => ({ getVisibleMessage: async () => ({ publicId: 'letter-id' }) }))
 vi.mock('@/components/messages/my-message-list', () => ({ MyMessageList: () => null }))
 vi.mock('@/components/messages/public-message-card', () => ({ PublicMessageCard: () => null }))
