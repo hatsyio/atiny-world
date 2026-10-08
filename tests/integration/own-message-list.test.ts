@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { getVisibleMessage, pagePublicMessages } from '../../src/server/messages/public-repository'
-import { pageOwnMessages } from '../../src/server/messages/own-message-repository'
+import { getOwnMessage, pageOwnMessages } from '../../src/server/messages/own-message-repository'
 import {
   createTestDb,
   insertMessage,
@@ -195,5 +195,58 @@ describe('owner message details never reach public reads', () => {
       expect('moderationReasonCode' in item).toBe(false)
       expect('moderationNote' in item).toBe(false)
     }
+  })
+})
+
+
+describe('getOwnMessage reads a single letter with ownership', () => {
+  it('reads a letter older than the first 100 owned letters', async () => {
+    const owner = await insertProfile(db, 'own-detail-older')
+    const oldest = await insertMessage(db, owner.id, { content: 'Carta anterior a la primera página' })
+    for (let index = 0; index < 100; index += 1) {
+      await insertMessage(db, owner.id)
+    }
+    const page = await pageOwnMessages(db, { clerkUserId: 'own-detail-older', limit: 100 })
+    expect(page.items).toHaveLength(100)
+    expect(page.items.map(item => item.publicId)).not.toContain(oldest.public_id)
+    expect(await getOwnMessage(db, { clerkUserId: 'own-detail-older', publicId: oldest.public_id })).toMatchObject({
+      publicId: oldest.public_id, content: 'Carta anterior a la primera página', version: 1,
+    })
+  })
+
+  it.each([false, true])('preserves all moderation states and visibility with premoderation=%s', async premoderation => {
+    await db`update app_private.settings set premoderation_enabled = ${premoderation} where id = 1`
+    const owner = await insertProfile(db, 'own-detail-states')
+    for (const status of ['pending', 'approved', 'rejected', 'withdrawn'] as const) {
+      const hidden = status === 'rejected' || status === 'withdrawn'
+      const letter = await insertMessage(db, owner.id, {
+        status, moderation_reason_code: hidden ? 'conduct' : null,
+        moderation_note: hidden ? 'Motivo privado' : null,
+      })
+      expect(await getOwnMessage(db, { clerkUserId: 'own-detail-states', publicId: letter.public_id })).toMatchObject({
+        publicId: letter.public_id, status,
+        moderationReasonCode: hidden ? 'conduct' : null,
+        moderationNote: hidden ? 'Motivo privado' : null,
+        publicVisible: status === 'approved' || (status === 'pending' && !premoderation),
+      })
+      await db`update app_private.profiles set suspended_at = now(), suspension_reason_code = 'conduct' where id = ${owner.id}`
+      expect(await getOwnMessage(db, { clerkUserId: 'own-detail-states', publicId: letter.public_id })).toMatchObject({
+        publicId: letter.public_id, status, publicVisible: false,
+      })
+      await db`update app_private.profiles set suspended_at = null, suspension_reason_code = null where id = ${owner.id}`
+    }
+  })
+
+  it.each(['fan', 'admin'])('returns no private letter for a foreign %s account', async role => {
+    const owner = await insertProfile(db, 'own-detail-owner')
+    await insertProfile(db, 'own-detail-other', { role })
+    const letter = await insertMessage(db, owner.id, { status: 'rejected', moderation_reason_code: 'spam', moderation_note: 'Nota privada' })
+    expect(await getOwnMessage(db, { clerkUserId: 'own-detail-other', publicId: letter.public_id })).toBeNull()
+    expect(await getOwnMessage(db, { clerkUserId: 'missing-profile', publicId: letter.public_id })).toBeNull()
+  })
+
+  it('returns null for a missing letter', async () => {
+    await insertProfile(db, 'own-detail-missing')
+    expect(await getOwnMessage(db, { clerkUserId: 'own-detail-missing', publicId: '00000000-0000-0000-0000-000000000000' })).toBeNull()
   })
 })

@@ -23,7 +23,7 @@ vi.mock('@/server/auth/account-gate', async importOriginal => ({
 }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: async () => ({ clerkUserId: 'user_123' }) }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
-vi.mock('@/server/messages/own-message-repository', () => ({ pageOwnMessages: async () => ({ items: [], nextCursor: null }) }))
+vi.mock('@/server/messages/own-message-repository', () => ({ pageOwnMessages: async () => ({ items: [], nextCursor: null }), getOwnMessage: async () => null }))
 vi.mock('@/server/actions/recover-username', () => ({ recoverUsername: vi.fn() }))
 
 import SignIn from '@/app/(site)/sign-in/[[...sign-in]]/page'

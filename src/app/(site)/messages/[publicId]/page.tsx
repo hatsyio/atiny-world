@@ -7,7 +7,7 @@ import { PublicMessageCard } from '@/components/messages/public-message-card'
 import { LetterDetail } from '@/components/messages/letter-detail'
 import { authorizeSession } from '@/server/auth/authorize'
 import { getSessionIdentity, readProfileByClerkUserId } from '@/server/auth/session'
-import { pageOwnMessages } from '@/server/messages/own-message-repository'
+import { getOwnMessage } from '@/server/messages/own-message-repository'
 import { getDb } from '@/server/db/client'
 import { getVisibleMessage } from '@/server/messages/public-repository'
 
@@ -18,7 +18,7 @@ export default async function PublicMessagePage({ params, searchParams }: { para
   const authorization = await authorizeSession(db)
   const suspended = !authorization.ok && authorization.error.messageKey === 'account.suspended'
   const identity = authorization.ok || suspended ? await getSessionIdentity() : null
-  const ownMessage = identity ? (await pageOwnMessages(db, { clerkUserId: identity.clerkUserId, limit: 100 })).items.find(item => item.publicId === publicId) : undefined
+  const ownMessage = identity ? await getOwnMessage(db, { clerkUserId: identity.clerkUserId, publicId }) ?? undefined : undefined
   const ownerProfile = ownMessage && identity && suspended ? await readProfileByClerkUserId(db, identity.clerkUserId) : null
   const ownerAuthor = authorization.ok ? { publicId: authorization.data.publicId, displayName: authorization.data.displayName }
     : ownerProfile ? { publicId: ownerProfile.public_id, displayName: ownerProfile.display_name } : null
