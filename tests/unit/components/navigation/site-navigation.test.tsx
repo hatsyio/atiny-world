@@ -33,7 +33,7 @@ describe('shared navigation', () => {
     render(<SiteHeader />)
     const links = within(screen.getByRole('navigation', { name: 'Navegación principal' })).getAllByRole('link')
     expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual([
-      ['Inicio', '/'], ['Mapa', '/#map'], ['Cartas', '/#letters'], ['Sobre nosotros', '/#about'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/messages/new?returnTo=${encodeURIComponent(suffix)}` : '/messages/new'],
+      ['Inicio', '/'], ['Mapa', '/#map'], ['Cartas', '/#letters'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/messages/new?returnTo=${encodeURIComponent(suffix)}` : '/messages/new'],
     ])
     expect(screen.getByRole('link', { name: 'Atiny Atlas' })).toHaveAttribute('href', '/')
     expect(screen.getAllByRole('link').filter(link => link.hasAttribute('aria-current')).length).toBeLessThanOrEqual(1)
@@ -148,12 +148,12 @@ describe('shared navigation', () => {
     fireEvent.scroll(window)
     expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('aria-current', 'location')
   })
-  it('marks about as active when its anchor changes the hash', () => {
+  it('preserves the visible section when a legacy about anchor changes the hash', () => {
     render(<><SiteHeader /><section id="map" /><section id="letters" /></>)
     vi.spyOn(document.getElementById('map')!, 'getBoundingClientRect').mockReturnValue({ top: -900 } as DOMRect)
     vi.spyOn(document.getElementById('letters')!, 'getBoundingClientRect').mockReturnValue({ top: 100 } as DOMRect)
     act(() => { window.history.replaceState(null, '', '#about'); fireEvent(window, new HashChangeEvent('hashchange')) })
-    expect(screen.getByRole('link', { name: 'Sobre nosotros' })).toHaveAttribute('aria-current', 'location')
+    expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('aria-current', 'location')
   })
   it('moves focus to the destination when a mobile anchor closes the menu', async () => {
     render(<><SiteHeader /><section id="map" tabIndex={-1} /></>)
@@ -169,7 +169,7 @@ describe('shared navigation', () => {
     render(await LocalizedLayout({children: <main>Profile</main>}))
     expect(screen.getAllByRole('banner')).toHaveLength(1)
     expect(screen.getAllByRole('contentinfo')).toHaveLength(1)
-    expect(screen.queryByRole('link', { name: lang === 'es' ? 'Sobre el proyecto' : 'About the project' })).not.toBeInTheDocument()
+    expect(within(screen.getByRole('contentinfo')).getByRole('link', { name: lang === 'es' ? 'Sobre nosotros' : 'About us' })).toHaveAttribute('href', '/about')
     const developer = within(screen.getByRole('contentinfo')).getByRole('link', { name: '@hatsyio' })
     expect(developer).toHaveAttribute('href', 'https://x.com/hatsyio')
     expect(developer.parentElement).toHaveTextContent(lang === 'es' ? 'Desarrollado por @hatsyio' : 'Developed by @hatsyio')

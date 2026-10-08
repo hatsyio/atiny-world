@@ -10,7 +10,7 @@ import { getPublicAppIdentity } from '@/app-identity'
 import {useLocale, useTranslations} from 'next-intl'
 import { returnDestination } from './return-destination'
 
-type Section = 'home' | 'map' | 'letters' | 'about'
+type Section = 'home' | 'map' | 'letters'
 
 export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean }) {
   const lang = useLocale()
@@ -28,13 +28,14 @@ export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean 
     if (!isHome) return
     const readHash = () => {
       const hash = window.location.hash.slice(1)
-      if (hash === 'map' || hash === 'letters' || hash === 'about') setSection(hash)
+      if (hash === 'map' || hash === 'letters') setSection(hash)
+      else if (hash === 'about') readScroll()
       else setSection('home')
     }
     const readScroll = () => {
       const boundary = window.innerHeight * 0.25
       let current: Section = 'home'
-      for (const id of ['map', 'letters', 'about'] as const) {
+      for (const id of ['map', 'letters'] as const) {
         const element = document.getElementById(id)
         if (!element) continue
         const top = element.getBoundingClientRect().top
@@ -93,7 +94,6 @@ export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean 
         <Link href={home} aria-current={current('home')}>{t('home')}</Link>
         <Link href={`${home}#map`} aria-current={current('map')}>{t('map')}</Link>
         <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t('letters')}</Link>
-        <Link href={`${home}#about`} aria-current={current('about')}>{t('about')}</Link>
         <Link className="navigation-write" href={writeHref} aria-current={writing ? 'page' : undefined}>{t('write')}</Link>
         <Show when="signed-in"><AccountMenu canAdminister={canAdminister} active={Boolean(account)} onNavigate={close} /></Show>
         <Show when="signed-out"><AccountMenu visitor active={Boolean(pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up'))} onNavigate={close} /></Show>
