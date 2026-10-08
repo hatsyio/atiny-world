@@ -93,8 +93,14 @@ iniciar el otro. El perfil `pro` requiere reconstruir la imagen para incorporar
 cambios de código; no usa recarga en caliente.
 
 El servicio `migrate` aplica las migraciones pendientes de `supabase/migrations`
-antes de iniciar Next.js. Las migraciones aplicadas se registran en
-`app_migrations.applied`, también cuando se reutiliza el volumen de datos.
+mediante Supabase CLI 2.109.1 antes de iniciar Next.js. CI y Compose comparten
+el motor de ejecución y el historial `supabase_migrations.schema_migrations`.
+Los volúmenes del ejecutor antiguo incorporan automáticamente únicamente los
+ficheros registrados en `app_migrations.applied`, sin repetir SQL; esa tabla
+queda archivada. Historiales desconocidos o incompletos detienen el arranque.
+Antes de la primera transición de una base con datos de valor, guardar un
+respaldo. Después de aplicar pendientes con el CLI, no arrancar el ejecutor
+antiguo sobre ese volumen. Véanse la [decisión y recuperación](issue-87-unified-migrations.md).
 La aplicación usa recarga en caliente sobre el checkout local. PostgreSQL se
 publica únicamente en `127.0.0.1:54332`, mientras el contenedor de aplicación
 se conecta a `db:5432`. Se usa un puerto
@@ -152,6 +158,7 @@ pnpm test:unit
 pnpm test:integration
 pnpm test:coverage
 pnpm test
+pnpm test:migrations # Docker aislado: base vacía, transición y fallos de pendientes
 ```
 
 Los comandos `test:bdd`, `test:integration`, `test:contract` y `test:coverage`
@@ -168,6 +175,11 @@ la aplicación, salvo los puntos de entrada de framework verificados por el
 build.
 
 ## Integración y despliegue continuos
+
+`test:migrations` crea y elimina únicamente su propio proyecto Compose, sin
+puertos publicados ni acceso al volumen local existente. No requiere que
+Supabase local esté arrancado; sí requiere Docker y `.env` (puede usarse el
+contenido no secreto de `.env.example` en un checkout nuevo).
 
 El workflow `.github/workflows/ci.yml` se ejecuta en pull requests y en pushes a
 `main`. Valida estilo, tipos, BDD, unidades, integración PostgreSQL, cobertura,

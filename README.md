@@ -176,7 +176,7 @@ También puede levantarse la aplicación con Docker Compose usando uno de dos pe
 
 ```sh
 cp .env.example .env  # solo la primera vez; completa las claves locales
-pnpm docker:up       # app y PostgreSQL local
+pnpm docker:up       # app, PostgreSQL local y migraciones con Supabase CLI
 pnpm docker:up:pro   # app conectada al PostgreSQL remoto
 ```
 
@@ -190,3 +190,7 @@ cuenta de aplicación en `.env.pro`. `.env.example` documenta las variables.
 ## Iniciativa de fans
 
 Proyecto no oficial, sin afiliación con ATEEZ ni su agencia.
+
+El ejecutor local y CI comparten Supabase CLI y su historial de migraciones.
+La [transición de volúmenes existentes](docs/issue-87-unified-migrations.md)
+conserva datos y evita reaplicar SQL.
