@@ -67,6 +67,9 @@ Configurar en ambos entornos de Vercel:
 
 La subida usa `https://us.posthog.com`, distinto del host de ingestión del SDK.
 Los mapas se eliminan tras subirlos; no se publican junto a los bundles.
+El build elimina también los mapas públicos que Next.js emite después del hook
+de compilación, como el mapa del polyfill nomodule. Ese mapa auxiliar no pasa
+por la subida del plugin; los chunks compilados de la aplicación sí lo hacen.
 El instalador de `@posthog/cli` está permitido en `pnpm-workspace.yaml` para
 descargar su binario oficial durante la instalación de dependencias.
 
