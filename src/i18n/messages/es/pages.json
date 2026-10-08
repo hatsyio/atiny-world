@@ -70,7 +70,7 @@
   "admin": {
     "title": "Administración",
     "navigation": "Navegación de administración",
-    "back": "Volver a ajustes",
+    "back": "Volver al mapa",
     "users": "Usuarios y roles",
     "ownerIntro": "Gestiona los roles de administrador y suspende o reactiva cuentas. Cada cambio queda registrado de forma privada.",
     "adminIntro": "Gestiona los roles de administrador de otras cuentas y suspende o reactiva cuentas de fans. Cada cambio queda registrado de forma privada. Solo el propietario puede suspender administradores.",

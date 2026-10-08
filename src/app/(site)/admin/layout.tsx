@@ -7,7 +7,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await requireAdminPage()
   const t = await getTranslations('Pages.admin')
   return <main className="auth-page admin-page">
-    <Link className="auth-back" href="/settings">{t('back')}</Link>
+    <Link className="auth-back" href="/#map">{t('back')}</Link>
     <div className="admin-panel">
       <aside className="admin-sidebar">
         <h1>{t('title')}</h1>

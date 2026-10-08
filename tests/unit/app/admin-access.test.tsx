@@ -2,9 +2,10 @@
 import { cleanup, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { render } from '../../support/intl'
+import { setServerLocale } from '../../support/server-intl'
 
 vi.mock('next-intl/server', () => import('../../support/server-intl'))
-vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('NOT_FOUND') }, useRouter: () => ({ refresh: vi.fn() }) }))
+vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('NOT_FOUND') }, useRouter: () => ({ refresh: vi.fn() }), usePathname: () => '/admin/users' }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 vi.mock('@/server/auth/authorize', () => ({ authorizeSession: vi.fn() }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: vi.fn() }))
@@ -17,7 +18,14 @@ import { authorizeSession } from '@/server/auth/authorize'
 import { getSessionIdentity } from '@/server/auth/session'
 import { searchAccounts } from '@/server/moderation/accounts'
 
-afterEach(() => { cleanup(); vi.resetAllMocks() })
+afterEach(() => { cleanup(); vi.resetAllMocks(); setServerLocale('en') })
+
+it.each(['es', 'en'] as const)('returns from administration directly to the map in %s', async locale => {
+  setServerLocale(locale)
+  vi.mocked(authorizeSession).mockResolvedValue({ ok: true, data: { profileId: '1', publicId: 'actor', displayName: 'Admin', role: 'admin' } })
+  render(await AdminLayout({ children: <p>Admin content</p> }), { locale })
+  expect(screen.getByRole('link', { name: locale === 'es' ? 'Volver al mapa' : 'Back to the map' })).toHaveAttribute('href', '/#map')
+})
 
 it.each(['fan', null])('does not render the admin layout for %s', async role => {
   vi.mocked(authorizeSession).mockResolvedValue(role ? { ok: true, data: { profileId: '1', publicId: 'id', displayName: 'Fan', role: 'fan' } } : { ok: false, error: { code: 'NOT_FOUND' } })

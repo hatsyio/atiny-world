@@ -70,7 +70,7 @@
   "admin": {
     "title": "Administration",
     "navigation": "Administration navigation",
-    "back": "Back to settings",
+    "back": "Back to the map",
     "users": "Users and roles",
     "ownerIntro": "Manage administrator roles and suspend or reactivate accounts. Each change is recorded privately.",
     "adminIntro": "Manage administrator roles for other accounts and suspend or reactivate fan accounts. Each change is recorded privately. Only the owner can suspend administrators.",
