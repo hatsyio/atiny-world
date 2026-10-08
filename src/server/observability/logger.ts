@@ -1,3 +1,6 @@
+import { consoleLogSink } from './console-logs'
+import { postHogLogSink } from './posthog-logs'
+
 export type LogLevel = 'info' | 'warn' | 'error'
 
 export type LogFields = Record<string, unknown>
@@ -38,6 +41,8 @@ function leafKey(dottedPath: string): string {
 }
 
 function redactField(path: string, value: unknown): unknown {
+  if (RESERVED_KEY_PATTERN.test(leafKey(path)) || !isLogSafeValue(value)) return '[REDACTED]'
+
   if (Array.isArray(value)) {
     return value.map((entry, index) => redactField(`${path}.${index}`, entry))
   }
@@ -51,15 +56,13 @@ function redactField(path: string, value: unknown): unknown {
     )
   }
 
-  const key = leafKey(path)
-  if (RESERVED_KEY_PATTERN.test(key) || !isLogSafeValue(value)) return '[REDACTED]'
   return value
 }
 
 export function redactLogFields(fields: LogFields, throwOnSensitiveKey = false): LogFields {
   return Object.fromEntries(
     Object.entries(fields).map(([key, value]) => {
-      if (RESERVED_KEY_PATTERN.test(key)) {
+      if (RESERVED_KEY_PATTERN.test(leafKey(key))) {
         if (throwOnSensitiveKey) throw new LogRedactionError(key, value)
         return [key, '[REDACTED]']
       }
@@ -74,10 +77,15 @@ export function redactLogFields(fields: LogFields, throwOnSensitiveKey = false):
 
 export function createLogger(
   scope: string,
-  sink: LogSink = defaultSink,
+  sinks: readonly LogSink[] = [consoleLogSink, postHogLogSink],
 ): Logger {
   const write = (level: LogLevel, message: string, fields: LogFields = {}) => {
-    sink(level, scope, message, redactLogFields(fields))
+    const redactedFields = redactLogFields(fields)
+    for (const sink of sinks) {
+      try {
+        sink(level, scope, message, redactedFields)
+      } catch { /* A failing transport must not affect other destinations or requests. */ }
+    }
   }
 
   return {
@@ -85,18 +93,4 @@ export function createLogger(
     warn: (message, fields) => write('warn', message, fields),
     error: (message, fields) => write('error', message, fields),
   }
-}
-
-function defaultSink(level: LogLevel, scope: string, message: string, fields: LogFields): void {
-  if (level === 'error') {
-    console.error(jsonLine(scope, message, fields))
-  } else if (level === 'warn') {
-    console.warn(jsonLine(scope, message, fields))
-  } else {
-    console.log(jsonLine(scope, message, fields))
-  }
-}
-
-function jsonLine(scope: string, message: string, fields: LogFields): string {
-  return JSON.stringify({ time: new Date().toISOString(), scope, message, ...fields })
 }

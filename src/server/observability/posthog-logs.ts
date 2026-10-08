@@ -3,8 +3,9 @@ import { SeverityNumber } from '@opentelemetry/api-logs'
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs'
 
+import type { LogFields, LogSink } from './logger'
+
 type LogAttributes = Record<string, boolean | number | string>
-type LogLevel = 'error' | 'info' | 'warn'
 
 let loggerProvider: LoggerProvider | null | undefined
 let logEmitter: ReturnType<LoggerProvider['getLogger']> | null = null
@@ -43,11 +44,20 @@ function registerPostHogLogExporter() {
   logEmitter = loggerProvider.getLogger('posthog.exporter')
 }
 
-export async function logPostHogExport(
-  level: LogLevel,
-  body: string,
-  attributes: LogAttributes,
-) {
+// This adapter receives fields already protected by the common logging policy.
+function toAttributes(fields: LogFields): LogAttributes {
+  const attributes: LogAttributes = {}
+  for (const [key, value] of Object.entries(fields)) {
+    if (typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') {
+      attributes[key] = value
+    } else if (value !== null && typeof value === 'object') {
+      attributes[key] = JSON.stringify(value)
+    }
+  }
+  return attributes
+}
+
+export const postHogLogSink: LogSink = (level, scope, body, fields) => {
   try {
     // Instrumentation and routes can run in separate Next.js module graphs.
     // Initialize in the graph that emits the log, before reading its state.
@@ -55,6 +65,7 @@ export async function logPostHogExport(
     if (!loggerProvider || !logEmitter) return
     const provider = loggerProvider
     const emitter = logEmitter
+    const attributes = { ...toAttributes(fields), scope }
 
     after(async () => {
       try {

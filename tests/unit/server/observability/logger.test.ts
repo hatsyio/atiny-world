@@ -56,6 +56,16 @@ describe('redactLogFields', () => {
     })
   })
 
+  it('redacts sensitive containers and dotted keys at any depth', () => {
+    expect(redactLogFields({
+      operation: { payload: { kept: 'private' }, note: ['private'] },
+      'request.authorization': 'private',
+    })).toEqual({
+      operation: { payload: '[REDACTED]', note: '[REDACTED]' },
+      'request.authorization': '[REDACTED]',
+    })
+  })
+
   it('throws when asserting a reserved key', () => {
     expect(() => redactLogFields({ email: 'a@b.com' }, true)).toThrow(
       LogRedactionError,
@@ -91,7 +101,7 @@ describe('createLogger', () => {
 
   it('emits structured records through the injected sink', () => {
     const { lines, sink } = recorded()
-    const logger = createLogger('test', sink)
+    const logger = createLogger('test', [sink])
 
     logger.info('ready', { count: 3 })
 
@@ -102,7 +112,7 @@ describe('createLogger', () => {
 
   it('redacts sensitive fields before they reach the sink', () => {
     const { lines, sink } = recorded()
-    const logger = createLogger('test', sink)
+    const logger = createLogger('test', [sink])
 
     logger.error('failed', { email: 'fan@example.org', profileId: '42' })
 
@@ -111,7 +121,7 @@ describe('createLogger', () => {
 
   it('supports warn and error levels', () => {
     const { lines, sink } = recorded()
-    const logger = createLogger('test', sink)
+    const logger = createLogger('test', [sink])
 
     logger.warn('careful')
     logger.error('boom')
