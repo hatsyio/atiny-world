@@ -10,6 +10,12 @@ import { render, IntlTestProvider } from '../../../support/intl'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { PublicMapFeature } from '@/domain/messages/public-message'
 import { LeafletMap } from '@/components/map/leaflet-map'
+import { PublicMapController } from '@/components/map/public-map-controller'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams('mapView=40,-3,8'),
+}))
 
 const feature: PublicMapFeature = {
   publicId: '11111111-1111-4111-8111-111111111111', point: { latitude: 40, longitude: -3 },
@@ -67,6 +73,32 @@ it('pans the map to keep an asynchronously loaded letter below the top edge', as
   await waitFor(() => expect(pan).toHaveBeenCalled())
   const offset = pan.mock.calls[0][0] as number[]
   expect(offset[1]).toBeLessThan(0)
+})
+
+it('keeps the same open popup while a map movement refreshes viewport markers', async () => {
+  let pending = false
+  let resolveViewport!: (response: Response) => void
+  vi.stubGlobal('fetch', vi.fn((url: string) => {
+    if (url.startsWith('/api/messages/')) return Promise.resolve(new Response(JSON.stringify({ ...feature, content: 'visible letter' })))
+    if (pending) return new Promise<Response>(resolve => { resolveViewport = resolve })
+    return Promise.resolve(new Response(JSON.stringify({ features: [feature] })))
+  }))
+  const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
+  const page = render(<PublicMapController />)
+  const map = await getMap(factory)
+  const marker = (await getGroup(map)).getLayers()[0] as leaflet.Marker
+  clickMarker(marker)
+  await page.findByText('visible letter')
+  const popup = marker.getPopup()
+  pending = true
+  act(() => { map.panBy([0, -20], { animate: false }) })
+  await waitFor(() => expect(resolveViewport).toBeTypeOf('function'))
+  expect(marker.isPopupOpen()).toBe(true)
+  expect(page.getByText('visible letter')).toBeInTheDocument()
+  await act(async () => { resolveViewport(new Response(JSON.stringify({ features: [feature] }))) })
+  expect((await getGroup(map)).getLayers()[0]).toBe(marker)
+  expect(marker.getPopup()).toBe(popup)
+  expect(marker.isPopupOpen()).toBe(true)
 })
 
 it('keeps the map and marker identity, view and current callbacks on feature updates', async () => {

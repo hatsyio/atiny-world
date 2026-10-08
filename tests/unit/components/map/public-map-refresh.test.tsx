@@ -46,6 +46,25 @@ afterEach(() => {
 })
 
 describe('PublicMapController', () => {
+  it('keeps markers during a viewport request but clears them when filters change', async () => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+    let resolveViewport!: (response: Response) => void
+    vi.stubGlobal('fetch', vi.fn((url: string) => {
+      if (url.includes('city=Madrid')) return new Promise<Response>(() => {})
+      if (url.includes('west=-4')) return new Promise<Response>(resolve => { resolveViewport = resolve })
+      return Promise.resolve(new Response(JSON.stringify({ features: [{ publicId: 'open-letter' }] })))
+    }))
+    const page = render(<PublicMapController />)
+    await waitFor(() => expect(page.getByLabelText('Visible markers')).toHaveTextContent('open-letter'))
+    act(() => page.getByRole('button', { name: 'Set viewport' }).click())
+    await waitFor(() => expect(resolveViewport).toBeTypeOf('function'))
+    expect(page.getByLabelText('Visible markers')).toHaveTextContent('open-letter')
+    await act(async () => { resolveViewport(new Response(JSON.stringify({ features: [{ publicId: 'open-letter' }, { publicId: 'new-letter' }] }))) })
+    await waitFor(() => expect(page.getByLabelText('Visible markers')).toHaveTextContent('new-letter'))
+    act(() => page.getByRole('button', { name: 'Set filters' }).click())
+    expect(page.getByLabelText('Visible markers')).toBeEmptyDOMElement()
+  })
+
   it('respects filters after locating a selected letter', async () => {
     vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ features: [] }))))
