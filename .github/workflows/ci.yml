@@ -21,9 +21,6 @@ jobs:
   quality:
     name: Quality and build
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
-      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
     steps:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -42,6 +39,10 @@ jobs:
         uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
         with:
           version: 2.109.1
+
+      - name: Configure isolated test database
+        id: configure-db
+        run: node scripts/configure-ci-database.mjs
 
       - name: Start migrated test database
         run: supabase db start
@@ -58,12 +59,13 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Stop isolated test database
+        if: ${{ always() && steps.configure-db.outcome == 'success' }}
+        run: supabase stop --project-id "$CI_SUPABASE_PROJECT_ID" --no-backup --yes
+
   coverage:
     name: Integration and coverage
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
-      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
     steps:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -83,6 +85,10 @@ jobs:
         with:
           version: 2.109.1
 
+      - name: Configure isolated test database
+        id: configure-db
+        run: node scripts/configure-ci-database.mjs
+
       - name: Start migrated test database
         run: supabase db start
 
@@ -91,6 +97,10 @@ jobs:
 
       - name: Run API and action contract tests
         run: pnpm test:contract
+
+      - name: Stop isolated test database
+        if: ${{ always() && steps.configure-db.outcome == 'success' }}
+        run: supabase stop --project-id "$CI_SUPABASE_PROJECT_ID" --no-backup --yes
 
   docker:
     name: Docker build
