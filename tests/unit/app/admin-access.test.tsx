@@ -1,17 +1,18 @@
 /** @vitest-environment jsdom */
-import { cleanup, screen } from '@testing-library/react'
+import { cleanup, screen, fireEvent } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { render } from '../../support/intl'
 import { setServerLocale } from '../../support/server-intl'
 
 vi.mock('next-intl/server', () => import('../../support/server-intl'))
-vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('NOT_FOUND') }, useRouter: () => ({ refresh: vi.fn() }), usePathname: () => '/admin/users' }))
+vi.mock('next/navigation', () => ({ redirect: (path: string) => { throw new Error(`REDIRECT:${path}`) }, notFound: () => { throw new Error('NOT_FOUND') }, useRouter: () => ({ refresh: vi.fn() }), usePathname: () => '/admin/users' }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 vi.mock('@/server/auth/authorize', () => ({ authorizeSession: vi.fn() }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: vi.fn() }))
 vi.mock('@/server/moderation/accounts', () => ({ searchAccounts: vi.fn() }))
 vi.mock('@/app/(site)/admin/users/actions', () => ({ setAdministratorRoleAction: vi.fn(), setSuspensionAction: vi.fn() }))
 
+import AdminPage from '@/app/(site)/admin/page'
 import AdminLayout from '@/app/(site)/admin/layout'
 import AdminUsersPage from '@/app/(site)/admin/users/page'
 import { authorizeSession } from '@/server/auth/authorize'
@@ -42,6 +43,8 @@ it.each(['admin', 'owner'] as const)('renders role controls for administrators a
   vi.mocked(searchAccounts).mockResolvedValue({ ok: true, data: { actorRole: role, hasMore: false, items: [{ publicId: 'target', displayName: 'ATINY fan', role: 'fan', roleVersion: 1, suspensionVersion: 1, state: 'active' }] } })
   render(await AdminUsersPage({ searchParams: Promise.resolve({}) }))
   expect(screen.getByText('ATINY fan')).toBeVisible()
+  expect(screen.queryByRole('button', { name: 'Make administrator' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: /^Manage:/ }))
   expect(screen.getByRole('button', { name: 'Make administrator' })).toBeVisible()
   expect(screen.getByRole('button', { name: 'Suspend account' })).toBeVisible()
 })
@@ -54,6 +57,8 @@ it.each([
   vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'actor' })
   vi.mocked(searchAccounts).mockResolvedValue({ ok: true, data: { actorRole: role, hasMore: false, items: [{ publicId: 'target', displayName: 'Target', role: targetRole, roleVersion: 1, suspensionVersion: 1, state }] } })
   render(await AdminUsersPage({ searchParams: Promise.resolve({}) }))
+  const manage = screen.queryByRole('button', { name: /^Manage:/ })
+  if (manage) fireEvent.click(manage)
   expect(screen.queryByRole('button', { name: state === 'suspended' ? 'Reactivate account' : 'Suspend account' }) !== null).toBe(allowed)
 })
 
@@ -68,5 +73,12 @@ it.each([
   vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'user_actor' })
   vi.mocked(searchAccounts).mockResolvedValue({ ok: true, data: { actorRole: role, hasMore: false, items: [{ publicId, displayName: 'Target', role: targetRole, roleVersion: 1, suspensionVersion: 1, state }] } })
   render(await AdminUsersPage({ searchParams: Promise.resolve({}) }))
+  const manage = screen.queryByRole('button', { name: /^Manage:/ })
+  if (manage) fireEvent.click(manage)
   expect(screen.queryByRole('button', { name: targetRole === 'admin' ? 'Remove administrator role' : 'Make administrator' }) !== null).toBe(allowed)
+})
+
+it('opens the moderation queue by default after authorizing the administrator', async () => {
+  vi.mocked(authorizeSession).mockResolvedValue({ ok: true, data: { profileId: '1', publicId: 'actor', displayName: 'Actor', role: 'admin' } })
+  await expect(AdminPage()).rejects.toThrow('REDIRECT:/admin/messages')
 })

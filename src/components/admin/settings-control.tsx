@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { updateSettingsAction, type SettingsActionState } from '@/app/(site)/admin/settings/actions'
 import type { AdminSettings } from '@/server/moderation/settings'
+import { AdminSpinner } from './admin-spinner'
 
 export function AdminSettingsControl({ settings }: { settings: AdminSettings }) {
   const t = useTranslations('Pages.admin.settingsPanel')
@@ -59,6 +60,6 @@ export function AdminSettingsControl({ settings }: { settings: AdminSettings }) 
       </label>
     </div> : null}
     {statusMessage ? <p role="alert">{statusMessage}</p> : null}
-    <button type="submit" disabled={pending || (moderationChanged && !confirmed)}>{pending ? t('saving') : t('save')}</button>
+    <button type="submit" disabled={pending || (moderationChanged && !confirmed)}>{pending && <AdminSpinner />}{pending ? t('saving') : t('save')}</button>
   </form>
 }

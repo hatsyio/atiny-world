@@ -68,6 +68,10 @@
     "intro": "Elige el idioma de Atiny Atlas y administra la seguridad de tu cuenta."
   },
   "admin": {
+    "loading": "Cargando administración…",
+    "manage": "Gestionar",
+    "permissions": "Permisos",
+    "accountAccess": "Acceso a la cuenta",
     "title": "Administración",
     "navigation": "Navegación de administración",
     "back": "Volver al mapa",
@@ -125,6 +129,14 @@
       "limitsHint": "Controla cuántas cartas puede publicar cada cuenta y el tiempo entre envíos."
     },
     "moderation": {
+      "moreOptions": "Más opciones",
+      "rejectTitle": "¿Rechazar esta carta?",
+      "rejectConfirm": "Vas a rechazar la carta de {name}. Confirma para aplicar la decisión.",
+      "optionalReason": "Motivo (opcional)",
+      "defaultReasonHint": "Si no eliges un motivo, se registrará: {reason}.",
+      "cancel": "Cancelar",
+      "confirmRejection": "Confirmar rechazo",
+      "moderate": "Moderar",
       "title": "Moderación de mensajes",
       "intro": "Revisa las cartas sin modificar su texto. Cada decisión queda registrada de forma privada.",
       "searchLabel": "Buscar por texto de la carta, nombre de autora o ID de carta",
