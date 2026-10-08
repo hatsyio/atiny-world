@@ -26,6 +26,17 @@ se comprobaron después de migrar las cuentas.
 | Clerk | Cuentas, sesiones, acceso, recuperación y correos de autenticación | Aplicación independiente `Atiny Atlas`. Production usa claves live y `clerk.atinyatlas.com`; Preview y Development usan su instancia Development con claves test. Las variables se gestionan manualmente en Vercel. |
 | Google Cloud / Google Auth Platform | Cliente OAuth para «Continuar con Google» | Credenciales propias configuradas en Clerk Production. URI de retorno: `https://clerk.atinyatlas.com/v1/oauth_callback`. El estado de publicación y la marca se gestionan en Google Cloud. |
 | Supabase | PostgreSQL con PostGIS para perfiles, cartas y moderación | Proyecto remoto documentado como `atiny-world`, región París. Acceso desde el backend mediante `DATABASE_URL`; la autenticación de la aplicación la gestiona Clerk. Production y Preview comparten actualmente la base remota. |
+
+El cliente de runtime utiliza `DATABASE_URL` sin cambiar el puerto. Mantiene
+`prepare: false`, una conexión por proceso y cierra conexiones tras 20 segundos
+de inactividad; la siguiente consulta abre una nueva conexión. El pooler de
+sesión permanece en 5432: antes de pasar a modo transacción (6543) hay que
+validar consultas concurrentes y transacciones con el driver. En la
+investigación del 8 de octubre, las lecturas secuenciales funcionaron en 6543,
+pero una mezcla concurrente de consultas simples, parametrizadas y
+transacciones se bloqueó. La misma mezcla terminó correctamente en 5432.
+
+Referencia: [conexiones de Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres).
 | GitHub / GitHub Actions | Repositorio, PR y validación de CI | Repositorio `hatsyio/atiny-world`. Actions ejecuta los controles; Vercel realiza los despliegues. |
 | CARTO / OpenStreetMap | Mapa base y datos cartográficos | Teselas de CARTO y atribución a CARTO/OpenStreetMap. La clave de CARTO es pública y se configura con `NEXT_PUBLIC_CARTO_BASEMAP_KEY`. |
 | Geoapify | Autocompletado y búsqueda inversa de ubicaciones | Consultas desde el servidor; `GEOAPIFY_API_KEY` se mantiene privada. |

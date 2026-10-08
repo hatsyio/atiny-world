@@ -8,7 +8,9 @@ import { LanguageSynchronizer } from '@/components/i18n/language-synchronizer'
 const boundary = vi.hoisted(() => ({
   auth: { isLoaded: false, userId: null as string | null },
   pathname: '/', locale: 'en', router: { refresh: vi.fn() }, sync: vi.fn(),
+  captureException: vi.fn(),
 }))
+vi.mock('posthog-js', () => ({ default: { captureException: boundary.captureException } }))
 vi.mock('@clerk/nextjs', () => ({ useAuth: () => boundary.auth }))
 vi.mock('next/navigation', () => ({ usePathname: () => boundary.pathname, useRouter: () => boundary.router }))
 vi.mock('next-intl', () => ({ useLocale: () => boundary.locale }))
@@ -32,6 +34,24 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('language synchronization triggers and request counts', () => {
+  it('handles transport failure, keeps the draft and retries on navigation', async () => {
+    boundary.auth = { isLoaded: true, userId: 'a' }
+    const error = new TypeError('Failed to fetch')
+    boundary.sync.mockRejectedValueOnce(error)
+    const page = render(<Page />)
+    fireEvent.change(screen.getByRole('textbox', { name: 'draft' }), { target: { value: 'Unsent letter' } })
+    await waitFor(() => expect(boundary.captureException).toHaveBeenCalledWith(error, {
+      operation: 'synchronize_language_preference',
+    }))
+    expect(boundary.router.refresh).not.toHaveBeenCalled()
+    expect(screen.getByRole('textbox', { name: 'draft' })).toHaveValue('Unsent letter')
+    boundary.sync.mockResolvedValue({ ok: true, locale: 'es', preference: 'es' })
+    boundary.pathname = '/profile'
+    page.rerender(<Page />)
+    await waitFor(() => expect(boundary.router.refresh).toHaveBeenCalledTimes(1))
+    expect(screen.getByRole('textbox', { name: 'draft' })).toHaveValue('Unsent letter')
+  })
+
   it('waits for auth and synchronizes on account, logout, route and preference changes', async () => {
     const page = render(<Page />)
     expect(boundary.sync).not.toHaveBeenCalled()

@@ -21,6 +21,7 @@ export function getDb(): Sql {
 
     database = postgres(databaseUrl, {
       max: 1,
+      idle_timeout: 20,
       prepare: false,
       ssl: isLocalDatabase(databaseUrl) ? false : 'require',
       connection: { options: '-c search_path=extensions,public' },
