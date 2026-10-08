@@ -23,6 +23,23 @@
 .admin-panel input:not([type='checkbox']):not([type='hidden']), .admin-panel select, .admin-panel textarea { min-width: 0; max-width: 100%; min-height: 44px; padding: .65rem .8rem; border: 1px solid #aaa89f; border-radius: 5px; background: #fffefa; color: #26313b; font: inherit; font-size: .9rem; }
 .admin-panel select { appearance: none; padding-right: 2.5rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='m3 4.5 3 3 3-3' stroke='%23606971' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .9rem center; background-size: 12px 12px; }
 .admin-panel select:disabled { opacity: .6; cursor: not-allowed; }
+.admin-select { display: grid; gap: .5rem; min-width: 0; }
+.admin-select-label { font-size: .85rem; font-weight: 600; line-height: 1.6; }
+.admin-panel .admin-select-trigger { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; min-width: 0; padding: .65rem .8rem; border: 1px solid #aaa89f; background: #fffefa; color: #26313b; text-align: left; font-size: .9rem; font-weight: 400; }
+.admin-select-trigger svg { flex-shrink: 0; color: #606971; }
+.admin-select-value { min-width: 0; overflow-wrap: anywhere; }
+.admin-select-value[data-placeholder] { color: #606971; }
+.admin-panel .admin-select-trigger[data-hovered], .admin-panel .admin-select-trigger[data-pressed] { border-color: var(--admin-accent); background: #fffcf6; }
+.admin-panel .admin-select-trigger[data-focus-visible] { outline: 3px solid #285574; outline-offset: 3px; }
+.admin-select-popover { --admin-accent: #285574; --admin-tint: #edf3f7; width: var(--trigger-width); max-width: calc(100vw - 24px); border: 1px solid #b9c6cb; border-radius: 7px; background: #fffcf6; box-shadow: 0 6px 20px #26313b24; color: #26313b; font-family: var(--font-interface), sans-serif; z-index: 700; }
+.admin-select-popover--users { --admin-accent: #326454; --admin-tint: #eff4ef; border-color: #b9c9bf; }
+.admin-select-options { max-height: min(320px, var(--available-height)); overflow: auto; padding: .35rem; outline: none; }
+.admin-select-option { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 44px; padding: .7rem .75rem; border-radius: 4px; font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; cursor: default; outline: none; }
+.admin-select-option[data-selected] { color: var(--admin-accent); font-weight: 600; }
+.admin-select-option[data-focused] { background: var(--admin-tint); }
+.admin-select-option[data-focus-visible] { box-shadow: inset 0 0 0 2px var(--admin-accent); }
+.admin-select-check { width: 1rem; flex-shrink: 0; color: var(--admin-accent); }
+.admin-select-error { font-size: .85rem; color: #7e3431; line-height: 1.5; }
 .admin-panel textarea { resize: vertical; }
 .admin-panel button { min-height: 44px; padding: .65rem 1rem; border: 1px solid var(--admin-accent); border-radius: 5px; background: var(--admin-accent); color: white; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
 .admin-panel button:disabled { opacity: .6; cursor: not-allowed; }
@@ -35,6 +52,7 @@
 .admin-search input { flex: 1; width: 100%; }
 .admin-message-search { display: grid; grid-template-columns: minmax(0, 1fr) 14rem; align-items: end; gap: 1rem; }
 .admin-message-search > .admin-search-field { display: block; min-width: 0; }
+.admin-search-field > .admin-select { display: grid; gap: .5rem; }
 .admin-search-field select { width: 100%; }
 .admin-users { padding: 0; list-style: none; }
 .admin-users > li { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 1.5rem; padding-block: 1.5rem; border-top: 1px solid #d9d2c6; overflow-wrap: anywhere; }
@@ -73,6 +91,8 @@
 .admin-pagination a { display: inline-flex; min-height: 44px; align-items: center; color: var(--admin-accent); text-underline-offset: 4px; }
 @media (forced-colors: active) {
   .admin-panel select { appearance: auto; background-image: none; }
+  .admin-select-option[data-focused] { outline: 2px solid Highlight; }
+  .admin-select-option[data-selected], .admin-select-check { color: Highlight; }
 }
 @media (max-width: 1000px) {
   .admin-panel { grid-template-columns: 200px minmax(0, 1fr); }
