@@ -47,6 +47,28 @@ function respond(content = 'visible letter') {
   return fetch
 }
 
+it('pans the map to keep an asynchronously loaded letter below the top edge', async () => {
+  let resolve!: (response: Response) => void
+  vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(done => { resolve = done })))
+  // jsdom has no layout: model a popup growing from a loading label to a letter.
+  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('leaflet-popup') ? (this.textContent?.includes('loaded letter') ? 400 : 80) : 0
+  })
+  vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(380)
+  const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
+  render(<LeafletMap initialView={initialView} features={[feature]} onSelect={() => {}} />)
+  const map = await getMap(factory)
+  const marker = (await getGroup(map)).getLayers()[0] as leaflet.Marker
+  act(() => { marker.setLatLng(map.containerPointToLatLng([400, 180])) })
+  clickMarker(marker)
+  await waitFor(() => expect(resolve).toBeTypeOf('function'))
+  const pan = vi.spyOn(map, 'panBy')
+  await act(async () => { resolve(new Response(JSON.stringify({ ...feature, content: 'loaded letter' }))) })
+  await waitFor(() => expect(pan).toHaveBeenCalled())
+  const offset = pan.mock.calls[0][0] as number[]
+  expect(offset[1]).toBeLessThan(0)
+})
+
 it('keeps the map and marker identity, view and current callbacks on feature updates', async () => {
   const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const first = vi.fn()
