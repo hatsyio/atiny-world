@@ -24,15 +24,6 @@ export async function signLocationSelection(
     .sign(new TextEncoder().encode(secret))
 }
 
-export async function verifyLocationSelection(
-  token: string,
-  secret: string,
-  now = new Date(),
-): Promise<LocationSelection | null> {
-  const result = await verifyLocationSelectionResult(token, secret, now)
-  return result.ok ? result.selection : null
-}
-
 export type LocationSelectionVerification =
   | { ok: true; selection: LocationSelection }
   | { ok: false; reason: 'INVALID' | 'EXPIRED' }

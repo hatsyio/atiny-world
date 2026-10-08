@@ -6,7 +6,6 @@ import {
   authorizeProfile,
   authorizeSession,
   isProfileComplete,
-  requireRole,
   resolveProfileState,
   toAuthorizeActionResult,
   type AuthorizedProfile,
@@ -138,30 +137,6 @@ describe('authorizeSession', () => {
     expect(result).toMatchObject({
       ok: true,
       data: { profileId: '42', role: 'fan' },
-    })
-  })
-})
-
-describe('requireRole', () => {
-  const fan: AuthorizedProfile = {
-    profileId: '42',
-    publicId: '00000000-0000-4000-8000-000000000001',
-    displayName: 'ATINY',
-    role: 'fan',
-  }
-  const admin: AuthorizedProfile = { ...fan, role: 'admin' }
-
-  it('allows members of the requested roles', async () => {
-    expect(await requireRole(admin, ['admin', 'owner'])).toMatchObject({
-      ok: true,
-      data: admin,
-    })
-  })
-
-  it('denies profiles outside the requested roles', async () => {
-    expect(await requireRole(fan, ['admin', 'owner'])).toMatchObject({
-      ok: false,
-      error: { code: 'NOT_FOUND' },
     })
   })
 })

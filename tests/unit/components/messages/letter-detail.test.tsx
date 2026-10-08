@@ -30,3 +30,11 @@ it('lets the owner edit and discard a draft in the detail', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Edit letter' }))
   expect(screen.getByRole('textbox', { name: 'Your letter' })).toHaveValue('My original letter')
 })
+
+it('renders URLs and HTML as literal letter text without executable markup', () => {
+  const content = '사랑해요 ATINY\nVisita https://example.com <script>alert(1)</script><a href="https://example.com">link</a>'
+  const { container } = render(<LetterDetail message={{ ...message, content }} />)
+  expect(container.querySelector('.letter-reading__content')?.textContent).toBe(content)
+  expect(container.querySelector('.letter-reading__content a')).toBeNull()
+  expect(container.querySelector('.letter-reading__content script')).toBeNull()
+})

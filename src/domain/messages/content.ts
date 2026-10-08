@@ -26,7 +26,3 @@ export function validateMessageContent(
   }
   return { ok: true }
 }
-
-export function renderMessageText(content: string): { text: string; links: [] } {
-  return { text: content, links: [] }
-}

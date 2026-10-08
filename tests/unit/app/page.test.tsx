@@ -29,12 +29,11 @@ vi.mock('../../../src/components/map/public-map-controller', () => ({
 vi.mock('../../../src/server/db/client', () => ({ getDb: vi.fn() }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: async () => null }))
 vi.mock('../../../src/server/messages/public-repository', () => ({
-  listLatestPublicMessages: vi.fn(async () => []),
+  getPublicMessageStats: vi.fn(async () => ({ letters: 0, countries: 0 })),
 }))
 
 vi.mock('../../../src/server/messages/latest-public-messages', () => ({
   listLatestHomepageMessages: vi.fn(async () => []),
-  getHomepageStats: vi.fn(async () => ({ letters: 0, countries: 0 })),
 }))
 
 import SiteLayout from '@/app/(site)/layout'
