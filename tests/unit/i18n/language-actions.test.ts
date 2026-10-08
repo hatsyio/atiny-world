@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: mocks.get, set: mocks.set, delete: mocks.remove }), headers: async () => ({ get: () => 'en' }) }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: mocks.identity }))
 vi.mock('@/server/auth/language-preference', () => ({ readLanguagePreference: mocks.read, saveLanguagePreferenceForSession: mocks.save }))
-vi.mock('@/server/actions/complete-profile', () => ({ completeProfileForSession: mocks.complete }))
+vi.mock('@/server/auth/profile-recovery', () => ({ recoverProfile: mocks.complete }))
 vi.mock('@/server/db', () => ({ getDb: () => mocks.sql }))
 
 import { setLanguagePreference, synchronizeLanguagePreference } from '../../../src/server/actions/language-preference'
@@ -18,7 +18,7 @@ beforeEach(() => {
   mocks.identity.mockResolvedValue(null)
   mocks.read.mockResolvedValue(null)
   mocks.save.mockResolvedValue(true)
-  mocks.complete.mockResolvedValue({ ok: true })
+  mocks.complete.mockResolvedValue({ kind: 'available', profile: { language_preference: null } })
   mocks.sql.mockResolvedValue([])
 })
 
@@ -38,8 +38,14 @@ describe('language action cookie ownership', () => {
   it('does not report success when a missing profile cannot be completed', async () => {
     mocks.identity.mockResolvedValue({ clerkUserId: 'a' })
     mocks.save.mockResolvedValue(false)
-    mocks.complete.mockResolvedValue({ ok: false })
+    mocks.complete.mockResolvedValue({ kind: 'incomplete' })
     expect(await setLanguagePreference('es')).toEqual({ ok: false })
+    expect(mocks.set).not.toHaveBeenCalled()
+  })
+  it('reports technical recovery failures without persisting a cookie', async () => {
+    mocks.identity.mockResolvedValue({ clerkUserId: 'a' })
+    mocks.complete.mockResolvedValue({ kind: 'failed', error: { code: 'INTERNAL_ERROR', messageKey: 'profile.creationFailed' } })
+    expect(await synchronizeLanguagePreference()).toEqual({ ok: false })
     expect(mocks.set).not.toHaveBeenCalled()
   })
   it('adopts the anonymous manual choice atomically at first login', async () => {
@@ -65,16 +71,16 @@ describe('language action cookie ownership', () => {
   it('retains an owner-bound selection before profile completion and persists it on retry', async () => {
     mocks.identity.mockResolvedValue({ clerkUserId: 'new' })
     mocks.get.mockImplementation((name) => name === ACCOUNT_LANGUAGE_COOKIE ? { value: encodeAccountPreference('new', 'es') } : undefined)
-    mocks.complete.mockResolvedValueOnce({ ok: false }).mockResolvedValueOnce({ ok: true })
+    mocks.complete.mockResolvedValueOnce({ kind: 'incomplete' }).mockResolvedValueOnce({ kind: 'available', profile: { language_preference: null } })
     expect(await synchronizeLanguagePreference()).toEqual({ ok: true, locale: 'es', preference: 'es' })
     expect(await synchronizeLanguagePreference()).toEqual({ ok: true, locale: 'es', preference: 'es' })
     expect(mocks.complete).toHaveBeenCalledTimes(2)
-    expect(mocks.sql).toHaveBeenCalledTimes(2)
+    expect(mocks.sql).toHaveBeenCalledTimes(1)
     expect(mocks.set).toHaveBeenLastCalledWith(ACCOUNT_LANGUAGE_COOKIE, encodeAccountPreference('new', 'es'), expect.any(Object))
   })
   it('reads back a setting changed concurrently instead of overwriting it', async () => {
     mocks.identity.mockResolvedValue({ clerkUserId: 'a' })
-    mocks.read.mockResolvedValueOnce(null).mockResolvedValueOnce('es')
+    mocks.read.mockResolvedValueOnce('es')
     expect(await synchronizeLanguagePreference()).toEqual({ ok: true, locale: 'es', preference: 'es' })
   })
 })

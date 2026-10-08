@@ -38,7 +38,7 @@ describe('resolveAccountGate', () => {
         {} as Sql,
         async () => ({ userId: 'user_123' }),
         async () => null,
-        async () => false,
+        async () => ({ id: 'user_123', username: null, unsafeMetadata: {} }),
       ),
     ).toEqual({ kind: 'incomplete' })
 
@@ -49,6 +49,16 @@ describe('resolveAccountGate', () => {
         async () => row({ display_name: '  ' }),
       ),
     ).toEqual({ kind: 'incomplete' })
+  })
+
+  it('propagates a creation failure instead of sending the account to profile completion', async () => {
+    const sql = (async () => { throw new Error('database unavailable') }) as unknown as Sql
+    await expect(resolveAccountGate(
+      sql,
+      async () => ({ userId: 'user_123' }),
+      async () => null,
+      async () => ({ id: 'user_123', username: 'ATINY', unsafeMetadata: {} }),
+    )).rejects.toThrow('profile.creationFailed')
   })
 
   it('keeps suspended and deletion-pending accounts without publish access', async () => {
