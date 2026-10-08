@@ -5,7 +5,6 @@ import type { PublicMapFeature } from '@/domain/messages/public-message'
 import { getDb } from '@/server/db/client'
 import { parseMapQuery } from '@/server/http/map-params'
 import { createLogger, type Logger } from '@/server/observability/logger'
-import { logPostHogExport } from '@/server/observability/posthog-logs'
 import {
   listFeaturesInViewport,
   type MapBounds,
@@ -49,7 +48,7 @@ export function createMapFeaturesGetHandler(
       })
 
       const truncated = zoom !== undefined && features.length >= MAX_MAP_FEATURES
-      await logPostHogExport('info', 'map_features_response_sent', {
+      logger.info('map_features_response_sent', {
         feature_count: features.length,
         result_truncated: truncated,
       })
@@ -62,8 +61,7 @@ export function createMapFeaturesGetHandler(
       )
     } catch (error) {
       const errorClass = error instanceof Error ? error.name : 'unknown'
-      logger.error('map features unavailable', { errorClass })
-      await logPostHogExport('error', 'map_features_request_failed', {
+      logger.error('map_features_request_failed', {
         error_class: errorClass,
       })
       const problem = createProblem('MAP_DATA_UNAVAILABLE', {
