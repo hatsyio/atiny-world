@@ -31,10 +31,17 @@ export function AdminSettingsControl({ settings }: { settings: AdminSettings }) 
     <input type="hidden" name="expectedVersion" value={settings.version} />
     <input type="hidden" name="expectedPendingActiveMessages" value={settings.pendingActiveMessages} />
     <input type="hidden" name="confirmedImpact" value={String(!moderationChanged || confirmed)} />
+    <fieldset className="admin-settings-group">
+    <legend>{t('moderationGroup')}</legend>
+    <p className="admin-field-hint">{t('moderationHint')}</p>
     <label className="admin-settings-check">
       <input type="checkbox" checked={premoderationEnabled} onChange={event => { setPremoderationEnabled(event.target.checked); setConfirmed(false) }} />
       {t('premoderation')}
     </label>
+    </fieldset>
+    <fieldset className="admin-settings-group">
+    <legend>{t('limitsGroup')}</legend>
+    <p className="admin-field-hint">{t('limitsHint')}</p>
     <label>
       {t('messageLimit')}
       <input name="messageLimit" type="number" min="1" step="1" defaultValue={settings.messageLimit} required />
@@ -43,6 +50,7 @@ export function AdminSettingsControl({ settings }: { settings: AdminSettings }) 
       {t('cooldown')}
       <input name="cooldownSeconds" type="number" min="0" step="1" defaultValue={settings.cooldownSeconds} required />
     </label>
+    </fieldset>
     {moderationChanged ? <div className="admin-settings-impact">
       <p>{premoderationEnabled ? t('hideImpact', { count: hidden }) : t('showImpact', { count: appearing })}</p>
       <label>

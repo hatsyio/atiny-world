@@ -54,7 +54,7 @@ export function MessageQueue({ messages }: { messages: ModerationQueueMessage[] 
     {messages.map(message => <li key={message.publicId}>
       <article aria-label={t('letterBy', { name: message.authorName })}>
         <h3>{message.authorName}</h3>
-        <p>{accounts(message.authorState)} · {own(`status.${message.status}`)} · {t('version', { version: message.version })}</p>
+        <p className="admin-badges"><span className="admin-badge" data-state={message.authorState}>{accounts(message.authorState)}</span><span className="admin-badge" data-state={message.status}>{own(`status.${message.status}`)}</span><span className="admin-message-version">{t('version', { version: message.version })}</span></p>
         <p className="admin-message-content">{message.content}</p>
         <p>{[message.locality, message.country].filter(Boolean).join(', ')}</p>
         <time dateTime={message.publishedAt}>{message.publishedAtLabel} UTC</time>
