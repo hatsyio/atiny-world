@@ -126,3 +126,25 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-disclosure-toggle svg { transition: none; }
 }
+
+.admin-spinner { flex-shrink: 0; vertical-align: middle; animation: admin-spin .8s linear infinite; }
+@keyframes admin-spin { to { transform: rotate(360deg); } }
+.admin-panel button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; }
+.admin-loading, .admin-saving { display: flex; align-items: center; gap: .75rem; min-height: 44px; color: #285574; }
+.admin-search > .admin-loading { grid-column: 1 / -1; margin: .5rem 0 0; }
+.admin-message-actions { padding: 0 clamp(1.25rem, 3vw, 2rem) 1.25rem; }
+.admin-quick-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem; }
+.admin-quick-actions form { margin: 0; }
+.admin-message-actions .admin-disclosure { padding: 0; }
+.admin-panel .admin-reject-button { background: #8b3b36; border-color: #8b3b36; }
+.admin-panel .admin-cancel-button { color: var(--admin-accent); background: transparent; }
+.admin-modal-overlay { position: fixed; inset: 0; z-index: 750; background: #17232b80; display: grid; place-items: center; padding: 1.25rem; overflow-y: auto; }
+.admin-rejection-modal { display: block; width: min(100%, 34rem); margin: auto; padding: clamp(1.25rem, 4vw, 2rem); overflow: visible; color: #26313b; font-family: var(--font-interface), sans-serif; }
+.admin-rejection-dialog { outline: none; }
+.admin-rejection-dialog h2 { margin: 0 0 1rem; color: #8b3b36; font-family: var(--font-display), Georgia, serif; font-size: 1.5rem; }
+.admin-rejection-dialog > p { line-height: 1.7; }
+.admin-rejection-dialog .admin-field-hint { margin: 0 0 .5rem; }
+.admin-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .75rem; margin-top: 1rem; }
+@media (prefers-reduced-motion: reduce) {
+  .admin-spinner { animation: none; }
+}

@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, screen, fireEvent, waitFor } from '@testing-library/react'
+import { cleanup, screen, within, fireEvent, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { act } from 'react'
 import { renderToString } from 'react-dom/server'
@@ -39,7 +39,7 @@ it('hydrates the server date unchanged when the browser Intl format differs', as
 })
 it('shows text for review and only allowed decisions, without an edit control', async () => {
   render(<MessageQueue messages={[message]} />)
-  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
+  fireEvent.click(screen.getByRole('button', { name: /^More options:/ }))
   expect(screen.getByText('Letter to review')).toBeVisible()
   expect(screen.getByText('ATINY')).toBeVisible()
   fireEvent.click(screen.getByRole('button', { name: /Decision/ }))
@@ -50,7 +50,7 @@ it('shows text for review and only allowed decisions, without an edit control', 
 it('requires a reason for rejection and withdrawal, and submits the exact reviewed version', async () => {
   vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'saved' })
   render(<MessageQueue messages={[message]} />)
-  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
+  fireEvent.click(screen.getByRole('button', { name: /^More options:/ }))
   expect(screen.queryByRole('button', { name: /Reason/ })).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: /Decision/ }))
   fireEvent.click(await screen.findByRole('option', { name: 'Reject' }))
@@ -69,7 +69,7 @@ it('requires a reason for rejection and withdrawal, and submits the exact review
 it('shows a conflict, disables resubmission and offers an explicit reload', async () => {
   vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'conflict' })
   render(<MessageQueue messages={[message]} />)
-  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
+  fireEvent.click(screen.getByRole('button', { name: /^More options:/ }))
   fireEvent.click(screen.getByRole('button', { name: 'Apply decision' }))
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('This letter has changed. Reload and review the current version.'))
   expect(screen.getByRole('button', { name: 'Apply decision' })).toBeDisabled()
@@ -78,7 +78,7 @@ it('shows a conflict, disables resubmission and offers an explicit reload', asyn
 it('keeps success feedback after the moderated letter leaves the pending queue', async () => {
   vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'saved' })
   const { rerender } = render(<MessageQueue messages={[message]} />)
-  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
+  fireEvent.click(screen.getByRole('button', { name: /^More options:/ }))
   fireEvent.click(screen.getByRole('button', { name: 'Apply decision' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Decision saved.'))
   rerender(<MessageQueue messages={[]} />)
@@ -87,7 +87,7 @@ it('keeps success feedback after the moderated letter leaves the pending queue',
 it('allows a fresh decision after reloading changed visibility without a content version change', async () => {
   vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'transition' })
   const { rerender } = render(<MessageQueue messages={[message]} />)
-  fireEvent.click(screen.getByRole('button', { name: /^Moderate:/ }))
+  fireEvent.click(screen.getByRole('button', { name: /^More options:/ }))
   fireEvent.click(screen.getByRole('button', { name: /Decision/ }))
   fireEvent.click(await screen.findByRole('option', { name: 'Withdraw' }))
   fireEvent.click(screen.getByRole('button', { name: /Reason/ }))
@@ -96,6 +96,8 @@ it('allows a fresh decision after reloading changed visibility without a content
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('This decision is no longer available.'))
   expect(screen.getByRole('button', { name: 'Apply decision' })).toBeDisabled()
   rerender(<MessageQueue messages={[{ ...message, publicVisible: false, decisions: ['approve', 'reject'] }]} />)
+  expect(screen.getByRole('button', { name: 'Approve' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: /^More options:/ }))
   expect(screen.getByRole('button', { name: 'Apply decision' })).toBeEnabled()
   expect(screen.queryByRole('option', { name: 'Withdraw' })).not.toBeInTheDocument()
 })
@@ -110,11 +112,85 @@ it('keeps the letter visible while moderation controls are collapsed', () => {
   render(<MessageQueue messages={[message]} />)
   expect(screen.getByText('Letter to review')).toBeVisible()
   expect(screen.queryByRole('button', { name: 'Apply decision' })).not.toBeInTheDocument()
-  const toggle = screen.getByRole('button', { name: /^Moderate:/ })
+  const toggle = screen.getByRole('button', { name: /^More options:/ })
   expect(toggle).toHaveAttribute('aria-expanded', 'false')
   fireEvent.click(toggle)
   expect(screen.getByRole('button', { name: 'Apply decision' })).toBeVisible()
   fireEvent.click(toggle)
   expect(screen.getByText('Letter to review')).toBeVisible()
   expect(toggle).toHaveAttribute('aria-expanded', 'false')
+})
+
+it('approves a pending letter directly from the list with the reviewed version', async () => {
+  vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'saved' })
+  render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Decision saved.'))
+  const data = vi.mocked(moderateMessageAction).mock.calls[0][1]
+  expect(data.get('decision')).toBe('approve')
+  expect(data.get('publicId')).toBe(message.publicId)
+  expect(data.get('expectedVersion')).toBe('1')
+})
+it('requires confirmation before rejecting and uses the default reason when omitted', async () => {
+  vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'saved' })
+  render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
+  const dialog = await screen.findByRole('dialog', { name: 'Reject this letter?' })
+  expect(moderateMessageAction).not.toHaveBeenCalled()
+  expect(dialog.querySelector('select[name="reasonCode"]')).not.toBeRequired()
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm rejection' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  expect(screen.getByRole('status')).toHaveTextContent('Decision saved.')
+  const data = vi.mocked(moderateMessageAction).mock.calls[0][1]
+  expect(data.get('decision')).toBe('reject')
+  expect(data.get('reasonCode')).toBe('community_guidelines')
+  expect(data.get('expectedVersion')).toBe('1')
+})
+it('cancels rejection without submitting a moderation decision', async () => {
+  render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
+  const dialog = await screen.findByRole('dialog')
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(moderateMessageAction).not.toHaveBeenCalled()
+})
+it('submits the optional selected rejection reason and note', async () => {
+  vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'saved' })
+  render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
+  const dialog = await screen.findByRole('dialog')
+  fireEvent.click(within(dialog).getByRole('button', { name: /Reason/ }))
+  fireEvent.click(await screen.findByRole('option', { name: 'Spam or unsolicited content' }))
+  fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Repeated promotion' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm rejection' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Decision saved.'))
+  const data = vi.mocked(moderateMessageAction).mock.calls[0][1]
+  expect(data.get('reasonCode')).toBe('spam')
+  expect(data.get('note')).toBe('Repeated promotion')
+})
+it('shows saving progress and disables competing actions until approval completes', async () => {
+  let complete!: (value: { status: 'saved' }) => void
+  vi.mocked(moderateMessageAction).mockImplementation(() => new Promise(resolve => { complete = resolve }))
+  render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saving'))
+  expect(screen.getByRole('button', { name: 'Reject' })).toBeDisabled()
+  expect(document.querySelector('.admin-spinner')).toBeInTheDocument()
+  await act(async () => complete({ status: 'saved' }))
+  expect(screen.getByRole('status')).toHaveTextContent('Decision saved.')
+})
+it('keeps rejection conflicts visible inside the dialog and prevents resubmission', async () => {
+  vi.mocked(moderateMessageAction).mockResolvedValue({ status: 'conflict' })
+  render(<MessageQueue messages={[message]} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
+  const dialog = await screen.findByRole('dialog')
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm rejection' }))
+  await waitFor(() => expect(within(dialog).getByRole('alert')).toHaveTextContent('This letter has changed.'))
+  expect(within(dialog).getByRole('button', { name: 'Confirm rejection' })).toBeDisabled()
+  expect(within(dialog).getByRole('button', { name: 'Reload letters' })).toBeVisible()
+})
+it('offers only allowed quick decisions and no quick approval for published letters', () => {
+  render(<MessageQueue messages={[{ ...message, status: 'approved', decisions: ['withdraw'] }]} />)
+  expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument()
 })

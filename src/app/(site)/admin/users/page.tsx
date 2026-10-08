@@ -8,6 +8,7 @@ import { searchAccounts } from '@/server/moderation/accounts'
 import { SuspensionControl } from '@/components/admin/suspension-control'
 import { AdminDisclosure } from '@/components/admin/admin-disclosure'
 import { RoleControl } from '@/components/admin/role-control'
+import { AdminSearchForm } from '@/components/admin/admin-search-form'
 
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const actor = await requireAdminPage()
@@ -28,10 +29,10 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
     <h2 id="admin-users-title">{t('users')}</h2>
     <p>{t(result.data.actorRole === 'owner' ? 'ownerIntro' : 'adminIntro')}</p>
     </header>
-    <form className="admin-search" action="/admin/users" method="get">
+    <AdminSearchForm className="admin-search" action="/admin/users">
       <label htmlFor="admin-query">{t('searchLabel')}</label>
       <div><input id="admin-query" name="q" type="search" maxLength={100} defaultValue={query} /><button type="submit">{t('search')}</button></div>
-    </form>
+    </AdminSearchForm>
     {result.data.items.length === 0 ? <p role="status">{t('empty')}</p> : <ul className="admin-users">
       {result.data.items.map(account => {
         const canChangeRole = account.publicId !== actor.publicId && account.role !== 'owner' && account.state !== 'deletion_pending'

@@ -11,7 +11,7 @@ Entrega de US5 posterior al merge de usuarios y roles (#76), en la rama `feat/ad
 Cada carta muestra texto de solo lectura, autora, estado de cuenta, estado de moderación, versión, ubicación pública, fecha de publicación UTC y visibilidad actual. Motivos y notas se mantienen privados para autora y administración. No se envían credenciales de Clerk ni IDs internos al navegador.
 
 - Aprobar: solo pendientes; pasa a aprobado.
-- Rechazar: solo pendientes; exige motivo predefinido y pasa a rechazado.
+- Rechazar: solo pendientes; exige un motivo predefinido en el servidor y pasa a rechazado. En el listado abre un diálogo de confirmación: el motivo y la nota son opcionales; si no se elige motivo, se envía `community_guidelines` (incumplimiento de las normas de la comunidad).
 - Retirar: solo cartas actualmente públicas; exige motivo y pasa a retirado. Incluye pendientes con moderación previa desactivada; cuentas suspendidas y pendientes ocultos no se consideran públicos.
 - Motivos disponibles: contenido no deseado, acoso/mala conducta, datos personales/información privada e incumplimiento de normas de la comunidad. Etiquetas en español e inglés, también en «Mis mensajes».
 - Nota opcional: hasta 1000 caracteres, compartida privadamente con la autora.
@@ -46,3 +46,9 @@ La base local de uso real de Compose (`54332`) y la base remota no se han modifi
 - Revisión independiente: un hallazgo de recuperación del formulario tras cambios de visibilidad, corregido y cubierto con prueba.
 
 Configuración, suspensión, solicitudes/evidencias de revisión y visor de auditoría siguen pendientes. US5 no se marca completa. No se ha publicado la rama ni desplegado esta entrega.
+
+## Interacción en el panel
+
+`/admin` abre la cola de mensajes pendientes. Aprobar desde el listado requiere un clic; rechazar requiere abrir el diálogo y confirmar. «Más opciones» conserva los controles de nota y retirada. Las acciones de una carta comparten el estado de guardado y se bloquean mientras se envía la decisión. Los conflictos siguen exigiendo recargar y revisar la versión actual.
+
+La carga de las secciones, las búsquedas y las acciones de guardado muestran indicadores de progreso. El diálogo mantiene el foco, permite cancelar o cerrar con Escape y evita el cierre durante el guardado.

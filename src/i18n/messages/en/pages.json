@@ -68,6 +68,7 @@
     "intro": "Choose your Atiny Atlas language and manage your account security."
   },
   "admin": {
+    "loading": "Loading administration…",
     "manage": "Manage",
     "permissions": "Permissions",
     "accountAccess": "Account access",
@@ -128,6 +129,13 @@
       "limitsHint": "Control how many letters each account can publish and the time between submissions."
     },
     "moderation": {
+      "moreOptions": "More options",
+      "rejectTitle": "Reject this letter?",
+      "rejectConfirm": "You are about to reject the letter by {name}. Confirm to apply the decision.",
+      "optionalReason": "Reason (optional)",
+      "defaultReasonHint": "If you leave the reason blank, we will record: {reason}.",
+      "cancel": "Cancel",
+      "confirmRejection": "Confirm rejection",
       "moderate": "Moderate",
       "title": "Message moderation",
       "intro": "Review letters without changing their text. Each decision is recorded privately.",

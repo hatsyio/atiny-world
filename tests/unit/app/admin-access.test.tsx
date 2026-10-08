@@ -5,13 +5,14 @@ import { render } from '../../support/intl'
 import { setServerLocale } from '../../support/server-intl'
 
 vi.mock('next-intl/server', () => import('../../support/server-intl'))
-vi.mock('next/navigation', () => ({ notFound: () => { throw new Error('NOT_FOUND') }, useRouter: () => ({ refresh: vi.fn() }), usePathname: () => '/admin/users' }))
+vi.mock('next/navigation', () => ({ redirect: (path: string) => { throw new Error(`REDIRECT:${path}`) }, notFound: () => { throw new Error('NOT_FOUND') }, useRouter: () => ({ refresh: vi.fn() }), usePathname: () => '/admin/users' }))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 vi.mock('@/server/auth/authorize', () => ({ authorizeSession: vi.fn() }))
 vi.mock('@/server/auth/session', () => ({ getSessionIdentity: vi.fn() }))
 vi.mock('@/server/moderation/accounts', () => ({ searchAccounts: vi.fn() }))
 vi.mock('@/app/(site)/admin/users/actions', () => ({ setAdministratorRoleAction: vi.fn(), setSuspensionAction: vi.fn() }))
 
+import AdminPage from '@/app/(site)/admin/page'
 import AdminLayout from '@/app/(site)/admin/layout'
 import AdminUsersPage from '@/app/(site)/admin/users/page'
 import { authorizeSession } from '@/server/auth/authorize'
@@ -75,4 +76,9 @@ it.each([
   const manage = screen.queryByRole('button', { name: /^Manage:/ })
   if (manage) fireEvent.click(manage)
   expect(screen.queryByRole('button', { name: targetRole === 'admin' ? 'Remove administrator role' : 'Make administrator' }) !== null).toBe(allowed)
+})
+
+it('opens the moderation queue by default after authorizing the administrator', async () => {
+  vi.mocked(authorizeSession).mockResolvedValue({ ok: true, data: { profileId: '1', publicId: 'actor', displayName: 'Actor', role: 'admin' } })
+  await expect(AdminPage()).rejects.toThrow('REDIRECT:/admin/messages')
 })
