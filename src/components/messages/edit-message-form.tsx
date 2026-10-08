@@ -1,8 +1,6 @@
 'use client'
 
 import { LetterWorkspace } from './letter-workspace'
-import type { Locale } from '@/i18n/locale'
-
 import { useTranslations } from 'next-intl'
 
 import { useQueryClient } from '@tanstack/react-query'
@@ -26,7 +24,6 @@ export type EditMessageSubmit = (
 ) => Promise<UpdateMessageActionResult>
 
 export interface EditMessageFormProps {
-  lang?: Locale
   message: Pick<OwnMessage, 'publicId' | 'version' | 'content' | 'country' | 'precision' | 'locality'> & Partial<Pick<OwnMessage, 'point'>>
   onSaved?: () => void
   onCancel?: () => void

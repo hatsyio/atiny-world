@@ -1,8 +1,6 @@
 'use client'
 
-import type { Locale } from '@/i18n/locale'
-
-import { useLocale, useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl'
 
 import { useCallback, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -81,22 +79,19 @@ export function buildMessageRequest(
 }
 
 export function PublicMapController({ selectedPublicId: requestedPublicId, selectedMessage }: {
-  lang?: Locale
   selectedPublicId?: string
   selectedMessage?: PublicMapFeature
 }) {
-  const lang = useLocale()
   const params = useSearchParams()
   const selectedPublicId = selectedMessage?.publicId ?? requestedPublicId
   const initialView = selectedMessage ? { ...selectedMessage.point, zoom: 8 } : selectedPublicId ? DEFAULT_VIEW : readMapView(params) ?? DEFAULT_VIEW
   const initialFilters = selectedPublicId ? { city: '', country: '' } : readMapFilters(params)
   // Next can retain a page between visits. A different URL context is a different exploration.
   const contextKey = JSON.stringify([selectedPublicId, initialView, initialFilters])
-  return <MapExploration key={contextKey} lang={lang} selectedPublicId={selectedPublicId} selectedMessage={selectedMessage} initialView={initialView} initialFilters={initialFilters} />
+  return <MapExploration key={contextKey} selectedPublicId={selectedPublicId} selectedMessage={selectedMessage} initialView={initialView} initialFilters={initialFilters} />
 }
 
-function MapExploration({ lang, selectedPublicId, selectedMessage, initialView, initialFilters }: {
-  lang: Locale
+function MapExploration({ selectedPublicId, selectedMessage, initialView, initialFilters }: {
   selectedPublicId?: string
   selectedMessage?: PublicMapFeature
   initialView: MapView
@@ -112,10 +107,10 @@ function MapExploration({ lang, selectedPublicId, selectedMessage, initialView, 
   const features = query.isError ? [] : query.data?.features ?? (query.isPending && selectedMessage && !filters.city && !filters.country ? [selectedMessage] : [])
 
   const selectMessage = useCallback((publicId: string) => {
-    const origin = mapOrigin(lang, view.current, filters)
+    const origin = mapOrigin(view.current, filters)
     rememberLetterOrigin(origin)
-    router.push(letterHref(lang, publicId, origin))
-  }, [lang, router, filters])
+    router.push(letterHref(publicId, origin))
+  }, [router, filters])
 
   return (
     <section aria-label={t('explore')}>
@@ -134,7 +129,6 @@ function MapExploration({ lang, selectedPublicId, selectedMessage, initialView, 
         onViewChange={(nextView) => { view.current = nextView }}
         features={features}
         onSelect={selectMessage}
-        lang={lang}
         onViewportChange={setBounds}
         filters={filters}
         onFiltersChange={setFilters}

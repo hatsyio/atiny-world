@@ -14,7 +14,7 @@ import { getOwnMessage } from '@/server/messages/own-message-repository'
 export default async function EditOwnMessagePage({
   params,
 }: {
-  params: Promise<{publicId: string; lang?: string}>
+  params: Promise<{publicId: string}>
 }) {
   const { publicId } = await params
   const locale = await getLocale()
@@ -41,7 +41,7 @@ export default async function EditOwnMessagePage({
       <div className="auth-panel letter-panel">
         <p className="auth-script">{t('script')}</p>
         <h1>{t('title')}</h1>
-        <EditMessageForm lang={locale} message={message} />
+        <EditMessageForm message={message} />
       </div>
     </main>
   )

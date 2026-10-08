@@ -25,7 +25,7 @@ export function readMapFilters(params: Search) {
   }
 }
 
-export function mapOrigin(_lang: Locale, view: MapView, filters: { city?: string; country?: string }): string {
+export function mapOrigin(view: MapView, filters: { city?: string; country?: string }): string {
   const longitude = ((view.longitude + 180) % 360 + 360) % 360 - 180
   const params = new URLSearchParams({ mapView: `${view.latitude},${longitude},${view.zoom}` })
   if (filters.city) params.set('mapCity', filters.city)
@@ -33,12 +33,12 @@ export function mapOrigin(_lang: Locale, view: MapView, filters: { city?: string
   return `/?${params}#map`
 }
 
-export function ownLetterOrigin(_lang: Locale, publicId: string, cursor?: string): string {
+export function ownLetterOrigin(publicId: string, cursor?: string): string {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''
   return `/my-messages${query}#own-${publicId}`
 }
 
-export function letterHref(_lang: Locale, publicId: string, origin: string): string {
+export function letterHref(publicId: string, origin: string): string {
   return `/messages/${publicId}?returnTo=${encodeURIComponent(origin)}`
 }
 

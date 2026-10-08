@@ -38,7 +38,7 @@ async function publish(publicVisible: boolean) {
   const key = [...publicMapQueryKey, 'features', 'viewport']
   client.setQueryData(key, { features: [] })
   try {
-    render(<IntlTestProvider locale="es"><QueryClientProvider client={client}><CreateMessageFlow lang="es" submitMessage={submitMessage} /></QueryClientProvider></IntlTestProvider>)
+    render(<IntlTestProvider locale="es"><QueryClientProvider client={client}><CreateMessageFlow submitMessage={submitMessage} /></QueryClientProvider></IntlTestProvider>)
     fireEvent.change(screen.getByLabelText('Tu carta'), { target: { value: 'Hola ATINY' } })
     act(() => picker.onChange?.({ selectionId: 'place', precision: 'approximate' }))
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Publicar carta' })))
@@ -67,19 +67,19 @@ describe('CreateMessageFlow', () => {
 
 describe('writing cancellation', () => {
   it.each(['en', 'es'] as const)('returns direct visitors to the map in %s', lang => {
-    render(<CreateMessageFlow lang={lang} />)
+    render(<CreateMessageFlow />, { locale: lang })
     fireEvent.click(screen.getByRole('button', { name: lang === 'es' ? 'Cancelar y volver al mapa' : 'Cancel and return to the map' }))
     expect(navigation.push).toHaveBeenCalledWith('/#map')
   })
 
   it('returns to a supplied own-letter origin', () => {
-    render(<CreateMessageFlow lang="es" returnTo="/my-messages" />)
+    render(<CreateMessageFlow returnTo="/my-messages" />, { locale: 'es' })
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar y volver a mis cartas' }))
     expect(navigation.push).toHaveBeenCalledWith('/my-messages')
   })
 
   it.each(['https://evil.example', '//evil.example', '/messages/new', '/es/sign-in'])('falls back to the map for %s', returnTo => {
-    render(<CreateMessageFlow lang="es" returnTo={returnTo} />)
+    render(<CreateMessageFlow returnTo={returnTo} />, { locale: 'es' })
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar y volver al mapa' }))
     expect(navigation.push).toHaveBeenCalledWith('/#map')
   })

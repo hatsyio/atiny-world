@@ -11,7 +11,7 @@ import { getOwnMessage } from '@/server/messages/own-message-repository'
 import { getDb } from '@/server/db/client'
 import { getVisibleMessage } from '@/server/messages/public-repository'
 
-export default async function PublicMessagePage({ params, searchParams }: { params: Promise<{publicId: string; lang?: string}>; searchParams?: Promise<{ returnTo?: string | string[] }> }) {
+export default async function PublicMessagePage({ params, searchParams }: { params: Promise<{publicId: string}>; searchParams?: Promise<{ returnTo?: string | string[] }> }) {
   const { publicId } = await params
   const db = getDb()
   const publicMessage = await getVisibleMessage(db, publicId)

@@ -1,7 +1,6 @@
 'use client'
 
-import type { Locale } from '@/i18n/locale'
-import { useLocale, useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import type { MapBounds, PublicMapFeature } from '@/domain/messages/public-message'
@@ -15,7 +14,6 @@ export interface LeafletMapProps {
   onViewChange?: (view: MapView) => void
   features: PublicMapFeature[]
   onSelect: (publicId: string) => void
-  lang?: Locale
   onViewportChange?: (bounds: MapBounds) => void
   filters?: MapFilterValues
   onFiltersChange?: (values: MapFilterValues) => void
@@ -30,7 +28,6 @@ const ClientMap = dynamic(() => import('./public-map-react-leaflet').then(module
 })
 
 export function LeafletMap({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: LeafletMapProps) {
-  const lang = useLocale()
   const t = useTranslations('Map.leaflet')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isClusterListOpen, setIsClusterListOpen] = useState(false)
@@ -76,7 +73,7 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
           >
             {t('filters')}{filters.city || filters.country ? ` (${Number(Boolean(filters.city)) + Number(Boolean(filters.country))})` : ''}
           </button>
-          {isFiltersOpen ? <div id="map-filters-panel" className="map__filters-panel"><MapFilters value={filters} onChange={onFiltersChange} lang={lang} /></div> : null}
+          {isFiltersOpen ? <div id="map-filters-panel" className="map__filters-panel"><MapFilters value={filters} onChange={onFiltersChange} /></div> : null}
         </div>
       ) : null}
       {features.length > 1 ? (
@@ -98,7 +95,6 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
               {groupRequestUrl ? <MessageClusterList
                 key={groupRequestUrl}
                 requestUrl={groupRequestUrl}
-                lang={lang}
                 onSelect={(publicId) => {
                   onSelect(publicId)
                   setIsClusterListOpen(false)

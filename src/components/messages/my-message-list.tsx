@@ -1,6 +1,6 @@
 'use client'
 
-import { useLocale, useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 
 import { useQueryClient } from '@tanstack/react-query'
@@ -23,7 +23,6 @@ export type OwnMessageListItem = Pick<
   Partial<Pick<OwnMessage, 'point' | 'precision' | 'locality' | 'country' | 'publishedAt'>> & { publicVisible?: boolean }
 
 type Props = {
-  lang?: string
   cursor?: string
   messages: OwnMessageListItem[]
   accountSuspended?: boolean
@@ -57,7 +56,6 @@ export function MyMessageList({
   onEdit,
 }: Props) {
   const queryClient = useQueryClient()
-  const locale = useLocale()
   const t = useTranslations('Forms.own')
   const [confirming, setConfirming] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -115,7 +113,7 @@ export function MyMessageList({
           {messages.map((item, index) => {
             const reason = item.moderationReasonCode ? (isModerationReasonCode(item.moderationReasonCode) ? t(`reasons.${item.moderationReasonCode}`) : t('reasonFallback')) : null
             const isConfirming = confirming === item.publicId
-            const origin = ownLetterOrigin(locale, item.publicId, cursor)
+            const origin = ownLetterOrigin(item.publicId, cursor)
             const publicVisible = item.publicVisible === true && !accountSuspended
 
             return (
@@ -125,7 +123,7 @@ export function MyMessageList({
                 {reason ? <p><span>{reason}</span></p> : null}
                 {item.moderationNote ? <p><small><span>{t('moderationNote')}: </span><span>{item.moderationNote}</span></small></p> : null}
                 <p className="my-message-links">
-                  <LetterLink lang={locale} publicId={item.publicId} origin={origin}>{t('view')}</LetterLink>
+                  <LetterLink publicId={item.publicId} origin={origin}>{t('view')}</LetterLink>
                   {publicVisible ? <>
                     <Link href={`/?letter=${encodeURIComponent(item.publicId)}#map`}>{t('viewMap')}</Link>
                     <button type="button" onClick={() => void copyLink(item.publicId)}>{t('copyLink')}</button>

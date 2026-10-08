@@ -1,8 +1,6 @@
 'use client'
 
 import { LetterWorkspace } from './letter-workspace'
-import type { Locale } from '@/i18n/locale'
-
 import { useLocale, useTranslations } from 'next-intl'
 
 import { startTransition, useActionState, useEffect, useRef, useState } from 'react'
@@ -28,7 +26,6 @@ export type FormFieldErrors = {
 }
 
 export interface CreateMessageFormProps {
-  lang?: Locale
   returnTo?: string
   onPublished?: (publicId: string, publicVisible: boolean) => void
   submitMessage?: CreateMessageSubmit
@@ -198,7 +195,7 @@ export function CreateMessageForm({
         </div>
 
       } properties={<>
-        <LocationPicker key={pickerResetKey} lang={lang} onChange={handleLocationChange} />
+        <LocationPicker key={pickerResetKey} onChange={handleLocationChange} />
         <div className="letter-workspace__property-feedback">
         {locationAlert !== null && (
           <p className="profile-error" role="alert">

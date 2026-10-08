@@ -41,7 +41,7 @@ it.each(['en', 'es'] as const)('returns Letters → letter → Letters to the sa
   window.history.replaceState(null, '', '/')
   const push = vi.fn()
   const router = { push, prefetch: vi.fn() } as unknown as NextRouter
-  const home = render(<RouterContext.Provider value={router}><PublicHome lang={lang} latestLetters={[letter]} /></RouterContext.Provider>)
+  const home = render(<RouterContext.Provider value={router}><PublicHome latestLetters={[letter]} /></RouterContext.Provider>)
   const link = screen.getByRole('link', { name: /Madrid, España/ })
   const detail = new URL(link.getAttribute('href')!, window.location.origin)
   expect(detail.searchParams.get('returnTo')).toBe('/#letters-letter-1')
@@ -49,11 +49,11 @@ it.each(['en', 'es'] as const)('returns Letters → letter → Letters to the sa
   expect(window.location.hash).toBe('#letters-letter-1')
   expect(push).toHaveBeenCalled()
   home.unmount()
-  render(await PublicMessagePage({ params: Promise.resolve({ lang: setServerLocale(lang), publicId: 'letter-1' }), searchParams: Promise.resolve({ returnTo: detail.searchParams.get('returnTo')! }) }))
+  render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }), searchParams: Promise.resolve({ returnTo: detail.searchParams.get('returnTo')! }) }))
   const back = screen.getByRole('link', { name: lang === 'es' ? /Volver a las cartas/ : /Back to letters/ })
   expect(back).toHaveAttribute('href', '/#letters-letter-1')
   cleanup()
-  render(<PublicHome lang={lang} latestLetters={[letter]} />)
+  render(<PublicHome latestLetters={[letter]} />)
   expect(document.getElementById('letters-letter-1')).toBeInTheDocument()
 })
 
@@ -62,7 +62,7 @@ it.each(['en', 'es'] as const)('returns My letters → public letter → My lett
   setServerLocale(lang)
   window.history.replaceState(null, '', '/my-messages?cursor=older%2Bpage')
   const router = { push: vi.fn(), prefetch: vi.fn() } as unknown as NextRouter
-  const list = render(<RouterContext.Provider value={router}><MyMessageList lang={lang} cursor="older+page" messages={[letter]} onEdit={() => {}} /></RouterContext.Provider>)
+  const list = render(<RouterContext.Provider value={router}><MyMessageList cursor="older+page" messages={[letter]} onEdit={() => {}} /></RouterContext.Provider>)
   const link = screen.getByRole('link', { name: lang === 'es' ? 'Ver carta' : 'View letter' })
   const detail = new URL(link.getAttribute('href')!, window.location.origin)
   const origin = '/my-messages?cursor=older%2Bpage#own-letter-1'
@@ -70,7 +70,7 @@ it.each(['en', 'es'] as const)('returns My letters → public letter → My lett
   fireEvent.click(link)
   expect(window.location.pathname + window.location.search + window.location.hash).toBe(origin)
   list.unmount()
-  render(await PublicMessagePage({ params: Promise.resolve({ lang: setServerLocale(lang), publicId: 'letter-1' }), searchParams: Promise.resolve({ returnTo: detail.searchParams.get('returnTo')! }) }))
+  render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }), searchParams: Promise.resolve({ returnTo: detail.searchParams.get('returnTo')! }) }))
   expect(screen.getByRole('link', { name: lang === 'es' ? /Volver a mis cartas/ : /Back to my letters/ })).toHaveAttribute('href', origin)
 })
 
@@ -78,7 +78,7 @@ it.each(['en', 'es'] as const)('direct access after another exploration returns 
   testLocale = lang
   setServerLocale(lang)
   window.history.replaceState(null, '', '/messages/letter-1')
-  render(await PublicMessagePage({ params: Promise.resolve({ lang: setServerLocale(lang), publicId: 'letter-1' }) }))
+  render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }) }))
   expect(screen.getByRole('link', { name: lang === 'es' ? /Volver al mapa/ : /Back to the map/ })).toHaveAttribute('href', '/#map')
 })
 

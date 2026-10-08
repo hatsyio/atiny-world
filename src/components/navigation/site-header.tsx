@@ -95,7 +95,7 @@ export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean 
         <Link href={`${home}#map`} aria-current={current('map')}>{t('map')}</Link>
         <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t('letters')}</Link>
         <Link className="navigation-write" href={writeHref} aria-current={writing ? 'page' : undefined}>{t('write')}</Link>
-        <Show when="signed-in"><AccountMenu lang={lang} canAdminister={canAdminister} active={Boolean(account)} onNavigate={close} /></Show>
+        <Show when="signed-in"><AccountMenu canAdminister={canAdminister} active={Boolean(account)} onNavigate={close} /></Show>
         <Show when="signed-out"><AccountMenu visitor active={Boolean(pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up'))} onNavigate={close} /></Show>
       </nav>
     </header>

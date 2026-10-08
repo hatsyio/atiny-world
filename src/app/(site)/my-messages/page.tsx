@@ -14,7 +14,6 @@ import { pageOwnMessages } from '@/server/messages/own-message-repository'
 export default async function MyMessagesPage({
   searchParams,
 }: {
-  params?: Promise<{lang?: string}>
   searchParams: Promise<{ cursor?: string }>
 }) {
   const locale = await getLocale()
@@ -42,7 +41,7 @@ export default async function MyMessagesPage({
         <p className="auth-script">{t('script')}</p>
         <h1>{t('title')}</h1>
         <p className="profile-intro">{t('intro')}</p>
-        <MyMessageList cursor={cursor} lang={locale} messages={page.items} accountSuspended={gate.kind === 'suspended'} />
+        <MyMessageList cursor={cursor} messages={page.items} accountSuspended={gate.kind === 'suspended'} />
         {page.nextCursor ? <Link className="profile-cancel" href={`/my-messages?cursor=${encodeURIComponent(page.nextCursor)}`}>{t('next')}</Link> : null}
       </div>
     </main>

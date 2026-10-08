@@ -1,7 +1,5 @@
 'use client'
 
-import type { Locale } from '@/i18n/locale'
-
 import { useFormatter, useLocale, useTranslations } from 'next-intl'
 
 import 'leaflet/dist/leaflet.css'
@@ -42,7 +40,6 @@ export type LocationSuggestion = {
 }
 
 export interface LocationPickerProps {
-  lang?: Locale
   onChange: (value: LocationPickerSelection | null) => void
   initialLocation?: { point?: PublicPoint; precision: LocationPrecision; locality: string | null; country: string }
   readOnly?: boolean

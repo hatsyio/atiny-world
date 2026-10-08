@@ -132,7 +132,7 @@ describe('PublicMapController', () => {
 
 it('restores viewport, zoom and filters after map → letter → map, including browser Back', async () => {
   window.history.replaceState(null, '', '/')
-  const view = render(<PublicMapController lang="es" />)
+  const view = render(<PublicMapController />, { locale: 'es' })
   act(() => view.getByRole('button', { name: 'Set view' }).click())
   act(() => view.getByRole('button', { name: 'Set filters' }).click())
   act(() => view.getByRole('button', { name: 'Read letter' }).click())
@@ -142,22 +142,22 @@ it('restores viewport, zoom and filters after map → letter → map, including 
   expect(new URL(detail, window.location.origin).searchParams.get('returnTo')).toBe(origin)
   view.unmount()
   // The browser's previous entry and the explicit return control both resolve to this URL.
-  const restored = render(<PublicMapController lang="es" />)
+  const restored = render(<PublicMapController />, { locale: 'es' })
   expect(restored.getByLabelText('Initial view')).toHaveTextContent('{"latitude":40.5,"longitude":-3.5,"zoom":8}')
   expect(restored.getByText(/city=Madrid&country=es&limit=20/)).toBeInTheDocument()
   restored.unmount()
   window.history.replaceState(null, '', '/')
-  const fresh = render(<PublicMapController lang="es" />)
+  const fresh = render(<PublicMapController />, { locale: 'es' })
   expect(fresh.getByLabelText('Initial view')).toHaveTextContent('{"latitude":20,"longitude":0,"zoom":2}')
   expect(fresh.queryByText(/city=Madrid/)).toBeNull()
 })
 
 it('starts a fresh exploration when navigating to the same home route without saved context', () => {
   window.history.replaceState(null, '', '/?mapView=40.5,-3.5,8&mapCity=Madrid&mapCountry=es#map')
-  const page = render(<PublicMapController lang="es" />)
+  const page = render(<PublicMapController />, { locale: 'es' })
   expect(page.getByLabelText('Initial view')).toHaveTextContent('"zoom":8')
   window.history.replaceState(null, '', '/#map')
-  page.rerender(<PublicMapController lang="es" />)
+  page.rerender(<PublicMapController />)
   expect(page.getByLabelText('Initial view')).toHaveTextContent('"zoom":2')
   expect(page.queryByText(/city=Madrid/)).toBeNull()
 })

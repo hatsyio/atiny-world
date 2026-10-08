@@ -41,7 +41,7 @@ describe('MessageClusterList', () => {
       items: [{ ...baseFeature, content: 'Gracias por vuestra música' }],
       nextCursor: null,
     }))))
-    render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={() => {}} lang="es" />)
+    render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={() => {}} />, { locale: 'es' })
 
     expect(screen.queryByText('ATINY')).toBeNull()
     expect(await screen.findByText('Gracias por vuestra música')).toBeInTheDocument()
@@ -56,7 +56,7 @@ describe('MessageClusterList', () => {
       items: [{ ...baseFeature, content: 'A letter for ATEEZ' }],
       nextCursor: null,
     }))))
-    render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={onSelect} lang="en" />)
+    render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={onSelect} />, { locale: 'en' })
 
     await user.click(await screen.findByRole('button', { name: /A letter for ATEEZ/ }))
     expect(onSelect).toHaveBeenCalledWith(baseFeature.publicId)
@@ -67,7 +67,7 @@ describe('MessageClusterList', () => {
       .mockResolvedValueOnce(new Response(null, { status: 400 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ items: [], nextCursor: null })))
     vi.stubGlobal('fetch', fetch)
-    render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={() => {}} lang="es" />)
+    render(<MessageClusterList requestUrl="/api/map/messages?limit=20" onSelect={() => {}} />, { locale: 'es' })
 
     await userEvent.setup().click(await screen.findByRole('button', { name: 'Reintentar' }))
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))

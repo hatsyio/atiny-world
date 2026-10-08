@@ -11,7 +11,7 @@ import { getDb } from '@/server/db/client'
 
 export default async function NewMessagePage({
   searchParams,
-}: { params?: Promise<{lang?: string}>; searchParams: Promise<{ returnTo?: string | string[] }> }) {
+}: { searchParams: Promise<{ returnTo?: string | string[] }> }) {
   const locale = await getLocale()
   const t = await getTranslations('Pages.newLetter')
   const { returnTo } = await searchParams
@@ -44,7 +44,7 @@ export default async function NewMessagePage({
         <p className="auth-script">{t('script')}</p>
         <h1>{t('title')}</h1>
         <p className="profile-intro">{t('intro')}</p>
-        <CreateMessageFlow lang={locale} returnTo={origin.href} />
+        <CreateMessageFlow returnTo={origin.href} />
       </div>
     </main>
   )

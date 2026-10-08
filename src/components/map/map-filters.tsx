@@ -1,7 +1,5 @@
 'use client'
 
-import type { Locale } from '@/i18n/locale'
-
 import { useTranslations } from 'next-intl'
 
 export interface MapFilterValues {
@@ -12,7 +10,6 @@ export interface MapFilterValues {
 interface Props {
   value: MapFilterValues
   onChange: (values: MapFilterValues) => void
-  lang?: Locale
 }
 
 const MAX_TEXT_FILTER_LENGTH = 100

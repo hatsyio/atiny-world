@@ -77,7 +77,7 @@ function message(overrides: Partial<OwnMessageListItem> = {}): OwnMessageListIte
 }
 
 function renderList({
-  lang = 'en',
+  locale = 'en' as 'en' | 'es',
   messages = [message()],
   accountSuspended = false,
   onDelete = vi.fn<(publicId: string, expectedVersion: number) => void>(),
@@ -85,12 +85,12 @@ function renderList({
 } = {}) {
   render(
     <MyMessageList
-      lang={lang}
       messages={messages}
       accountSuspended={accountSuspended}
       onDelete={onDelete}
       onEdit={onEdit}
     />,
+    { locale },
   )
   return { onDelete, onEdit }
 }
@@ -134,7 +134,7 @@ describe('MyMessageList presenta estado y motivo', () => {
   })
   it('muestra a la autora el estado y el motivo traducido de un mensaje rechazado', () => {
     renderList({
-      lang: 'es',
+      locale: 'es',
       messages: [
         message({
           publicId: 'msg-rechazada',
@@ -173,7 +173,7 @@ describe('MyMessageList presenta estado y motivo', () => {
 
   it('muestra el estado de los cuatro estados y el motivo solo cuando existe', () => {
     renderList({
-      lang: 'es',
+      locale: 'es',
       messages: [
         message({ status: 'pending', content: 'Carta pendiente' }),
         message({ status: 'approved', content: 'Carta aprobada' }),
@@ -233,7 +233,7 @@ describe('MyMessageList confirma el borrado antes de eliminar', () => {
 describe('MyMessageList limita los controles de una cuenta suspendida', () => {
   it('oculta la edición y conserva la eliminación con su confirmación', () => {
     const { onDelete } = renderList({
-      lang: 'es',
+      locale: 'es',
       accountSuspended: true,
       messages: [message({ publicId: 'msg-suspendida', content: 'Carta con suspensión' })],
     })

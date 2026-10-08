@@ -12,7 +12,7 @@ import { getDb } from '@/server/db/client'
 
 export default async function ProfilePage({
   searchParams,
-}: { params?: Promise<{lang?: string}>; searchParams: Promise<AuthSearchParams & { error?: string }> }) {
+}: { searchParams: Promise<AuthSearchParams & { error?: string }> }) {
   const locale = await getLocale()
   const t = await getTranslations('Pages.profile')
   const { next, error } = await searchParams

@@ -43,7 +43,7 @@ describe('EditMessageForm', () => {
   it('preserves the existing point by omitting location for a text-only edit', async () => {
     const submitUpdate = vi.fn<EditMessageSubmit>(async (input) =>
       okResult({ publicId: input.publicId, version: input.expectedVersion + 1, status: 'pending' as const }))
-    render(<EditMessageForm lang="es" message={message} submitUpdate={submitUpdate} />)
+    render(<EditMessageForm message={message} submitUpdate={submitUpdate} />, { locale: 'es' })
 
     fireEvent.change(screen.getByRole('textbox', { name: /carta/i }), {
       target: { value: 'Carta corregida' },
@@ -96,7 +96,7 @@ describe('EditMessageForm', () => {
 
 it.each(['en', 'es'] as const)('cancels directly to own letters in %s without submitting', lang => {
   const submitUpdate = vi.fn()
-  render(<EditMessageForm lang={lang} message={message} submitUpdate={submitUpdate} />)
+  render(<EditMessageForm message={message} submitUpdate={submitUpdate} />, { locale: lang })
   fireEvent.click(screen.getByRole('button', { name: lang === 'es' ? 'Cancelar' : 'Cancel' }))
   expect(push).toHaveBeenCalledWith('/my-messages')
   expect(submitUpdate).not.toHaveBeenCalled()

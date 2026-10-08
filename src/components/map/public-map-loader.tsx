@@ -1,7 +1,5 @@
 'use client'
 
-import type { Locale } from '@/i18n/locale'
-
 import { useTranslations } from 'next-intl'
 
 import dynamic from 'next/dynamic'
@@ -28,7 +26,6 @@ interface Props {
   onViewChange?: (view: MapView) => void
   features: PublicMapFeature[]
   onSelect: (publicId: string) => void
-  lang?: Locale
   onViewportChange?: (bounds: MapBounds) => void
   filters?: MapFilterValues
   onFiltersChange?: (values: MapFilterValues) => void
@@ -36,6 +33,6 @@ interface Props {
   selectedPublicId?: string
 }
 
-export function PublicMapLoader({ initialView, onViewChange, features, onSelect, lang, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: Props) {
-  return <LeafletMap initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect} lang={lang} onViewportChange={onViewportChange} filters={filters} onFiltersChange={onFiltersChange} groupRequestUrl={groupRequestUrl} selectedPublicId={selectedPublicId} />
+export function PublicMapLoader({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: Props) {
+  return <LeafletMap initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect} onViewportChange={onViewportChange} filters={filters} onFiltersChange={onFiltersChange} groupRequestUrl={groupRequestUrl} selectedPublicId={selectedPublicId} />
 }

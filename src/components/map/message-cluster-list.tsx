@@ -1,7 +1,5 @@
 'use client'
 
-import type { Locale } from '@/i18n/locale'
-
 import { useTranslations } from 'next-intl'
 
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
@@ -10,7 +8,6 @@ import { isInvalidMapCursor, mapMessagesQuery } from './map-queries'
 interface Props {
   requestUrl: string
   onSelect: (publicId: string) => void
-  lang: Locale
 }
 
 export function MessageClusterList({ requestUrl, onSelect }: Props) {

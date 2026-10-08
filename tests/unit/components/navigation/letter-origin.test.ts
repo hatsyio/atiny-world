@@ -19,7 +19,7 @@ describe('letter reading origins', () => {
   })
 
   it('round trips a map across the date line with zoom and filters', () => {
-    const href = mapOrigin('en', { latitude: 12, longitude: 185, zoom: 5 }, { city: 'Seoul & Busan', country: 'kr' })
+    const href = mapOrigin({ latitude: 12, longitude: 185, zoom: 5 }, { city: 'Seoul & Busan', country: 'kr' })
     expect(href).toBe('/?mapView=12%2C-175%2C5&mapCity=Seoul+%26+Busan&mapCountry=kr#map')
     expect(readMapView(new URL(href, 'https://local.test').searchParams)).toEqual({ latitude: 12, longitude: -175, zoom: 5 })
   })

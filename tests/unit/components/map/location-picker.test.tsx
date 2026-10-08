@@ -99,7 +99,7 @@ describe('LocationPicker', () => {
   })
 
   it('shows precision and a map placeholder before choosing a place', () => {
-    render(<LocationPicker lang="es" onChange={() => {}} />)
+    render(<LocationPicker onChange={() => {}} />, { locale: 'es' })
     expect(screen.getByRole('radio', { name: 'Ubicación aproximada' })).toBeDisabled()
     expect(screen.getByRole('radio', { name: 'Ubicación exacta' })).toBeDisabled()
     expect(screen.getByLabelText('Pincha o toca el mapa para elegir un lugar. También puedes arrastrar el marcador.')).toBeVisible()
@@ -207,7 +207,7 @@ describe('LocationPicker', () => {
     const requests: Array<ReturnType<typeof deferred<Response>>> = []
     stubFetch(requests)
     const onChange = vi.fn()
-    render(<LocationPicker lang="es" onChange={onChange} />)
+    render(<LocationPicker onChange={onChange} />, { locale: 'es' })
     act(() => screen.getByRole('combobox').focus())
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'torrejon de ard' } })
     await act(async () => { advance(400) })
@@ -225,7 +225,7 @@ describe('LocationPicker', () => {
     const requests: Array<ReturnType<typeof deferred<Response>>> = []
     const fetchMock = stubFetch(requests)
 
-    render(<LocationPicker lang="es" onChange={() => {}} />)
+    render(<LocationPicker onChange={() => {}} />, { locale: 'es' })
     const input = screen.getByLabelText(/busca/i)
 
     act(() => input.focus())
@@ -273,7 +273,7 @@ describe('LocationPicker', () => {
     const requests: Array<ReturnType<typeof deferred<Response>>> = []
     stubFetch(requests)
 
-    render(<LocationPicker lang="es" onChange={() => {}} />)
+    render(<LocationPicker onChange={() => {}} />, { locale: 'es' })
     const input = screen.getByLabelText(/busca/i)
 
     act(() => input.focus())
@@ -323,7 +323,7 @@ describe('LocationPicker', () => {
     stubFetch(requests)
     const onChange = vi.fn()
 
-    render(<LocationPicker lang="es" onChange={onChange} />)
+    render(<LocationPicker onChange={onChange} />, { locale: 'es' })
     const input = screen.getByLabelText(/busca/i)
 
     act(() => input.focus())
@@ -346,7 +346,7 @@ describe('LocationPicker', () => {
     stubFetch(requests)
     const onChange = vi.fn()
 
-    render(<LocationPicker lang="es" onChange={onChange} />)
+    render(<LocationPicker onChange={onChange} />, { locale: 'es' })
     const input = screen.getByLabelText(/busca/i)
 
     act(() => input.focus())
@@ -368,7 +368,7 @@ describe('LocationPicker', () => {
     stubFetch(requests)
     const onChange = vi.fn()
 
-    render(<LocationPicker lang="es" onChange={onChange} />)
+    render(<LocationPicker onChange={onChange} />, { locale: 'es' })
     const input = screen.getByLabelText(/busca/i)
 
     act(() => input.focus())
@@ -406,7 +406,7 @@ describe('LocationPicker', () => {
     stubFetch(requests)
     const onChange = vi.fn()
 
-    render(<LocationPicker lang="es" onChange={onChange} />)
+    render(<LocationPicker onChange={onChange} />, { locale: 'es' })
     const input = screen.getByLabelText(/busca/i)
 
     act(() => input.focus())

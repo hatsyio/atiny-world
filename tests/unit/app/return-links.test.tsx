@@ -34,13 +34,14 @@ import EditOwnMessagePage from '@/app/(site)/my-messages/[publicId]/edit/page'
 afterEach(() => { cleanup(); state.kind = 'allowed' })
 
 it.each(['en', 'es'] as const)('returns from direct internal links to the map in %s', async lang => {
-  const params = Promise.resolve({ lang: setServerLocale(lang), publicId: 'letter-id' })
+  setServerLocale(lang)
+  const params = Promise.resolve({ publicId: 'letter-id' })
   for (const page of [
-    () => SignInPage({ params, searchParams: Promise.resolve({}) }),
-    () => SignUpPage({ params, searchParams: Promise.resolve({}) }),
+    () => SignInPage({ searchParams: Promise.resolve({}) }),
+    () => SignUpPage({ searchParams: Promise.resolve({}) }),
     () => PublicMessagePage({ params }),
-    () => MyMessagesPage({ params, searchParams: Promise.resolve({}) }),
-    () => NewMessagePage({ params, searchParams: Promise.resolve({}) }),
+    () => MyMessagesPage({ searchParams: Promise.resolve({}) }),
+    () => NewMessagePage({ searchParams: Promise.resolve({}) }),
   ]) {
     render(await page())
     expect(screen.getByRole('link', { name: lang === 'es' ? /Volver al mapa/ : /Back to the map/ })).toHaveAttribute('href', '/#map')
@@ -49,7 +50,8 @@ it.each(['en', 'es'] as const)('returns from direct internal links to the map in
 })
 
 it.each(['en', 'es'] as const)('returns directly from editing to own letters in %s', async lang => {
-  render(await EditOwnMessagePage({ params: Promise.resolve({ lang: setServerLocale(lang), publicId: 'letter-id' }) }))
+  setServerLocale(lang)
+  render(await EditOwnMessagePage({ params: Promise.resolve({ publicId: 'letter-id' }) }))
   expect(screen.getByRole('link', { name: lang === 'es' ? /Volver a mis cartas/ : /Back to my letters/ })).toHaveAttribute('href', '/my-messages')
 })
 
@@ -59,14 +61,16 @@ it.each([
   ['/my-messages', 'Volver a mis cartas', '/my-messages'],
   ['https://evil.example', 'Volver al mapa', '/#map'],
 ] as const)('uses the same resolved writing destination for back and cancel: %s', async (returnTo, label, href) => {
-  render(await NewMessagePage({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({ returnTo }) }))
+  setServerLocale('es')
+  render(await NewMessagePage({ searchParams: Promise.resolve({ returnTo }) }))
   expect(screen.getByRole('link', { name: `← ${label}` })).toHaveAttribute('href', href)
   expect(screen.getByTestId('form-destination')).toHaveTextContent(href)
 })
 
 it('keeps the map escape available for an unavailable writing account', async () => {
   state.kind = 'suspended'
-  render(await NewMessagePage({ params: Promise.resolve({ lang: setServerLocale('es') }), searchParams: Promise.resolve({}) }))
+  setServerLocale('es')
+  render(await NewMessagePage({ searchParams: Promise.resolve({}) }))
   expect(screen.getByRole('link', { name: /Volver al mapa/ })).toHaveAttribute('href', '/#map')
   expect(screen.queryByTestId('form-destination')).toBeNull()
 })
@@ -76,6 +80,7 @@ it.each([
   ['/my-messages?cursor=older#own-letter-id', 'Volver a mis cartas'],
   ['https://evil.example', 'Volver al mapa'],
 ] as const)('public detail resolves its reading origin: %s', async (returnTo, label) => {
-  render(await PublicMessagePage({ params: Promise.resolve({ lang: setServerLocale('es'), publicId: 'letter-id' }), searchParams: Promise.resolve({ returnTo }) }))
+  setServerLocale('es')
+  render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-id' }), searchParams: Promise.resolve({ returnTo }) }))
   expect(screen.getByRole('link', { name: `← ${label}` })).toHaveAttribute('href', returnTo.startsWith('/') ? returnTo : '/#map')
 })
