@@ -52,9 +52,36 @@ La comprobación de ingestión local no verifica un despliegue de producción.
 Para verificar producción, publicar los cambios y comprobar una excepción
 controlada en el proyecto de PostHog.
 
-La carga automática de source maps no está configurada. Las trazas del navegador
-pueden señalar código compilado; para resolverlas al código fuente original hay
-que configurar la subida autenticada de mapas con la CLI de PostHog.
+## Source maps
+
+`next.config.ts` usa `@posthog/nextjs-config` como wrapper exterior de next-intl.
+En builds Preview y Production de Vercel genera los mapas de Turbopack, inyecta
+los identificadores de chunks y los sube al proyecto `651528`. La release se llama
+`atiny-world` y su versión es `VERCEL_GIT_COMMIT_SHA`.
+
+Configurar en ambos entornos de Vercel:
+
+- `POSTHOG_API_KEY`: clave privada con `error_tracking:write` y
+  `organization:read`, limitada a la organización Atiny Atlas.
+- `POSTHOG_PROJECT_ID`: `651528`.
+
+La subida usa `https://us.posthog.com`, distinto del host de ingestión del SDK.
+Los mapas se eliminan tras subirlos; no se publican junto a los bundles.
+El instalador de `@posthog/cli` está permitido en `pnpm-workspace.yaml` para
+descargar su binario oficial durante la instalación de dependencias.
+
+Los builds locales, Docker y GitHub Actions no suben mapas ni necesitan esta
+clave. Un build de despliegue sin credenciales falla para evitar publicar una
+release sin mapas de forma silenciosa. La subida se realiza sobre los archivos
+del propio despliegue de Vercel, no sobre un build independiente de GitHub.
+
+Verificar en los logs del build que la subida terminó correctamente y en
+PostHog que los Symbol sets contienen archivos subidos. Una excepción de la
+release nueva debe incluir el identificador del chunk y resolverse al código
+fuente. Los mapas nuevos no recuperan los de releases anteriores ni crean
+trazas para errores que se capturaron sin stack.
+
+Referencia: [Source maps para Next.js](https://posthog.com/docs/error-tracking/upload-source-maps/nextjs).
 
 El informe del asistente describe su resultado original. Esta documentación
 incluye los ajustes posteriores: captura del servidor, envío diferido,

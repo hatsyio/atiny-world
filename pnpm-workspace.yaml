@@ -1,6 +1,8 @@
 allowBuilds:
   # Optional next-intl tooling: prebuilt binaries, no lifecycle scripts required.
   "@parcel/watcher": false
+  # Downloads the platform binary used by the PostHog source map build hook.
+  '@posthog/cli': true
   "@swc/core": false
   core-js: false
   esbuild: true
