@@ -138,11 +138,10 @@ suprimieron errores ni se marcaron incidencias como resueltas.
 
 ## Correcciones posteriores a la investigación
 
-La rama `fix/posthog-pool-and-language-network` incorpora:
+La rama `fix/posthog-pool-and-language-network` incorpora finalmente:
 
-- Selección del puerto 6543 para URLs del pooler compartido de Supabase en
-  modo sesión cuando `VERCEL=1`, sin cambiar variables de entorno o scripts
-  de migración. Las URLs directas y locales conservan su puerto.
+- Conservación del puerto de `DATABASE_URL`, también en Vercel. Se retiró
+  la conversión automática a 6543 tras reproducir un bloqueo concurrente.
 - `idle_timeout: 20` en el cliente de runtime; una prueba contra PostgreSQL
   comprueba que una consulta posterior abre otra conexión y sigue funcionando.
 - Manejo del rechazo de transporte de `LanguageSynchronizer`, conservando el
@@ -151,7 +150,31 @@ La rama `fix/posthog-pool-and-language-network` incorpora:
 
 Estas correcciones no prueban el origen de las dos incidencias de red
 observadas ni resuelven las hipótesis pendientes de iOS y ResizeObserver.
-El cambio de modo del pool se aplicará al desplegar esta rama en Vercel.
-El cliente modificado también completó dos transacciones de lectura contra el
-pooler remoto por 6543, comprobando search_path, settings y PostGIS. No se
-realizaron escrituras remotas durante esa comprobación.
+Las dos transacciones de lectura iniciales por 6543 comprobaron search_path,
+settings y PostGIS, pero no cubrían concurrencia. No hubo escrituras remotas.
+
+### Bloqueo de preview después de login
+
+El usuario informó de un bloqueo tras iniciar sesión con Google. En el preview
+se observó un timeout de PostgreSQL (`57014`) y una respuesta 503 de salud;
+otras peticiones quedaron pendientes en middleware. Más tarde la portada y
+salud volvieron a responder 200. No se pudo inspeccionar la pestaña de retorno
+de Google porque la política de acceso de la herramienta bloqueó su URL.
+
+Una reproducción independiente, solo con lecturas, mezcló seis operaciones
+concurrentes en un cliente (`max: 1`, `prepare: false`): consultas simples de
+settings, consultas parametrizadas de una identidad ficticia inexistente y
+transacciones que leen search_path. Con el mismo host y credenciales:
+
+- Puerto 5432: seis operaciones satisfactorias en 642 ms.
+- Puerto 6543: bloqueo; se cerró el cliente tras ocho segundos y cuatro
+  operaciones acabaron en `CONNECTION_DESTROYED`.
+- Limitar `max_pipeline` a 1 no solucionó el bloqueo en otro ensayo.
+
+Esto confirma una incompatibilidad de la carga concurrente ensayada con el
+pool de transacción y la configuración actual; no demuestra el mecanismo
+interno exacto ni explica por sí solo las peticiones pendientes en middleware.
+Se retiró la conversión automática de puerto. La PR conserva el cierre por
+inactividad y el manejo de fallos de sincronización de idioma, y añade una
+prueba de mezcla concurrente sobre PostgreSQL local. El login completo deberá
+validarse de nuevo en el preview corregido.

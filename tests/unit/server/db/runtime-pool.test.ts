@@ -4,8 +4,8 @@ afterEach(() => vi.unstubAllEnvs())
 
 describe('runtime pool routing', () => {
   it.each([
-    ['aws-1-eu-west-3.pooler.supabase.com:5432', true, 6543],
-    ['aws-1-eu-west-3.pooler.supabase.com', true, 6543],
+    ['aws-1-eu-west-3.pooler.supabase.com:5432', true, 5432],
+    ['aws-1-eu-west-3.pooler.supabase.com', true, 5432],
     ['aws-1-eu-west-3.pooler.supabase.com:6543', true, 6543],
     ['aws-1-eu-west-3.pooler.supabase.com:5432', false, 5432],
     ['127.0.0.1:54322', true, 54322],
