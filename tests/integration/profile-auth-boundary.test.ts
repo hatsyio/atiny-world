@@ -5,7 +5,7 @@ import { completeProfile } from '../../src/server/auth/profiles'
 import { resolveAccountGate } from '../../src/server/auth/account-gate'
 import { authorizeProfile } from '../../src/server/auth/authorize'
 import { readProfileByClerkUserId } from '../../src/server/auth/session'
-import { createTestDb, insertMessage, truncateProductTables } from '../support/database'
+import { createSecondConnection, createTestDb, insertMessage, truncateProductTables } from '../support/database'
 
 const db = createTestDb()
 
@@ -89,7 +89,7 @@ describe('Clerk username signup boundary', () => {
     expect(await completeProfileForSession(db, async () => null, async () => clerkUser('fan', 'Name'))).toMatchObject({ ok: false, error: { code: 'NOT_FOUND' } })
     expect(await completeProfileForSession(db, session('fan'), async () => clerkUser('other', 'Name'))).toMatchObject({ ok: false, error: { code: 'NOT_FOUND' } })
     expect(await authorizeProfile(db, { clerkUserId: 'fan' }, readProfileByClerkUserId)).toMatchObject({ ok: false, error: { code: 'PROFILE_INCOMPLETE' } })
-    const gate = await resolveAccountGate(db, async () => ({ userId: 'fan' }), readProfileByClerkUserId, async () => false)
+    const gate = await resolveAccountGate(db, async () => ({ userId: 'fan' }), readProfileByClerkUserId, async () => clerkUser('fan', null))
     expect(gate).toEqual({ kind: 'incomplete' })
   })
 
@@ -101,6 +101,33 @@ describe('Clerk username signup boundary', () => {
     if (first.ok && second.ok) expect(second.data.profilePublicId).toBe(first.data.publicId)
     const authorization = await authorizeProfile(db, { clerkUserId: 'existing' }, readProfileByClerkUserId)
     expect(authorization).toMatchObject({ ok: true, data: { displayName: 'Existing' } })
+  })
+
+  it('recovers concurrent access and completion as one local profile', async () => {
+    const second = createSecondConnection()
+    try {
+      // Both consumers see the profile missing before either can create it.
+      let arrivals = 0
+      let release!: () => void
+      const ready = new Promise<void>((resolve) => { release = resolve })
+      const readClerk = async () => {
+        if (++arrivals === 2) release()
+        await ready
+        return clerkUser('concurrent', 'ATINY')
+      }
+      const [gate, completion] = await Promise.all([
+        resolveAccountGate(db, async () => ({ userId: 'concurrent' }), readProfileByClerkUserId, readClerk),
+        completeProfileForSession(second, session('concurrent'), readClerk),
+      ])
+      expect(gate).toMatchObject({ kind: 'allowed' })
+      expect(completion).toMatchObject({ ok: true })
+      const rows = await db`select public_id, display_name from app_private.profiles where clerk_user_id = 'concurrent'`
+      expect(rows).toHaveLength(1)
+      if (gate.kind === 'allowed' && completion.ok) {
+        expect(gate.profile.publicId).toBe(rows[0].public_id)
+        expect(completion.data.profilePublicId).toBe(rows[0].public_id)
+      }
+    } finally { await second.end() }
   })
 
   it('recovers an unfinished legacy sign-up with the previously chosen Unicode name', async () => {

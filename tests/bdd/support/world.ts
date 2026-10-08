@@ -9,7 +9,7 @@ import type {
   SessionIdentity,
 } from '../../../src/server/auth/session'
 import type { AccountGate } from '../../../src/server/auth/account-gate'
-import type { ClerkUserReader } from '../../../src/server/actions/complete-profile'
+import type { ClerkUserReader } from '../../../src/server/auth/profile-recovery'
 import type { ActionResult } from '../../../src/domain/contracts'
 import type { CreateMessageForSessionSuccess } from '../../../src/server/actions/create-message'
 import type { OwnMessagePage } from '../../../src/server/messages/own-message-repository'

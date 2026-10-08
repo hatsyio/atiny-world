@@ -22,6 +22,7 @@ export type SessionProfileRow = {
   display_name: string
   role: string
   account_state: string
+  language_preference?: string | null
   suspended_at: string | null
 }
 
@@ -29,7 +30,7 @@ export type ProfileReader = (sql: Sql, clerkUserId: string) => Promise<SessionPr
 
 export const readProfileByClerkUserId: ProfileReader = async (sql, clerkUserId) => {
   const rows = await sql<SessionProfileRow[]>`
-    select id, public_id, display_name, role, account_state, suspended_at
+    select id, public_id, display_name, role, account_state, suspended_at, language_preference
       from app_private.profiles
      where clerk_user_id = ${clerkUserId}
      limit 1

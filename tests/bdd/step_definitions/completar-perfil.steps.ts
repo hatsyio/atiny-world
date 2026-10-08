@@ -37,7 +37,7 @@ When('Clerk entrega el username {string}', async function (this: AtinyAtlasWorld
 })
 
 When('intenta escribir una carta', async function (this: AtinyAtlasWorld) {
-  this.accountGate = await resolveAccountGate(db, clerkAuthReader(this), undefined, async () => false)
+  this.accountGate = await resolveAccountGate(db, clerkAuthReader(this), undefined, async () => this.clerkUser ?? null)
 })
 
 Then('el perfil queda completo con rol fan', async function (this: AtinyAtlasWorld) {
