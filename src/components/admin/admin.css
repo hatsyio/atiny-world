@@ -21,6 +21,8 @@
 .admin-section-header p { margin: 0; max-width: 65ch; font-size: .9rem; line-height: 1.7; color: #55606a; }
 .admin-panel label { font-size: .85rem; font-weight: 600; line-height: 1.6; }
 .admin-panel input:not([type='checkbox']):not([type='hidden']), .admin-panel select, .admin-panel textarea { min-width: 0; max-width: 100%; min-height: 44px; padding: .65rem .8rem; border: 1px solid #aaa89f; border-radius: 5px; background: #fffefa; color: #26313b; font: inherit; font-size: .9rem; }
+.admin-panel select { appearance: none; padding-right: 2.5rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='m3 4.5 3 3 3-3' stroke='%23606971' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .9rem center; background-size: 12px 12px; }
+.admin-panel select:disabled { opacity: .6; cursor: not-allowed; }
 .admin-panel textarea { resize: vertical; }
 .admin-panel button { min-height: 44px; padding: .65rem 1rem; border: 1px solid var(--admin-accent); border-radius: 5px; background: var(--admin-accent); color: white; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
 .admin-panel button:disabled { opacity: .6; cursor: not-allowed; }
@@ -31,7 +33,7 @@
 .admin-search label { display: block; margin-bottom: .5rem; }
 .admin-search > div, .admin-search-field > div { display: flex; gap: .65rem; }
 .admin-search input { flex: 1; width: 100%; }
-.admin-message-search { display: grid; grid-template-columns: minmax(0, 1fr) 12rem; align-items: end; gap: 1rem; }
+.admin-message-search { display: grid; grid-template-columns: minmax(0, 1fr) 14rem; align-items: end; gap: 1rem; }
 .admin-message-search > .admin-search-field { display: block; min-width: 0; }
 .admin-search-field select { width: 100%; }
 .admin-users { padding: 0; list-style: none; }
@@ -69,6 +71,9 @@
 .admin-settings-form > button { justify-self: start; }
 .admin-pagination { display: flex; justify-content: space-between; gap: 1rem; font-size: .85rem; }
 .admin-pagination a { display: inline-flex; min-height: 44px; align-items: center; color: var(--admin-accent); text-underline-offset: 4px; }
+@media (forced-colors: active) {
+  .admin-panel select { appearance: auto; background-image: none; }
+}
 @media (max-width: 1000px) {
   .admin-panel { grid-template-columns: 200px minmax(0, 1fr); }
   .admin-message-search { grid-template-columns: minmax(0, 1fr); }
