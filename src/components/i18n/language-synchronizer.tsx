@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import posthog from 'posthog-js'
 import { useAuth } from '@clerk/nextjs'
 import { usePathname, useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
@@ -19,6 +20,9 @@ export function LanguageSynchronizer() {
     let active = true
     void synchronizeLanguagePreference().then((result) => {
       if (active && result.ok && result.locale && (result.locale !== locale || result.preference !== preference)) router.refresh()
+    }).catch((error: unknown) => {
+      // Keep the current language and draft; the next navigation retries.
+      posthog.captureException(error, { operation: 'synchronize_language_preference' })
     })
     return () => { active = false }
   }, [isLoaded, userId, preference, locale, pathname, router])
