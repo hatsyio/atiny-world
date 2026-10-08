@@ -1,5 +1,7 @@
-.admin-page { background: #e8e1d5; font-family: var(--font-interface), sans-serif; color: #26313b; }
-.admin-page .auth-back { background: transparent; color: #344556; border: 1px solid #b6afa3; border-radius: 6px; }
+.auth-page.admin-page { background: #e8e1d5; font-family: var(--font-interface), sans-serif; color: #26313b; }
+.admin-page .auth-back { display: inline-flex; align-items: center; min-height: 44px; background: #fffcf6; color: #344556; border: 1px solid #8b918f; border-radius: 6px; font-size: .9rem; font-weight: 600; }
+.admin-page .auth-back:hover { background: #edf3f7; border-color: #285574; }
+.admin-page .auth-back:focus-visible { outline: 3px solid #285574; outline-offset: 3px; }
 .admin-panel { width: min(100%, 1240px); margin: 1.5rem auto 0; display: grid; grid-template-columns: 240px minmax(0, 1fr); background: #fffcf6; border: 1px solid #c9c1b4; border-radius: 12px; overflow: clip; }
 .admin-sidebar { padding: 2rem 1rem; background: #f7f3eb; border-right: 1px solid #d9d2c6; }
 .admin-sidebar h1 { margin: 0 0 2rem; padding-inline: .75rem; font-family: var(--font-display), Georgia, serif; font-size: 1.45rem; font-weight: 600; }
@@ -74,7 +76,7 @@
   .admin-message-list .admin-decision-form, .admin-message-list > li > .profile-note { border-left: 0; border-top: 1px solid #cbd6dc; }
 }
 @media (max-width: 700px) {
-  .admin-page { padding: 1rem .75rem 2rem; }
+  .auth-page.admin-page { padding: 1rem .75rem 2rem; }
   .admin-panel { grid-template-columns: minmax(0, 1fr); margin-top: 1rem; }
   .admin-sidebar { padding: 1.25rem .75rem .75rem; border-right: 0; border-bottom: 1px solid #d9d2c6; }
   .admin-sidebar h1 { margin-bottom: 1rem; }
