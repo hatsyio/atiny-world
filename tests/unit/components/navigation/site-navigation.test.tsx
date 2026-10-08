@@ -33,7 +33,7 @@ describe('shared navigation', () => {
     render(<SiteHeader />)
     const links = within(screen.getByRole('navigation', { name: 'Navegación principal' })).getAllByRole('link')
     expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual([
-      ['Inicio', '/'], ['Mapa', '/#map'], ['Cartas', '/#letters'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/messages/new?returnTo=${encodeURIComponent(suffix)}` : '/messages/new'],
+      ['Inicio', '/'], ['Mapa', '/#map'], ['Cartas', '/#letters'], ['Sobre nosotros', '/#about'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/messages/new?returnTo=${encodeURIComponent(suffix)}` : '/messages/new'],
     ])
     expect(screen.getByRole('link', { name: 'Atiny Atlas' })).toHaveAttribute('href', '/')
     expect(screen.getAllByRole('link').filter(link => link.hasAttribute('aria-current')).length).toBeLessThanOrEqual(1)
@@ -148,12 +148,12 @@ describe('shared navigation', () => {
     fireEvent.scroll(window)
     expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('aria-current', 'location')
   })
-  it('preserves the visible section when the footer anchor changes the hash', () => {
+  it('marks about as active when its anchor changes the hash', () => {
     render(<><SiteHeader /><section id="map" /><section id="letters" /></>)
     vi.spyOn(document.getElementById('map')!, 'getBoundingClientRect').mockReturnValue({ top: -900 } as DOMRect)
     vi.spyOn(document.getElementById('letters')!, 'getBoundingClientRect').mockReturnValue({ top: 100 } as DOMRect)
     act(() => { window.history.replaceState(null, '', '#about'); fireEvent(window, new HashChangeEvent('hashchange')) })
-    expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('aria-current', 'location')
+    expect(screen.getByRole('link', { name: 'Sobre nosotros' })).toHaveAttribute('aria-current', 'location')
   })
   it('moves focus to the destination when a mobile anchor closes the menu', async () => {
     render(<><SiteHeader /><section id="map" tabIndex={-1} /></>)
@@ -173,7 +173,7 @@ describe('shared navigation', () => {
     const developer = within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Josep Pascual' })
     expect(developer).toHaveAttribute('href', 'https://joseppascual.com')
     expect(developer.parentElement).toHaveTextContent(lang === 'es' ? 'Desarrollado por Josep Pascual' : 'Developed by Josep Pascual')
-    expect(document.getElementById('about')).toHaveTextContent(lang === 'es' ? 'Sin afiliación' : 'Not affiliated')
+    expect(screen.getByRole('contentinfo')).toHaveTextContent(lang === 'es' ? 'Sin afiliación' : 'Not affiliated')
   })
   it('renders a localized footer independently', () => {
     render(<SiteFooter />)

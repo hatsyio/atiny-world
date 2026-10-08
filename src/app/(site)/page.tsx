@@ -39,6 +39,7 @@ export function PublicHome({
   selectedMessage?: PublicMapFeature
 }) {
   const t = useTranslations('Pages.home')
+  const about = useTranslations('Pages.about')
   const format = useFormatter()
   const writeUrl = '/messages/new'
 
@@ -86,6 +87,28 @@ export function PublicHome({
                   <span className="letter-seal" aria-hidden="true">✧</span>
                 </LetterLink>
               ))}
+            </div>
+          </section>
+
+          <section className="about-section" id="about" tabIndex={-1} aria-labelledby="about-title">
+            <h2 id="about-title">{about('title')}</h2>
+            <div className="about-layout">
+              <div className="about-story">
+                <h3>{about('projectTitle')}</h3>
+                <p>{about('purpose')}</p>
+                <p>{about('community')}</p>
+                <p>{about('messages')}</p>
+                <p>{about('origin')}</p>
+              </div>
+              <div className="about-credits">
+                <h3 id="credits-title">{about('creditsTitle')}</h3>
+                <ul aria-labelledby="credits-title">
+                  <li><a href="https://www.threads.com/@angelppudding">@angelppudding</a><span>{about('idea')}</span></li>
+                  <li><a href="https://www.threads.com/@breakthewalln109">@breakthewalln109</a><span>{about('support')}</span></li>
+                  <li><a href="https://x.com/koala_hala">@koala_hala</a><span>{about('support')}</span></li>
+                  <li><a href="https://joseppascual.com">Josep Pascual Badia</a><span>{about('development')}</span></li>
+                </ul>
+              </div>
             </div>
           </section>
         </div>

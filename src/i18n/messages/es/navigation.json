@@ -28,5 +28,6 @@
     "letter": "a la carta"
   },
   "back": "Volver {target}",
-  "cancel": "Cancelar y volver {target}"
+  "cancel": "Cancelar y volver {target}",
+  "about": "Sobre nosotros"
 }

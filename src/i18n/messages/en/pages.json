@@ -176,5 +176,17 @@
     "title": "Your account is suspended",
     "explanation": "Your letters are hidden. You cannot publish or edit, but you can still read and delete your letters.",
     "ownLetters": "Read or delete my letters"
+  },
+  "about": {
+    "title": "About us",
+    "projectTitle": "About the project",
+    "purpose": "This fan project was created to show our 8 pirates how much they are loved by ATINY.",
+    "community": "It is a space to bring ATINYs together, share our love for ATEEZ and spread positivity throughout the fandom.",
+    "messages": "Every message on this map is a little piece of love from ATINY coming together from all around the world.",
+    "origin": "The original idea for this project came from angelppudding, with the help and support of breakthewalln109 and koala_hala.",
+    "creditsTitle": "Project credits",
+    "idea": "Original idea",
+    "support": "Help and support",
+    "development": "Website development"
   }
 }

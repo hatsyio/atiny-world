@@ -176,5 +176,17 @@
     "title": "Tu cuenta está suspendida",
     "explanation": "Tus cartas están ocultas. No puedes publicar ni editar, pero puedes seguir consultando y borrando tus cartas.",
     "ownLetters": "Consultar o borrar mis cartas"
+  },
+  "about": {
+    "title": "Sobre nosotros",
+    "projectTitle": "Sobre el proyecto",
+    "purpose": "Este proyecto de fans nació para mostrar a nuestros 8 piratas cuánto los quiere ATINY.",
+    "community": "Es un espacio para reunir a ATINY, compartir nuestro amor por ATEEZ y difundir positividad en el fandom.",
+    "messages": "Cada mensaje de este mapa es un pequeño pedazo del cariño de ATINY que llega desde todos los rincones del mundo.",
+    "origin": "La idea original de este proyecto nació de angelppudding, con la ayuda y el apoyo de breakthewalln109 y koala_hala.",
+    "creditsTitle": "Créditos del proyecto",
+    "idea": "Idea original",
+    "support": "Ayuda y apoyo",
+    "development": "Desarrollo web"
   }
 }
