@@ -204,6 +204,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .send-banner p { margin: 0; max-width: 22rem; line-height: 1.4; color: #d7c1a6; }
 .send-banner .ornate-button { min-width: 280px; }
 .banner-seal { position: absolute; font-size: 7rem; right: 1%; opacity: .18; }
+.about-page { min-height: 75vh; }
+.about-back { color: var(--ink); text-underline-offset: .25em; }
+.about-back:focus-visible { outline: 2px solid var(--brown); outline-offset: 4px; }
+.about-section { max-width: 1200px; margin: 2.5rem auto 0; }
+.about-section > h1 { margin: 0 0 2rem; text-align: center; font-size: clamp(1.8rem, 3vw, 2.6rem); }
+.about-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 5rem); }
+.about-section h2 { margin: 0 0 1rem; font-size: 1.25rem; }
+.about-story p { max-width: 65ch; margin: 0 0 1rem; font-size: 1.05rem; line-height: 1.8; }
+.about-credits ul { list-style: none; margin: 0; padding: 0; }
+.about-credits li { display: grid; gap: .35rem; padding: .85rem 0; border-bottom: 1px solid #87582c60; overflow-wrap: anywhere; }
+.about-credits li:first-child { padding-top: 0; }
+.about-credits a { width: fit-content; color: var(--ink); font-size: 1.1rem; text-underline-offset: .25em; }
+.about-credits a:hover { color: var(--brown); }
+.about-credits a:focus-visible { outline: 2px solid var(--brown); outline-offset: 4px; }
+.about-credits span { font-family: var(--font-interface), sans-serif; font-size: .85rem; }
+@media (max-width: 760px) { .about-layout { grid-template-columns: minmax(0, 1fr); } .about-section { margin-top: 3rem; } }
+
 .site-footer { min-height: 110px; padding: 1.1rem clamp(1.5rem, 4vw, 4rem); background: #211712; color: #ddc7a8; display: grid; grid-template-columns: 1fr 1fr; gap: .1rem 1rem; align-content: center; font-size: .76rem; }
 .site-footer p { margin: .2rem 0; }
 .footer-script { font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: 1.7rem; font-style: italic; }

@@ -19,6 +19,9 @@ export function returnDestination(lang: Locale, returnTo?: string | string[]) {
         destination = section === '' ? 'home' : section
         href = `${home}${url.search}${url.hash}`
       }
+    } else if (path === '/about') {
+      destination = 'about'
+      href = path
     } else if (path === '/my-messages') {
       destination = 'ownLetters'
       href = `${path}${url.search}${/^#own-[a-zA-Z0-9-]+$/.test(url.hash) ? url.hash : ''}`

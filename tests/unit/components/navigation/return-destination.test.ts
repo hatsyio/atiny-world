@@ -5,6 +5,7 @@ it.each([
   ['/#map', '/#map', 'Volver al mapa'],
   ['/', '/', 'Volver al inicio'],
   ['/#letters', '/#letters', 'Volver a las cartas'],
+  ['/about', '/about', 'Volver al proyecto'],
   ['/#about', '/#about', 'Volver al proyecto'],
   ['/my-messages?cursor=older', '/my-messages?cursor=older', 'Volver a mis cartas'],
   ['/messages/letter-id', '/messages/letter-id', 'Volver a la carta'],

@@ -148,7 +148,7 @@ describe('shared navigation', () => {
     fireEvent.scroll(window)
     expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('aria-current', 'location')
   })
-  it('preserves the visible section when the footer anchor changes the hash', () => {
+  it('preserves the visible section when a legacy about anchor changes the hash', () => {
     render(<><SiteHeader /><section id="map" /><section id="letters" /></>)
     vi.spyOn(document.getElementById('map')!, 'getBoundingClientRect').mockReturnValue({ top: -900 } as DOMRect)
     vi.spyOn(document.getElementById('letters')!, 'getBoundingClientRect').mockReturnValue({ top: 100 } as DOMRect)
@@ -169,11 +169,11 @@ describe('shared navigation', () => {
     render(await LocalizedLayout({children: <main>Profile</main>}))
     expect(screen.getAllByRole('banner')).toHaveLength(1)
     expect(screen.getAllByRole('contentinfo')).toHaveLength(1)
-    expect(screen.queryByRole('link', { name: lang === 'es' ? 'Sobre el proyecto' : 'About the project' })).not.toBeInTheDocument()
-    const developer = within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Josep Pascual' })
-    expect(developer).toHaveAttribute('href', 'https://joseppascual.com')
-    expect(developer.parentElement).toHaveTextContent(lang === 'es' ? 'Desarrollado por Josep Pascual' : 'Developed by Josep Pascual')
-    expect(document.getElementById('about')).toHaveTextContent(lang === 'es' ? 'Sin afiliación' : 'Not affiliated')
+    expect(within(screen.getByRole('contentinfo')).getByRole('link', { name: lang === 'es' ? 'Sobre nosotros' : 'About us' })).toHaveAttribute('href', '/about')
+    const developer = within(screen.getByRole('contentinfo')).getByRole('link', { name: '@hatsyio' })
+    expect(developer).toHaveAttribute('href', 'https://x.com/hatsyio')
+    expect(developer.parentElement).toHaveTextContent(lang === 'es' ? 'Desarrollado por @hatsyio' : 'Developed by @hatsyio')
+    expect(screen.getByRole('contentinfo')).toHaveTextContent(lang === 'es' ? 'Sin afiliación' : 'Not affiliated')
   })
   it('renders a localized footer independently', () => {
     render(<SiteFooter />)
