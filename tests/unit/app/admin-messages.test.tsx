@@ -13,8 +13,26 @@ import AdminMessagesPage from '@/app/(site)/admin/messages/page'
 import { authorizeSession } from '@/server/auth/authorize'
 import { getSessionIdentity } from '@/server/auth/session'
 import { searchModerationMessages } from '@/server/moderation/message-repository'
+import { setServerLocale } from '../../support/server-intl'
 
-afterEach(() => { cleanup(); vi.resetAllMocks() })
+afterEach(() => { cleanup(); vi.resetAllMocks(); setServerLocale('en') })
+it.each([
+  ['en', 'Oct 6, 2026, 10:00 AM UTC'],
+  ['es', '6 oct 2026, 10:00 UTC'],
+] as const)('formats the published date on the server in %s', async (locale, expectedLabel) => {
+  setServerLocale(locale)
+  vi.mocked(authorizeSession).mockResolvedValue({ ok: true, data: { profileId: '1', publicId: 'id', displayName: 'Admin', role: 'admin' } })
+  vi.mocked(getSessionIdentity).mockResolvedValue({ clerkUserId: 'actor' })
+  vi.mocked(searchModerationMessages).mockResolvedValue({ ok: true, data: { items: [{
+    publicId: '123e4567-e89b-42d3-a456-426614174000', version: 1, status: 'pending',
+    content: 'Letter', authorName: 'ATINY', authorState: 'active', locality: null,
+    country: 'South Korea', publishedAt: '2026-10-06T10:00:00.000Z',
+    reasonCode: null, note: null, publicVisible: true, decisions: [],
+  }], hasMore: false } })
+  const { container } = render(await AdminMessagesPage({ searchParams: Promise.resolve({}) }), { locale })
+  expect(container.querySelector('time')).toHaveTextContent(expectedLabel)
+  expect(container.querySelector('time')).toHaveAttribute('dateTime', '2026-10-06T10:00:00.000Z')
+})
 it('guards direct requests before querying the private message queue', async () => {
   vi.mocked(authorizeSession).mockResolvedValue({ ok: true, data: { profileId: '1', publicId: 'id', displayName: 'Fan', role: 'fan' } })
   await expect(AdminMessagesPage({ searchParams: Promise.resolve({}) })).rejects.toThrow('NOT_FOUND')

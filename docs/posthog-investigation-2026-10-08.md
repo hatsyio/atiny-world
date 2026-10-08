@@ -178,3 +178,63 @@ Se retiró la conversión automática de puerto. La PR conserva el cierre por
 inactividad y el manejo de fallos de sincronización de idioma, y añade una
 prueba de mezcla concurrente sobre PostgreSQL local. El login completo deberá
 validarse de nuevo en el preview corregido.
+
+## Continuación tras fusionar la PR #112
+
+Se confirmó la fusión a las 14:30:44 UTC. La lista de PostHog sigue mostrando
+las mismas nueve incidencias y ningún evento posterior a las 13:46:25 UTC.
+El estado `active` conserva incidencias históricas; este intervalo tan corto
+no demuestra que las correcciones hayan eliminado todos los fallos.
+
+### Diferencia de Intl reproducida en la cola de moderación
+
+El componente usaba `dateStyle: medium`, `timeStyle: short`, idioma `en` y UTC
+tanto al generar HTML como al hidratarlo. Se ejecutó la misma expresión para
+`2026-10-06T10:00:00.000Z` en Node/V8 y en JavaScriptCore del sistema macOS:
+
+| Motor | Resultado |
+| --- | --- |
+| Node/V8 | `Oct 6, 2026, 10:00 AM` |
+| JavaScriptCore | `Oct 6, 2026 at 10:00 AM` |
+
+En español ambos produjeron `6 oct 2026, 10:00`. La zona UTC no evita esta
+diferencia de puntuación/formato. Una prueba con `renderToString` y `hydrateRoot`
+reprodujo el error de texto de React al cambiar el resultado del formatter
+entre renderizado e hidratación. El stack de la prueba señala `<time>` en
+`MessageQueue`.
+
+La corrección formatea las fechas en el Server Component con `getFormatter` y
+envía `publishedAtLabel` al componente interactivo. El cliente conserva ese
+texto y el ISO en `dateTime`. La prueba de hidratación pasa después del cambio;
+otras pruebas comprueban el texto servido en inglés y español.
+
+Esta es una causa reproducible coherente con los eventos iOS del panel.
+La comparación se hizo con JavaScriptCore de macOS, no con los iPhone de esas
+sesiones; no prueba que los tres eventos históricos tuvieran esa única causa.
+
+Referencias: [React 418](https://react.dev/errors/418) y
+[pasar etiquetas del servidor al cliente con next-intl](https://next-intl.dev/docs/environments/server-client-components#option-1-passing-translated-labels-to-client-components).
+
+### ResizeObserver: ensayo sin reproducción
+
+Se abrió un formulario nuevo en Chrome, sin publicar cartas. Con anchos de
+390 y 320 píxeles se buscó Seoul, se abrió el desplegable, se cambió el ancho
+con las sugerencias abiertas y se seleccionó la ciudad. El selector respondió
+correctamente y no aparecieron errores ResizeObserver en los logs del navegador.
+Se restauró el tamaño y se cerró la pestaña de diagnóstico.
+
+Esto solo verifica Chrome de escritorio con un viewport estrecho. No reproduce
+el teclado virtual ni los motores/dispositivos de las sesiones Android e iOS.
+No justifica cambiar el CSS, sustituir React Aria ni suprimir el error.
+
+### Source maps: capacidad disponible, integración pendiente
+
+La CLI instalada pudo consultar el proyecto 651528 usando sus credenciales
+existentes. El build de Next.js sigue sin subir source maps. La integración
+oficial `@posthog/nextjs-config` permite subirlos y eliminarlos del resultado
+publicado. Una futura integración debe verificar la compatibilidad con
+Turbopack y autenticar el build de Vercel con una credencial de servidor;
+el token público de eventos no sirve para esa subida. En esta continuación
+no se añadieron dependencias, no se cambiaron secretos y no se subieron mapas.
+
+Referencia: [source maps para Next.js en PostHog](https://posthog.com/docs/error-tracking/upload-source-maps/nextjs).

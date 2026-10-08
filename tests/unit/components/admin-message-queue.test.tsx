@@ -1,15 +1,42 @@
 /** @vitest-environment jsdom */
 import { cleanup, screen, fireEvent, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
+import { act } from 'react'
+import { renderToString } from 'react-dom/server'
+import { hydrateRoot } from 'react-dom/client'
 import { render, IntlTestProvider } from '../../support/intl'
+const runtimeDate = vi.hoisted(() => ({ text: 'Oct 6, 2026, 10:00 AM' }))
+vi.mock('next-intl', async (importOriginal) => ({
+  ...await importOriginal<typeof import('next-intl')>(),
+  useFormatter: () => ({ dateTime: () => runtimeDate.text }),
+}))
 vi.mock('@/app/(site)/admin/messages/actions', () => ({ moderateMessageAction: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
-import { MessageQueue } from '@/components/admin/message-queue'
+import { MessageQueue, type ModerationQueueMessage } from '@/components/admin/message-queue'
 import { moderateMessageAction } from '@/app/(site)/admin/messages/actions'
-import type { ModerationMessage } from '@/server/moderation/message-repository'
 
-const message: ModerationMessage = { publicId: '123e4567-e89b-42d3-a456-426614174000', version: 1, status: 'pending', content: 'Letter to review', authorName: 'ATINY', authorState: 'active', locality: 'Seoul', country: 'South Korea', publishedAt: '2026-10-06T10:00:00.000Z', reasonCode: null, note: null, publicVisible: true, decisions: ['approve', 'reject', 'withdraw'] }
-afterEach(() => { cleanup(); vi.resetAllMocks() })
+const message: ModerationQueueMessage = { publishedAtLabel: 'Oct 6, 2026, 10:00 AM', publicId: '123e4567-e89b-42d3-a456-426614174000', version: 1, status: 'pending', content: 'Letter to review', authorName: 'ATINY', authorState: 'active', locality: 'Seoul', country: 'South Korea', publishedAt: '2026-10-06T10:00:00.000Z', reasonCode: null, note: null, publicVisible: true, decisions: ['approve', 'reject', 'withdraw'] }
+afterEach(() => { cleanup(); vi.resetAllMocks(); runtimeDate.text = 'Oct 6, 2026, 10:00 AM' })
+it('hydrates the server date unchanged when the browser Intl format differs', async () => {
+  const stableMessage = { ...message, decisions: [], publishedAtLabel: runtimeDate.text }
+  const content = <IntlTestProvider><MessageQueue messages={[stableMessage]} /></IntlTestProvider>
+  const container = document.createElement('div')
+  document.body.append(container)
+  container.innerHTML = renderToString(content)
+  // Actual Node/V8 and JavaScriptCore output for the same en + UTC date.
+  runtimeDate.text = 'Oct 6, 2026 at 10:00 AM'
+  const onRecoverableError = vi.fn()
+  let root!: ReturnType<typeof hydrateRoot>
+  try {
+    await act(async () => { root = hydrateRoot(container, content, { onRecoverableError }) })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(container.querySelector('time')).toHaveTextContent('Oct 6, 2026, 10:00 AM UTC')
+    expect(container.querySelector('time')).toHaveAttribute('dateTime', message.publishedAt)
+  } finally {
+    await act(async () => root.unmount())
+    container.remove()
+  }
+})
 it('shows text for review and only allowed decisions, without an edit control', () => {
   render(<MessageQueue messages={[message]} />)
   expect(screen.getByText('Letter to review')).toBeVisible()

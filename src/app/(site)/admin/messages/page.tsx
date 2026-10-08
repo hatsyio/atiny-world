@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getTranslations } from 'next-intl/server'
+import { getFormatter, getTranslations } from 'next-intl/server'
 import { requireAdminPage } from '@/server/auth/admin'
 import { getSessionIdentity } from '@/server/auth/session'
 import { getDb } from '@/server/db/client'
@@ -26,6 +26,12 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
     return <p role="alert">{t('invalid')}</p>
   }
   const href = (number: number) => `/admin/messages?q=${encodeURIComponent(query)}&status=${encodeURIComponent(status)}&page=${number}`
+  const format = await getFormatter()
+  // Intl punctuation can differ between Node and iOS, even for the same UTC date.
+  const messages = result.data.items.map(message => ({
+    ...message,
+    publishedAtLabel: format.dateTime(new Date(message.publishedAt), { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }),
+  }))
   return <section aria-labelledby="admin-messages-title">
     <h2 id="admin-messages-title">{t('title')}</h2>
     <p>{t('intro')}</p>
@@ -38,7 +44,7 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
         {MESSAGE_STATUSES.map(value => <option key={value} value={value}>{states(value)}</option>)}
       </select>
     </form>
-    <MessageQueue messages={result.data.items} />
+    <MessageQueue messages={messages} />
     <nav className="admin-pagination" aria-label={t('pagination')}>
       {page > 1 && <Link href={href(page - 1)}>{pagination('previous')}</Link>}
       {result.data.hasMore && <Link href={href(page + 1)}>{pagination('next')}</Link>}
