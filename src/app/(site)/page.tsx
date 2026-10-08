@@ -106,7 +106,7 @@ export function PublicHome({
                   <li><a href="https://www.threads.com/@angelppudding">@angelppudding</a><span>{about('idea')}</span></li>
                   <li><a href="https://www.threads.com/@breakthewalln109">@breakthewalln109</a><span>{about('support')}</span></li>
                   <li><a href="https://x.com/koala_hala">@koala_hala</a><span>{about('support')}</span></li>
-                  <li><a href="https://joseppascual.com">Josep Pascual Badia</a><span>{about('development')}</span></li>
+                  <li><a href="https://x.com/hatsyio">@hatsyio</a><span>{about('development')}</span></li>
                 </ul>
               </div>
             </div>
