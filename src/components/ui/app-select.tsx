@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from 'react'
 import { useLocale } from 'next-intl'
 import { Button, FieldError, I18nProvider, Label, ListBox, ListBoxItem, Popover, Select, SelectValue } from 'react-aria-components'
+import { useAutoFilterField } from './auto-filter-form'
 
 export type AppSelectOption = { value: string; label: string }
 type AppSelectProps = {
@@ -20,6 +21,7 @@ type AppSelectProps = {
 
 export function AppSelect({ label, name, options, placeholder, value, defaultValue, onChange, required, disabled, variant = 'light' }: AppSelectProps) {
   const locale = useLocale()
+  const filters = useAutoFilterField()
   const owner = useId()
   const [portalContainer, setPortalContainer] = useState<HTMLElement | undefined>(undefined)
   useEffect(() => {
@@ -29,7 +31,7 @@ export function AppSelect({ label, name, options, placeholder, value, defaultVal
     return () => document.removeEventListener('fullscreenchange', update)
   }, [])
   return <I18nProvider locale={locale}>
-    <Select className={`app-select app-select--${variant}`} data-overlay-owner={owner} name={name} value={value} defaultValue={defaultValue} onChange={key => { if (key !== null) onChange?.(String(key)) }} placeholder={placeholder} isRequired={required} isDisabled={disabled} validationBehavior="native">
+    <Select className={`app-select app-select--${variant}`} data-overlay-owner={owner} name={name} value={filters?.values[name] ?? value} defaultValue={defaultValue} onChange={key => { if (key !== null) { onChange?.(String(key)); filters?.change(name, String(key)) } }} placeholder={placeholder} isRequired={required} isDisabled={disabled} validationBehavior="native">
       <Label className="app-select-label">{label}</Label>
       <Button className="app-select-trigger">
         <SelectValue className="app-select-value">{({ selectedText, isPlaceholder }) => isPlaceholder ? placeholder : selectedText}</SelectValue>

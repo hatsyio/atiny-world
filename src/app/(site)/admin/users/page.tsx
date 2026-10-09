@@ -8,6 +8,7 @@ import { searchAccounts } from '@/server/moderation/accounts'
 import { SuspensionControl } from '@/components/admin/suspension-control'
 import { AdminDisclosure } from '@/components/admin/admin-disclosure'
 import { RoleControl } from '@/components/admin/role-control'
+import { AutoFilterInput } from '@/components/ui/auto-filter-form'
 import { AdminSearchForm } from '@/components/admin/admin-search-form'
 
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
@@ -29,9 +30,9 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
     <h2 id="admin-users-title">{t('users')}</h2>
     <p>{t(result.data.actorRole === 'owner' ? 'ownerIntro' : 'adminIntro')}</p>
     </header>
-    <AdminSearchForm className="admin-search" action="/admin/users">
+    <AdminSearchForm className="admin-search" action="/admin/users" values={{ q: query }}>
       <label htmlFor="admin-query">{t('searchLabel')}</label>
-      <div><input id="admin-query" name="q" type="search" maxLength={100} defaultValue={query} /><button type="submit">{t('search')}</button></div>
+      <div><AutoFilterInput id="admin-query" name="q" type="search" maxLength={100} /></div>
     </AdminSearchForm>
     {result.data.items.length === 0 ? <p role="status">{t('empty')}</p> : <ul className="admin-users">
       {result.data.items.map(account => {

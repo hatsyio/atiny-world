@@ -1,9 +1,10 @@
 'use client'
 
-import Form from 'next/form'
 import Link from 'next/link'
 import { useFormatter, useLocale, useTranslations } from 'next-intl'
 import { LetterLink } from '@/components/navigation/letter-link'
+import { AutoFilterForm, AutoFilterInput } from '@/components/ui/auto-filter-form'
+import { mapCountries } from '@/i18n/countries'
 import { AppSelect } from '@/components/ui/app-select'
 import type { PublicLetterPage } from '@/server/messages/public-repository'
 import { lettersHref, type LetterExploration } from './letter-exploration'
@@ -22,29 +23,23 @@ export function LettersArchive({ criteria, countries, page }: {
   const t = useTranslations('Pages.letters')
   const locale = useLocale()
   const format = useFormatter()
-  const regions = new Intl.DisplayNames([locale], { type: 'region' })
-  const countryName = (code: string) => regions.of(code.toUpperCase()) ?? code.toUpperCase()
-  const options = [...new Set([...countries, ...(criteria.country ? [criteria.country] : [])])]
-    .sort((a, b) => countryName(a).localeCompare(countryName(b), locale))
-    .map(value => ({ value, label: `${countryFlag(value)} ${countryName(value)}` }))
+  const catalog = mapCountries[locale]
+  const countryName = (code: string) => catalog.find(country => country.value === code.toLowerCase())?.label ?? code.toUpperCase()
+  const available = new Set([...countries, ...(criteria.country ? [criteria.country] : [])])
+  const options = catalog.filter(country => available.has(country.value))
+    .map(({ value, label }) => ({ value, label: `${countryFlag(value)} ${label}` }))
   const pages = [...new Set([1, page.totalPages, ...Array.from({ length: 5 }, (_, index) => page.page + index - 2)])]
     .filter(number => number >= 1 && number <= page.totalPages).sort((a, b) => a - b)
-  const active = [criteria.q, criteria.country ? countryName(criteria.country) : '', criteria.city].filter(Boolean)
   return <main className="letters-archive">
     <header className="letters-archive__heading">
       <h1>{t('title')}</h1>
       <p>{t('intro')}</p>
     </header>
-    <Form action="/letters" className="letters-archive__filters" key={lettersHref(criteria)}>
-      <label>{t('search')}<input type="search" name="q" maxLength={200} defaultValue={criteria.q} /></label>
-      <AppSelect label={t('country')} name="country" variant="paper" defaultValue={criteria.country || ''} options={[{ value: '', label: t('allCountries') }, ...options]} />
-      <label>{t('city')}<input type="text" name="city" maxLength={100} defaultValue={criteria.city} /></label>
-      <button type="submit" className="profile-submit">{t('apply')}</button>
-    </Form>
-    <div className="letters-archive__context">
-      {active.length ? <p>{t('active', { criteria: active.join(', ') })}</p> : <p>{t('recent')}</p>}
-      <Link href="/letters">{t('clear')}</Link>
-    </div>
+    <AutoFilterForm action="/letters" className="letters-archive__filters" values={{ q: criteria.q ?? '', country: criteria.country ?? '', city: criteria.city ?? '' }} clearLabel={t('clear')} loadingLabel={t('loading')}>
+      <label>{t('search')}<AutoFilterInput type="search" name="q" maxLength={200} /></label>
+      <AppSelect label={t('country')} name="country" variant="paper" options={[{ value: '', label: t('allCountries') }, ...options]} />
+      <label>{t('city')}<AutoFilterInput type="text" name="city" maxLength={100} /></label>
+    </AutoFilterForm>
     {page.items.length === 0 ? <p role="status" className="letters-archive__empty">{t('empty')}</p> :
       <div className="letters-archive__list">{page.items.map(letter => <article className="archive-letter" id={`letter-${letter.publicId}`} key={letter.publicId}>
         <header><p><span aria-hidden="true">{countryFlag(letter.countryCode)}</span>{' '}{[letter.locality, countryName(letter.countryCode)].filter(Boolean).join(', ')}</p>

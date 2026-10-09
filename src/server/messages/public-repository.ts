@@ -128,7 +128,7 @@ type FeatureRow = {
   locality: string | null
   country: string
   country_code: string
-  published_at: string
+  published_at: string | Date
   author_public_id: string
   display_name: string
   content: string | null
@@ -166,7 +166,7 @@ function extraConditions(sql: Sql | TransactionSql, options: MapFeatureOptions):
   const conditions: Fragment[] = []
 
   if (options.city !== undefined && options.city !== null) {
-    conditions.push(sql`lower(m.locality) = lower(${options.city})`)
+    conditions.push(sql`strpos(lower(m.locality), lower(${options.city})) > 0`)
   }
 
   if (options.country !== undefined && options.country !== null) {

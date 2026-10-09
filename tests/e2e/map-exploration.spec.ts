@@ -176,3 +176,51 @@ test('uses translated filters and reopens a selected preview entirely by keyboar
   await expect(page.locator('.map-message-letter')).toContainText('Map120 letter 22')
   await expect(page.locator('.map-message-marker--selected')).toBeVisible()
 })
+
+for (const width of [390, 1440]) {
+  for (const path of ['/map', '/letters']) {
+    test(`applies partial cities automatically without moving the filters on ${path} at ${width}px`, async ({ page }) => {
+      const errors: string[] = []
+      page.on('pageerror', error => errors.push(error.message))
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(path === '/map' ? '/map?mapView=40.4,-3.7,8' : '/letters')
+      const filters = page.locator(path === '/map' ? '.map-filters' : '.letters-archive__filters')
+      const clear = page.getByRole('button', { name: path === '/map' ? 'Clear filters' : 'Clear search and filters', exact: true })
+      await expect(clear).toBeDisabled()
+      const before = await filters.boundingBox()
+      const cityField = page.getByRole('textbox', { name: 'City', exact: true })
+      await cityField.fill('Map120Mad')
+      await expect.poll(() => new URL(page.url()).searchParams.get(path === '/map' ? 'mapCity' : 'city')).toBe('Map120Mad')
+      await expect(cityField).toBeFocused()
+      await expect(clear).toBeEnabled()
+      await page.getByRole('button', { name: /Country/ }).click()
+      await page.getByRole('option', { name: /Spain/ }).click()
+      await expect.poll(() => new URL(page.url()).searchParams.get(path === '/map' ? 'mapCountry' : 'country')).toBe('es')
+      const after = await filters.boundingBox()
+      expect(after!.height).toBeCloseTo(before!.height, 1)
+      expect(after!.y).toBeCloseTo(before!.y, 1)
+      if (path === '/map') {
+        if (width < 760) await page.getByRole('button', { name: 'Show letters' }).click()
+        await expect(page.getByText('20 letters loaded', { exact: true })).toBeVisible()
+        await expect(page.getByRole('button', { name: /Map120 letter 22/ })).toBeVisible()
+      } else {
+        await expect(page.locator('.archive-letter')).toHaveCount(20)
+        await expect(page.getByRole('link', { name: 'Page 2', exact: true })).toBeVisible()
+        await page.getByRole('searchbox', { name: 'Search letter text' }).fill('letter 22')
+        await expect(page.locator('.archive-letter')).toHaveCount(1)
+        await expect(page.locator('.archive-letter')).toContainText('Map120 letter 22')
+        expect(new URL(page.url()).searchParams.has('page')).toBe(false)
+        await page.getByRole('link', { name: 'Read letter by ATINY120', exact: true }).click()
+        await page.getByRole('link', { name: /Back to letters/ }).click()
+        await expect(cityField).toHaveValue('Map120Mad')
+        await expect(page.getByRole('searchbox', { name: 'Search letter text' })).toHaveValue('letter 22')
+      }
+      await clear.click()
+      await expect(cityField).toHaveValue('')
+      await expect(clear).toBeDisabled()
+      expect((await filters.boundingBox())!.height).toBeCloseTo(before!.height, 1)
+      await expect.poll(() => new URL(page.url()).searchParams.has(path === '/map' ? 'mapCity' : 'city')).toBe(false)
+      expect(errors).toEqual([])
+    })
+  }
+}

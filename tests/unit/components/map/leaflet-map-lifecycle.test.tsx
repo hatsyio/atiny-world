@@ -134,7 +134,7 @@ it('keeps group and filter panels mutually exclusive and available in fullscreen
   expect(fullscreen).toHaveClass('leaflet-bar')
   fireEvent.click(result.getByRole('button', { name: 'Filtros' }))
   fireEvent.change(result.getByRole('textbox', { name: 'Ciudad' }), { target: { value: 'Madrid' } })
-  expect(onFiltersChange).toHaveBeenCalledWith({ city: 'Madrid', country: '' })
+  await waitFor(() => expect(onFiltersChange).toHaveBeenCalledWith({ city: 'Madrid', country: '' }))
   fireEvent.click(result.getByRole('button', { name: /Ver 2 mensajes/ }))
   expect(result.container.querySelector('.map-filters')).toBeNull()
   expect(result.container.querySelector('#map-cluster-list')).toBeTruthy()

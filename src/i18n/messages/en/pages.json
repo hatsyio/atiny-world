@@ -71,6 +71,7 @@
     "intro": "Choose your Atiny Atlas language and manage your account security."
   },
   "admin": {
+    "clearFilters": "Clear filters",
     "loading": "Loading administration…",
     "manage": "Manage",
     "permissions": "Permissions",

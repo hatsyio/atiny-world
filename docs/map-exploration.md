@@ -20,8 +20,11 @@ URL writes do not remount the map; external navigation starts a new exploration.
 Country labels and order come from stable English and Spanish catalogs. This
 avoids differences between server and browser ICU versions during hydration.
 City and country use equally sized controls with labels above them, in two columns
-on desktop and one column on narrow screens. City typing is applied after 350 ms. Country and city combine for both endpoints;
-clearing filters resets the selection and both result sets.
+on desktop and one column on narrow screens. City typing is applied after 350 ms and matches literal, case-insensitive fragments
+(`Mad` also finds Madrid). Country changes apply immediately. Country and city combine for both endpoints;
+clearing filters resets the selection and both result sets. Clear stays mounted and
+is disabled when there are no filters, keeping the layout stable. The fields carry
+the current criteria; no duplicate summary is displayed.
 
 ## Results and visibility
 
@@ -62,3 +65,16 @@ The browser suite requires the existing migrated local test database on port
 removes only those fixtures afterward. It does not change `.env` or the development
 database. Tile requests are intercepted; all letter endpoints and the detail page
 use the real application and test database.
+
+## Automatic filters across the application
+
+The landing map uses the same 350 ms text debounce as `/map`. The letters archive
+and administration searches use `AutoFilterForm`: text changes debounce, selects
+apply immediately, new criteria reset pagination, and URL updates preserve focus
+and scroll. New typing survives older responses; external navigation and Back
+restore fields. Clear cancels pending typing and resets all fields without changing
+the form height. Publication and management actions retain explicit confirmation.
+
+Public publication dates are serialized as ISO strings before crossing the server/client
+boundary. This keeps archive hydration stable across browser time zones; cursor
+timestamps still preserve PostgreSQL microseconds independently.

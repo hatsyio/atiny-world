@@ -4,7 +4,7 @@ import { cleanup, fireEvent, screen } from '@testing-library/react'
 import { render } from '../../../support/intl'
 import { LettersArchive } from '@/components/messages/letters-archive'
 
-vi.mock('next/form', () => ({ default: 'form' }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn() }) }))
 afterEach(cleanup)
 const letter = {
   publicId: 'letter-one', content: 'Love across the seas',
@@ -21,13 +21,13 @@ it('preserves criteria and page in detail and pagination links, but resets page 
   expect(screen.getByRole('link', { name: 'Previous' })).toHaveAttribute('href', '/letters?q=love&country=es&city=Madrid')
   expect(screen.getByRole('link', { name: 'Page 2' })).toHaveAttribute('aria-current', 'page')
   expect(container.querySelector('[name="page"]')).toBeNull()
-  expect(screen.getByRole('link', { name: 'Clear search and filters' })).toHaveAttribute('href', '/letters')
+  expect(screen.getByRole('button', { name: 'Clear search and filters' })).toBeEnabled()
   expect(screen.getByRole('searchbox', { name: 'Search letter text' })).toHaveValue('love')
 })
 it('offers an empty result recovery translated into Spanish', () => {
   render(<LettersArchive criteria={{ q: 'no matches' }} countries={[]} page={{ items: [], page: 1, totalPages: 0 }} />, { locale: 'es' })
   expect(screen.getByRole('status')).toHaveTextContent('No hay cartas que coincidan')
-  expect(screen.getByRole('link', { name: 'Limpiar búsqueda y filtros' })).toHaveAttribute('href', '/letters')
+  expect(screen.getByRole('button', { name: 'Limpiar búsqueda y filtros' })).toBeEnabled()
 })
 
 it('shows flags alongside locations and country options', async () => {

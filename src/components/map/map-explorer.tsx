@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useLocale, useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { mapCountries } from '@/i18n/countries'
 import { letterHref, mapOrigin, readMapFilters, readMapView, type MapView } from '@/components/navigation/letter-origin'
@@ -54,8 +54,6 @@ function Exploration({ search, onWrite }: { search: string; onWrite: (search: st
   const view = useRef(initialView)
   const [zoom, setZoom] = useState(initialView.zoom)
   const t = useTranslations('Map.explorer')
-  const countries = mapCountries[useLocale()]
-  const criteria = [filters.city, countries.find(country => country.value === filters.country)?.label].filter(Boolean)
   const router = useRouter()
   const hasBasemap = Boolean(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY)
   const query = useQuery({
@@ -66,7 +64,7 @@ function Exploration({ search, onWrite }: { search: string; onWrite: (search: st
   const selected = selection.isError ? undefined : selection.data
   const visible = (query.isError ? [] : query.data?.features ?? []).filter(feature => !selection.isError || feature.publicId !== selectedId)
   // A panel page can contain a letter omitted by the marker cap, including a shared point.
-  const matches = selected && (!filters.city || selected.locality?.toLowerCase() === filters.city.toLowerCase()) && (!filters.country || selected.countryCode === filters.country)
+  const matches = selected && (!filters.city || selected.locality?.toLowerCase().includes(filters.city.toLowerCase())) && (!filters.country || selected.countryCode === filters.country)
   const features = matches && !visible.some(feature => feature.publicId === selected.publicId) ? [...visible, selected] : visible
 
   const origin = useCallback((nextFilters = filters, nextId = selectedId) => {
@@ -96,7 +94,6 @@ function Exploration({ search, onWrite }: { search: string; onWrite: (search: st
   return <section className="map-explorer" aria-label={t('title')}>
     <div className="map-explorer__toolbar">
       <MapFilters value={filters} onChange={changeFilters} debounceMs={350} />
-      <p className="map-explorer__criteria" aria-live="polite">{criteria.length ? criteria.join(' · ') : t('allAreas')}</p>
     </div>
     <div className="map-explorer__workspace">
       <div className="map-explorer__map">

@@ -27,7 +27,7 @@ function normalizeCountry(value: string): string {
   return mapCountries.en.some(option => option.value === country) ? country : ''
 }
 
-export function MapFilters({ value, onChange, debounceMs = 0 }: Props) {
+export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
   const locale = useLocale()
   const cityId = useId()
   const [city, setCity] = useState(value.city ?? '')
@@ -64,7 +64,7 @@ export function MapFilters({ value, onChange, debounceMs = 0 }: Props) {
       </div>
 
       <AppSelect label={t('country')} name="country" variant="paper" value={normalizeCountry(value.country ?? '')} onChange={country => onChange({ ...value, country: normalizeCountry(country) })} options={[{ value: '', label: t('all') }, ...countries]} />
-      {value.city || value.country || city ? <button className="map-filters__clear" type="button" onClick={() => { setCity(''); onChange({ city: '', country: '' }) }}>{t('clear')}</button> : null}
+      <button className="map-filters__clear" type="button" disabled={!value.city && !value.country && !city} onClick={() => { setCity(''); onChange({ city: '', country: '' }) }}>{t('clear')}</button>
     </div>
   )
 }

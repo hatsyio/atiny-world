@@ -26,9 +26,11 @@ beforeAll(async () => {
 afterAll(async () => { await truncateProductTables(db); await db.end() })
 
 it('combines text, country and city globally and traverses timestamp ties without gaps', async () => {
-  const criteria = { q: 'LOVE', country: 'es', city: 'madrid' }
+  const criteria = { q: 'LOVE', country: 'es', city: 'Mad' }
   const first = await pagePublicLetters(db, criteria)
   expect(first.items).toHaveLength(20)
+  expect(typeof first.items[0].publishedAt).toBe('string')
+  expect(first.items[0].publishedAt).toMatch(/Z$/)
   expect(first.totalPages).toBe(2)
   expect(first.page).toBe(1)
   const second = await pagePublicLetters(db, { ...criteria, page: 2 })
@@ -58,4 +60,10 @@ it('counts only letters matching the filters and visibility rules', async () => 
   expect(result.items).toEqual([])
   expect(result.totalPages).toBe(0)
   expect(result.page).toBe(1)
+})
+
+it('treats city fragments literally and case-insensitively', async () => {
+  expect((await pagePublicLetters(db, { city: 'DRI' })).totalPages).toBe(2)
+  expect((await pagePublicLetters(db, { city: '%' })).items).toEqual([])
+  expect((await pagePublicLetters(db, { city: '_' })).items).toEqual([])
 })

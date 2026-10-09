@@ -43,7 +43,7 @@ export function projectPublicFeature(row: {
   locality: string | null
   country: string
   country_code: string
-  published_at: string
+  published_at: string | Date
   author_public_id: string
   display_name: string
 }): PublicMapFeature {
@@ -54,7 +54,7 @@ export function projectPublicFeature(row: {
     locality: row.locality,
     country: row.country,
     countryCode: row.country_code,
-    publishedAt: row.published_at,
+    publishedAt: row.published_at instanceof Date ? row.published_at.toISOString() : row.published_at,
     author: {
       publicId: row.author_public_id,
       displayName: row.display_name,
