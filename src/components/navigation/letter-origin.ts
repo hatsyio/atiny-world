@@ -25,12 +25,12 @@ export function readMapFilters(params: Search) {
   }
 }
 
-export function mapOrigin(view: MapView, filters: { city?: string; country?: string }): string {
+export function mapOrigin(view: MapView, filters: { city?: string; country?: string }, path: '/' | '/map' = '/'): string {
   const longitude = ((view.longitude + 180) % 360 + 360) % 360 - 180
   const params = new URLSearchParams({ mapView: `${view.latitude},${longitude},${view.zoom}` })
   if (filters.city) params.set('mapCity', filters.city)
   if (filters.country) params.set('mapCountry', filters.country)
-  return `/?${params}#map`
+  return `${path}?${params}#map`
 }
 
 export function ownLetterOrigin(publicId: string, cursor?: string): string {
@@ -52,10 +52,13 @@ export function letterDestination(lang: Locale, returnTo?: string | string[]) {
   const url = new URL(normalized, 'https://atiny.invalid')
   let destination: 'map' | 'letters' | 'ownLetters'
   let allowed: string[]
-  if (url.pathname === '/' && url.hash === '#map') {
+  if ((url.pathname === '/' || url.pathname === '/map') && url.hash === '#map') {
     destination = 'map'
     allowed = ['mapView', 'mapCity', 'mapCountry']
     if (url.searchParams.has('mapView') && !readMapView(url.searchParams)) return fallback
+  } else if (url.pathname === '/letters' && /^(?:#letter-[a-zA-Z0-9-]+)?$/.test(url.hash)) {
+    destination = 'letters'
+    allowed = ['q', 'country', 'city', 'page']
   } else if (url.pathname === '/' && /^#letters(?:-[a-zA-Z0-9-]+)?$/.test(url.hash)) {
     destination = 'letters'
     allowed = []

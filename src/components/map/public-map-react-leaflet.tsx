@@ -39,7 +39,7 @@ function MessageContent({ publicId, onSelect, popup }: { publicId: string; onSel
 
 function PublicMarker({ feature, onSelect, selected, centered }: { feature: PublicMapFeature; onSelect: Props['onSelect']; selected: boolean; centered: RefObject<string | null> }) {
   const t = useTranslations('Map.leaflet')
-  const { map, layerContainer } = useLeafletContext()
+  const { map } = useLeafletContext()
   const marker = useRef<leaflet.Marker>(null)
   const popup = useRef<leaflet.Popup>(null)
   const [open, setOpen] = useState(false)
@@ -61,34 +61,17 @@ function PublicMarker({ feature, onSelect, selected, centered }: { feature: Publ
 
   useEffect(() => {
     if (!selected || centered.current === feature.publicId) return
-    let stopReveal = () => {}
-    // Wait for the parent cluster's layer lifecycle to attach it to the map.
+    // Located letters live outside the cluster, so later marker batches cannot
+    // absorb their marker or close the reading popup.
     const timer = window.setTimeout(() => {
       const current = marker.current
       if (!current) return
       centered.current = feature.publicId
-      const group = layerContainer as leaflet.MarkerClusterGroup
       map.setView(position, 8)
-      // zoomToShowLayer has no cancellation API and retains listeners referencing a removed marker.
-      // Own the reveal listeners so filtering/removal can dispose them before the next map event.
-      const reveal = () => {
-        if (!group.hasLayer(current)) return
-        if (map.hasLayer(current)) { stopReveal(); current.openPopup(); return }
-        const parent = group.getVisibleParent(current)
-        if (parent instanceof leaflet.MarkerCluster) parent.spiderfy()
-      }
-      stopReveal = () => {
-        map.off('moveend', reveal)
-        group.off('animationend spiderfied', reveal)
-      }
-      map.on('moveend', reveal)
-      group.on('animationend spiderfied', reveal)
-      const parent = group.getVisibleParent(current)
-      if (parent instanceof leaflet.MarkerCluster) parent.zoomToBounds()
-      reveal()
+      current.openPopup()
     }, 0)
-    return () => { window.clearTimeout(timer); stopReveal() }
-  }, [selected, feature.publicId, position, map, layerContainer, centered])
+    return () => { window.clearTimeout(timer) }
+  }, [selected, feature.publicId, position, map, centered])
 
   return <Marker ref={marker} position={position} icon={icon} title={title}
     eventHandlers={{ popupopen: () => setOpen(true), popupclose: () => setOpen(false) }}>
@@ -146,13 +129,15 @@ export function ReactLeafletPublicMap({ features, onSelect, initialView, apiKey,
   const centered = useRef<string | null>(null)
   configureMarkerIcons(leaflet)
   const view = initialView ?? { latitude: 20, longitude: 0, zoom: 2 }
+  const located = features.find(feature => feature.publicId === selectedPublicId)
   return <MapContainer className="map__canvas" center={[view.latitude, view.longitude]} zoom={view.zoom} maxZoom={19}
     zoomControl={false} maxBounds={[[-85.05112878, -Infinity], [85.05112878, Infinity]]} maxBoundsViscosity={1}>
     <TileLayer url={cartoTileUrl(apiKey)} attribution={CARTO_ATTRIBUTION} maxZoom={19} />
     <ZoomControl position="topleft" zoomInTitle={t('zoomIn')} zoomOutTitle={t('zoomOut')} />
     <FullscreenControl {...behavior} />
-    <MarkerCluster>{features.map(feature => <PublicMarker key={feature.publicId} feature={feature} onSelect={onSelect}
-      selected={feature.publicId === selectedPublicId} centered={centered} />)}</MarkerCluster>
+    <MarkerCluster>{features.filter(feature => feature.publicId !== selectedPublicId).map(feature => <PublicMarker key={feature.publicId} feature={feature} onSelect={onSelect}
+      selected={false} centered={centered} />)}</MarkerCluster>
+    {located ? <PublicMarker key={located.publicId} feature={located} onSelect={onSelect} selected centered={centered} /> : null}
     <MapBehavior {...behavior} />
   </MapContainer>
 }

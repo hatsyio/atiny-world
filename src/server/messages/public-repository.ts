@@ -25,6 +25,65 @@ export interface PublicMessagePage {
   nextCursor: string | null
 }
 
+export interface PublicLetterPage {
+  items: PublicMessageDetail[]
+  page: number
+  totalPages: number
+}
+
+export interface LetterCriteria {
+  q?: string
+  country?: string
+  city?: string
+  page?: number
+}
+
+/** Numbered archive pages support direct links and arbitrary page jumps. */
+export async function pagePublicLetters(sql: Sql, args: LetterCriteria): Promise<PublicLetterPage> {
+  return sql.begin(async tx => {
+    // Count and rows must see the same publication/moderation snapshot.
+    await tx`set transaction isolation level repeatable read, read only`
+    const conditions = extraConditions(tx, {
+      city: args.city || undefined,
+      country: args.country || undefined,
+    })
+    if (args.q) conditions.push(tx`strpos(lower(m.content), lower(${args.q})) > 0`)
+    const where = tx`${visibilityCondition(tx)} and ${joinConditions(tx, conditions)}`
+    const [count] = await tx<Array<{ total: string }>>`
+      select count(*) as total
+        from app_private.messages m
+        join app_private.profiles p on p.id = m.author_id
+       where ${where}
+    `
+    const totalPages = Math.ceil(Number(count.total) / 20)
+    const requested = Number.isSafeInteger(args.page) && args.page! > 0 ? args.page! : 1
+    const page = Math.min(requested, Math.max(1, totalPages))
+    const rows = await tx<FeatureRow[]>`
+      select ${featureColumnsWithContent(tx, true)}
+        from app_private.messages m
+        join app_private.profiles p on p.id = m.author_id
+       where ${where}
+       order by m.published_at desc, m.id desc
+       limit 20 offset ${(page - 1) * 20}
+    `
+    return {
+      items: rows.map(row => ({ ...projectPublicFeature(row), content: row.content ?? '' })),
+      page, totalPages,
+    }
+  })
+}
+
+export async function listPublicLetterCountries(sql: Sql): Promise<string[]> {
+  const rows = await sql<Array<{ country_code: string }>>`
+    select distinct m.country_code
+      from app_private.messages m
+      join app_private.profiles p on p.id = m.author_id
+     where ${visibilityCondition(sql)}
+     order by m.country_code
+  `
+  return rows.map(row => row.country_code)
+}
+
 export interface PublicMessageStats {
   letters: number
   countries: number
@@ -103,7 +162,7 @@ function bboxCondition(sql: Sql, bounds: MapBounds): Fragment {
   )`
 }
 
-function extraConditions(sql: Sql, options: MapFeatureOptions): Fragment[] {
+function extraConditions(sql: Sql | TransactionSql, options: MapFeatureOptions): Fragment[] {
   const conditions: Fragment[] = []
 
   if (options.city !== undefined && options.city !== null) {
@@ -117,14 +176,14 @@ function extraConditions(sql: Sql, options: MapFeatureOptions): Fragment[] {
   return conditions
 }
 
-function joinConditions(sql: Sql, conditions: Fragment[]): Fragment {
+function joinConditions(sql: Sql | TransactionSql, conditions: Fragment[]): Fragment {
   if (conditions.length === 0) return sql`true`
   return conditions.slice(1).reduce((acc, condition) => {
     return sql`(${acc}) and (${condition})`
   }, conditions[0])
 }
 
-function featureColumnsWithContent(sql: Sql, includeContent: boolean): Fragment {
+function featureColumnsWithContent(sql: Sql | TransactionSql, includeContent: boolean): Fragment {
   if (includeContent) {
     return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
       st_x(m.public_point::geometry) as longitude, m.location_precision,

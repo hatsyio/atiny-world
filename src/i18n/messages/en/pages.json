@@ -10,6 +10,7 @@
     "mapNote": "Different lands. Same love. Always ATEEZ.",
     "mapHint": "Explore the map and find letters from around the world.",
     "lettersTitle": "Letters from ATINY",
+    "exploreLetters": "Explore letters",
     "lettersNote": "Recent messages shared publicly by ATINY around the world.",
     "emptyLetters": "No public letters yet. Be the first to share one.",
     "letterStat": "{count, plural, one {Letter} other {Letters}}",
@@ -60,7 +61,8 @@
   },
   "publicLetter": {
     "title": "A letter from ATINY",
-    "script": "Dear, ATEEZ…"
+    "script": "Dear, ATEEZ…",
+    "showMap": "Locate on the map"
   },
   "settings": {
     "title": "Account settings",
@@ -204,5 +206,27 @@
     "idea": "Original idea",
     "support": "Help and support",
     "development": "Website development"
+  },
+  "letters": {
+    "title": "Letters from ATINY",
+    "intro": "Read public letters from around the world. Find a place or a few words that speak to you.",
+    "search": "Search letter text",
+    "country": "Country",
+    "allCountries": "All countries",
+    "city": "City",
+    "apply": "Search letters",
+    "active": "Active criteria: {criteria}",
+    "recent": "Most recent letters first",
+    "clear": "Clear search and filters",
+    "empty": "No letters match these criteria. Clear the search and filters to explore all public letters.",
+    "read": "Read full letter",
+    "readBy": "Read letter by {name}",
+    "pagination": "Letter pages",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {number}",
+    "loading": "Loading letters…",
+    "error": "Letters could not be loaded. Try again.",
+    "retry": "Try again"
   }
 }

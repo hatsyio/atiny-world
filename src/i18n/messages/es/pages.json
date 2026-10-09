@@ -10,6 +10,7 @@
     "mapNote": "Tierras distintas. El mismo cariño. Siempre ATEEZ.",
     "mapHint": "Explora el mapa y encuentra cartas de todo el mundo.",
     "lettersTitle": "Cartas de ATINY",
+    "exploreLetters": "Explorar cartas",
     "lettersNote": "Mensajes públicos recientes compartidos por ATINY de todo el mundo.",
     "emptyLetters": "Todavía no hay cartas públicas. Sé la primera persona en compartir una.",
     "letterStat": "{count, plural, one {Carta} other {Cartas}}",
@@ -60,7 +61,8 @@
   },
   "publicLetter": {
     "title": "Una carta de ATINY",
-    "script": "Queridos ATEEZ…"
+    "script": "Queridos ATEEZ…",
+    "showMap": "Ubicar en el mapa"
   },
   "settings": {
     "title": "Ajustes de cuenta",
@@ -204,5 +206,27 @@
     "idea": "Idea original",
     "support": "Ayuda y apoyo",
     "development": "Desarrollo web"
+  },
+  "letters": {
+    "title": "Cartas de ATINY",
+    "intro": "Lee cartas públicas de todo el mundo. Encuentra un lugar o unas palabras que conecten contigo.",
+    "search": "Buscar en el texto de las cartas",
+    "country": "País",
+    "allCountries": "Todos los países",
+    "city": "Ciudad",
+    "apply": "Buscar cartas",
+    "active": "Criterios activos: {criteria}",
+    "recent": "Las cartas más recientes primero",
+    "clear": "Limpiar búsqueda y filtros",
+    "empty": "No hay cartas que coincidan con estos criterios. Limpia la búsqueda y los filtros para explorar todas las cartas públicas.",
+    "read": "Leer carta completa",
+    "readBy": "Leer carta de {name}",
+    "pagination": "Páginas de cartas",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {number}",
+    "loading": "Cargando cartas…",
+    "error": "No se han podido cargar las cartas. Inténtalo de nuevo.",
+    "retry": "Reintentar"
   }
 }

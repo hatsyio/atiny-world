@@ -72,7 +72,7 @@ describe('PublicHome', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Mi cuenta' }))
 
     expect(screen.getByRole('link', { name: 'Mis cartas' })).toHaveAttribute('href', '/my-messages')
-    expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('href', '/#letters')
+    expect(screen.getByRole('link', { name: 'Cartas' })).toHaveAttribute('href', '/letters')
   })
 
   it('hides the private letters link for signed-out visitors', () => {
@@ -101,6 +101,13 @@ describe('PublicHome', () => {
     render(<Home />, { locale: 'es' })
 
     expect(screen.getByRole('status')).toHaveTextContent(/todavía no hay cartas públicas/i)
+  })
+
+  it.each([['en', 'Explore letters'], ['es', 'Explorar cartas']] as const)('links the homepage letters section to the archive in %s', (locale, label) => {
+    render(<Home latestLetters={[letter]} />, { locale })
+    const link = screen.getByRole('link', { name: label })
+    expect(link).toHaveAttribute('href', '/letters')
+    expect(document.getElementById('letters')).toContainElement(link)
   })
 
   it('shows the localized homepage statistics and the fixed number of pirates', () => {

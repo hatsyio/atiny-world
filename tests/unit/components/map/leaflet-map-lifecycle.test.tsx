@@ -262,14 +262,17 @@ it('clusters nearby markers and updates the count when a letter is withdrawn', a
   expect(group.getVisibleParent(marker)).toBe(marker)
 })
 
-it('reveals a selected letter inside a cluster and does not recenter on equivalent updates', async () => {
+it('reveals a selected letter beside the cluster and does not recenter on equivalent updates', async () => {
   respond()
   const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const result = render(<LeafletMap initialView={initialView} features={[feature, second]} selectedPublicId={feature.publicId} onSelect={() => {}} />)
   const map = await getMap(factory)
-  const group = await getGroup(map, 2)
+  const group = await getGroup(map, 1)
   await result.findByText('visible letter')
-  expect((group.getLayers()[0] as leaflet.Marker).isPopupOpen()).toBe(true)
+  let selected: leaflet.Marker | undefined
+  map.eachLayer(layer => { if (layer instanceof leaflet.Marker && layer.isPopupOpen()) selected = layer })
+  expect(selected?.isPopupOpen()).toBe(true)
+  expect(group.hasLayer(selected!)).toBe(false)
   const setView = vi.spyOn(map, 'setView').mockClear()
   result.rerender(<LeafletMap initialView={initialView} features={[{ ...feature }, second]} selectedPublicId={feature.publicId} onSelect={() => {}} />)
   expect(setView).not.toHaveBeenCalled()
@@ -294,18 +297,17 @@ it('renders a world preview when the basemap is not configured', () => {
   expect(result.getByRole('status')).toHaveTextContent('The interactive map is coming soon.')
 })
 
-it('cancels a pending cluster reveal when the selected letter is withdrawn', async () => {
+it('cancels the located letter request when the selected letter is withdrawn', async () => {
+  const signals: AbortSignal[] = []
+  vi.stubGlobal('fetch', vi.fn((_url: unknown, init?: RequestInit) => { signals.push(init?.signal as AbortSignal); return new Promise<Response>(() => {}) }))
   const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const result = render(<LeafletMap initialView={initialView} features={[feature, second]} onSelect={() => {}} />)
   const map = await getMap(factory)
   const group = await getGroup(map, 2)
-  const marker = group.getLayers()[0] as leaflet.Marker
-  // Keep the reveal pending, like an in-flight zoom/spiderfy animation in the browser.
-  const zoom = vi.spyOn(leaflet.MarkerCluster.prototype, 'zoomToBounds').mockImplementation(() => {})
-  vi.spyOn(leaflet.MarkerCluster.prototype, 'spiderfy').mockImplementation(function (this: leaflet.MarkerCluster) { return this })
   result.rerender(<LeafletMap initialView={initialView} features={[feature, second]} selectedPublicId={feature.publicId} onSelect={() => {}} />)
-  await waitFor(() => expect(zoom).toHaveBeenCalled())
+  await waitFor(() => expect(signals).toHaveLength(1))
   result.rerender(<LeafletMap initialView={initialView} features={[second]} selectedPublicId={feature.publicId} onSelect={() => {}} />)
   expect(() => act(() => { map.fire('moveend'); group.fire('animationend'); group.fire('spiderfied') })).not.toThrow()
-  expect(marker.isPopupOpen()).toBe(false)
+  await waitFor(() => expect(signals[0].aborted).toBe(true))
+  expect(result.container.querySelector('.leaflet-popup')).toBeNull()
 })

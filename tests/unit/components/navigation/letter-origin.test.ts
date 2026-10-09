@@ -3,6 +3,8 @@ import { letterDestination, mapOrigin, readMapView } from '@/components/navigati
 
 describe('letter reading origins', () => {
   it.each([
+    ['/letters?q=love&country=es&city=Madrid&page=2#letter-one', '/letters?q=love&country=es&city=Madrid&page=2#letter-one', 'Volver a las cartas'],
+    ['/map?mapView=40%2C-3%2C8#map', '/map?mapView=40%2C-3%2C8#map', 'Volver al mapa'],
     ['/es#letters-letter-1', '/#letters-letter-1', 'Volver a las cartas'],
     ['/es/my-messages?cursor=older%2Bpage#own-letter-1', '/my-messages?cursor=older%2Bpage#own-letter-1', 'Volver a mis cartas'],
     ['/es?mapView=40.4%2C-3.7%2C8&mapCity=Madrid&mapCountry=es#map', '/?mapView=40.4%2C-3.7%2C8&mapCity=Madrid&mapCountry=es#map', 'Volver al mapa'],
@@ -10,7 +12,7 @@ describe('letter reading origins', () => {
     expect(letterDestination('es', input)).toEqual({ href, back })
   })
 
-  it.each([undefined, [' /es#map'], 'https://evil.example', '//evil.example/es#map', '/es/../en#map', '/es/messages/new', '/es/sign-in', '/es?returnTo=https://evil.example#map', '/es#unknown', '/es\\#map'])('falls back safely for %s', input => {
+  it.each([undefined, [' /es#map'], 'https://evil.example', '//evil.example/es#map', '/es/../en#map', '/es/messages/new', '/es/sign-in', '/es?returnTo=https://evil.example#map', '/es#unknown', '/es\\#map', '/letters?q=a&q=b', '/letters?returnTo=https://evil.example', '/letters#unknown'])('falls back safely for %s', input => {
     expect(letterDestination('es', input)).toEqual({ href: '/#map', back: 'Volver al mapa' })
   })
 
@@ -22,6 +24,10 @@ describe('letter reading origins', () => {
     const href = mapOrigin({ latitude: 12, longitude: 185, zoom: 5 }, { city: 'Seoul & Busan', country: 'kr' })
     expect(href).toBe('/?mapView=12%2C-175%2C5&mapCity=Seoul+%26+Busan&mapCountry=kr#map')
     expect(readMapView(new URL(href, 'https://local.test').searchParams)).toEqual({ latitude: 12, longitude: -175, zoom: 5 })
+  })
+
+  it('retains the standalone map route as the reading origin', () => {
+    expect(mapOrigin({ latitude: 40, longitude: -3, zoom: 8 }, {}, '/map')).toBe('/map?mapView=40%2C-3%2C8#map')
   })
 
   it.each(['', 'NaN,0,2', '90,0,2', '20,181,2', '20,0,99', '20,0', ',,'])('ignores an invalid viewport %s', mapView => {
