@@ -137,22 +137,7 @@ jobs:
         run: docker compose --profile local config --quiet
 
       - name: Build application image
-        run: |
-          build_log=$(mktemp)
-          trap 'rm -f "$build_log"' EXIT
-          for attempt in 1 2 3; do
-            if docker compose --profile local build app-local 2>&1 | tee "$build_log"; then
-              exit 0
-            fi
-            if ! grep -Eq '502 Bad Gateway|503 Service Unavailable|504 Gateway Timeout|TLS handshake timeout|connection reset by peer' "$build_log"; then
-              exit 1
-            fi
-            if [ "$attempt" -eq 3 ]; then
-              exit 1
-            fi
-            echo "Transient network error during Docker build; retrying in $((attempt * 10)) seconds."
-            sleep "$((attempt * 10))"
-          done
+        run: bash scripts/retry-network-command.sh docker compose --profile local build app-local
 
       - name: Set up Node.js for migration checks
         uses: pnpm/setup@5d160c5bc68a09337ad0d5654e237e03253b5879 # v1
@@ -161,4 +146,4 @@ jobs:
           runtime: node@24.16.0
 
       - name: Verify CLI migrations on fresh and existing databases
-        run: node scripts/test-migrations.mjs
+        run: bash scripts/retry-network-command.sh node scripts/test-migrations.mjs
