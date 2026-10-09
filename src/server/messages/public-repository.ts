@@ -1,5 +1,6 @@
 import type { Fragment, Sql, TransactionSql } from '@/server/db/sql'
 import { parsePublicId } from '@/domain/contracts'
+import type { PublicLetterLocation } from '@/domain/location/public-locations'
 import { normalizeCitySearch } from '@/domain/location/city-search'
 
 import {
@@ -83,6 +84,17 @@ export async function listPublicLetterCountries(sql: Sql): Promise<string[]> {
      order by m.country_code
   `
   return rows.map(row => row.country_code)
+}
+
+/** Independent of viewport and search criteria; shares the public visibility rule. */
+export async function listPublicLetterLocations(sql: Sql): Promise<PublicLetterLocation[]> {
+  return await sql<PublicLetterLocation[]>`
+    select distinct m.country_code as country, nullif(btrim(m.locality), '') as city
+      from app_private.messages m
+      join app_private.profiles p on p.id = m.author_id
+     where ${visibilityCondition(sql)}
+     order by country, city
+  `
 }
 
 export interface PublicMessageStats {

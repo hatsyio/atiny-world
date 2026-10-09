@@ -4,7 +4,11 @@
     "city": "Ciudad",
     "country": "País",
     "all": "Todos",
-    "clear": "Limpiar filtros"
+    "clear": "Limpiar filtros",
+    "loadingOptions": "Cargando ubicaciones…",
+    "optionsUnavailable": "No se han podido cargar las ubicaciones.",
+    "retry": "Reintentar",
+    "countryUnavailable": "País ya no disponible"
   },
   "cluster": {
     "loading": "Cargando mensajes…",

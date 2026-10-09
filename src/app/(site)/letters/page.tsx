@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server'
 import { LettersArchive } from '@/components/messages/letters-archive'
 import { readLetterExploration } from '@/components/messages/letter-exploration'
 import { getDb } from '@/server/db/client'
-import { listPublicLetterCountries, pagePublicLetters } from '@/server/messages/public-repository'
+import { listPublicLetterLocations, pagePublicLetters } from '@/server/messages/public-repository'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,8 +11,8 @@ export default async function LettersPage({ searchParams }: {
 }) {
   const criteria = readLetterExploration(await searchParams)
   const db = getDb()
-  const [page, countries] = await Promise.all([pagePublicLetters(db, criteria), listPublicLetterCountries(db)])
-  return <LettersArchive criteria={{ ...criteria, page: page.page }} countries={countries} page={page} />
+  const [page, locations] = await Promise.all([pagePublicLetters(db, criteria), listPublicLetterLocations(db)])
+  return <LettersArchive criteria={{ ...criteria, page: page.page }} countries={[...new Set(locations.map(location => location.country))]} locations={locations} page={page} />
 }
 
 export async function generateMetadata() {

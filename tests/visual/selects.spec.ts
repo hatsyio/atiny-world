@@ -31,6 +31,7 @@ for (const width of [1440, 390]) {
       }
       const trigger = page.locator('.app-select-trigger')
       await expect(trigger).toBeVisible()
+      await expect(trigger).toBeEnabled()
       await page.evaluate(() => document.fonts.ready)
       await page.mouse.move(0, 0)
       const surface = variant === 'header' ? page.locator('.account-links') : page.locator('.fixture-panel')

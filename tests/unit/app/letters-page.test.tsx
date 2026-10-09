@@ -5,7 +5,7 @@ vi.mock('next-intl/server', () => import('../../support/server-intl'))
 vi.mock('@/server/db/client', () => ({ getDb: () => ({}) }))
 vi.mock('@/server/messages/public-repository', () => ({
   pagePublicLetters: vi.fn(async () => ({ items: [], page: 2, totalPages: 2 })),
-  listPublicLetterCountries: vi.fn(async () => ['es']),
+  listPublicLetterLocations: vi.fn(async () => [{ country: 'es', city: 'Madrid' }]),
 }))
 import LettersPage from '@/app/(site)/letters/page'
 import { readLetterExploration } from '@/components/messages/letter-exploration'

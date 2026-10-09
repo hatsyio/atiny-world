@@ -19,7 +19,7 @@ const message = { publicId: 'letter-1', content: 'Hello from Madrid', point: { l
 beforeEach(() => {
   window.history.replaceState(null, '', '/map')
   vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test')
-  vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(url.startsWith('/api/messages/') ? message : url.startsWith('/api/map/features') ? { features: [] } : { items: [message], nextCursor: null }))))
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(url === '/api/map/filter-options' ? { locations: [{ country: 'es', city: 'Madrid' }] } : url.startsWith('/api/messages/') ? message : url.startsWith('/api/map/features') ? { features: [] } : { items: [message], nextCursor: null }))))
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); navigation.push.mockReset() })
 
@@ -43,14 +43,14 @@ it('keeps markers without a loading overlay while the next viewport loads, then 
   await act(async () => { resolveViewport(new Response(JSON.stringify({ features: [{ ...message, publicId: 'letter-2' }] }))) })
   await waitFor(() => expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-2'))
   expect(screen.getByLabelText('Markers')).not.toHaveTextContent('letter-1')
-  fireEvent.change(screen.getByRole('textbox', { name: 'City' }), { target: { value: 'Seoul' } })
+  fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'Seoul' } })
   await waitFor(() => expect(screen.getByLabelText('Markers')).toBeEmptyDOMElement())
 })
 
 it('loads the visible area, previews a panel letter omitted from markers and preserves context on reading', async () => {
   render(<MapExplorer />)
   // No world-wide letter download before the map has reported its viewport.
-  expect(fetch).not.toHaveBeenCalled()
+  expect(vi.mocked(fetch).mock.calls.map(([url]) => url)).toEqual(['/api/map/filter-options'])
   fireEvent.click(screen.getByRole('button', { name: 'Move map' }))
   fireEvent.click(await screen.findByRole('button', { name: /Hello from Madrid/ }))
   await waitFor(() => expect(screen.getByLabelText('Selected marker')).toHaveTextContent('letter-1'))
@@ -67,8 +67,8 @@ it('restores the saved view, filters and selected letter on reload', async () =>
   window.history.replaceState(null, '', '/map?mapView=40.5,-3.5,10&mapCity=M%C3%81-D&mapCountry=es&letter=letter-1#map')
   render(<MapExplorer />)
   expect(screen.getByLabelText('Initial view')).toHaveTextContent('"zoom":10')
-  expect(screen.getByRole('textbox', { name: 'City' })).toHaveValue('MÁ-D')
-  expect(screen.getByRole('button', { name: /Country/ })).toHaveTextContent('Spain')
+  expect(screen.getByRole('combobox', { name: 'City' })).toHaveValue('MÁ-D')
+  await waitFor(() => expect(screen.getByRole('button', { name: /Country/ })).toHaveTextContent('Spain'))
   await waitFor(() => expect(screen.getByLabelText('Selected marker')).toHaveTextContent('letter-1'))
   expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-1')
 })
@@ -77,7 +77,7 @@ it('applies city typing once to markers and panel, then removes the city by empt
   render(<MapExplorer />)
   fireEvent.click(screen.getByRole('button', { name: 'Move map' }))
   await screen.findByRole('button', { name: /Hello from Madrid/ })
-  const city = screen.getByRole('textbox', { name: 'City' })
+  const city = screen.getByRole('combobox', { name: 'City' })
   fireEvent.change(city, { target: { value: 'Mad' } })
   fireEvent.change(city, { target: { value: 'Madrid' } })
   expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).includes('city=Mad'))).toBe(false)
@@ -105,5 +105,5 @@ it('reacts to browser navigation without remounting on its own URL updates', asy
   expect(screen.getByRole('button', { name: /Hello from Madrid/ })).toBeVisible()
   act(() => { window.history.replaceState(null, '', '/map?mapView=10,20,5&mapCity=Seoul'); window.dispatchEvent(new PopStateEvent('popstate')) })
   expect(screen.getByLabelText('Initial view')).toHaveTextContent('"zoom":5')
-  expect(screen.getByRole('textbox', { name: 'City' })).toHaveValue('Seoul')
+  expect(screen.getByRole('combobox', { name: 'City' })).toHaveValue('Seoul')
 })

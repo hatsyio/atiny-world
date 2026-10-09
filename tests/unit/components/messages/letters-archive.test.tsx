@@ -44,3 +44,15 @@ it('keeps a long page range compact and allows jumping to the last page', () => 
   expect(screen.getByRole('link', { name: 'Page 100' })).toHaveAttribute('href', '/letters?page=100')
   expect(container.querySelectorAll('.letters-archive__pagination a').length).toBeLessThanOrEqual(9)
 })
+
+it('does not offer a URL country without public data and scopes autocomplete to live country changes', async () => {
+  const { container } = render(<LettersArchive criteria={{ country: 'al' }} countries={['es', 'kr']} locations={[
+    { city: 'Madrid', country: 'es' }, { city: 'Seoul', country: 'kr' },
+  ]} page={{ items: [], page: 1, totalPages: 0 }} />)
+  fireEvent.click(screen.getByRole('button', { name: /Country/ }))
+  expect(await screen.findByRole('option', { name: '🇪🇸 Spain' })).toBeVisible()
+  expect(screen.queryByRole('option', { name: /Albania/ })).toBeNull()
+  fireEvent.click(screen.getByRole('option', { name: '🇪🇸 Spain' }))
+  expect([...container.querySelectorAll('datalist option')].map(option => option.getAttribute('value'))).toEqual(['Madrid'])
+  expect(screen.getByRole('combobox', { name: 'City' })).toHaveAttribute('list', container.querySelector('datalist')?.id)
+})

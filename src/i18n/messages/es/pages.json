@@ -214,6 +214,7 @@
     "intro": "Lee cartas públicas de todo el mundo. Encuentra un lugar o unas palabras que conecten contigo.",
     "search": "Buscar en el texto de las cartas",
     "country": "País",
+    "countryUnavailable": "País ya no disponible",
     "allCountries": "Todos los países",
     "city": "Ciudad",
     "apply": "Buscar cartas",

@@ -1,3 +1,4 @@
+import { MapQueryProvider } from '@/components/map/map-query-provider'
 import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { NextIntlClientProvider } from 'next-intl'
@@ -17,7 +18,7 @@ function Fixture() {
   const variant = new URLSearchParams(location.search).get('variant') ?? 'header'
   const [filters, setFilters] = useState<MapFilterValues>({ city: '', country: '' })
   return <NextIntlClientProvider locale="es" messages={{ Settings, Navigation, Map, Forms }} timeZone="UTC">
-    <LanguagePreferenceProvider preference="auto">
+    <MapQueryProvider><LanguagePreferenceProvider preference="auto">
       {variant === 'location' ? <main className="letter-workspace">
         <section className="letter-workspace__paper"><textarea defaultValue="Dear ATEEZ…" /></section>
         <section className="letter-workspace__properties"><LocationPicker onChange={() => {}} /></section>
@@ -33,7 +34,7 @@ function Fixture() {
               ]} />
             </section>}
       </main>}
-    </LanguagePreferenceProvider>
+    </LanguagePreferenceProvider></MapQueryProvider>
   </NextIntlClientProvider>
 }
 
