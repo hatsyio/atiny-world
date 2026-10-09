@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { unstable_cache } from 'next/cache'
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 
 import type { PublicMessageDetail, PublicPoint } from '@/domain/messages/public-message'
 import { reverseGeoapifyLocality } from '@/server/locations/geoapify'

@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 
 import { errorResult, okResult, parsePublicId, type ActionResult } from '@/domain/contracts'
 import { getSessionIdentity, type SessionIdentity } from '@/server/auth/session'

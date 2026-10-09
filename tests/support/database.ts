@@ -1,4 +1,5 @@
-import postgres, { type Sql } from 'postgres'
+import { createDatabase } from '@/server/db/client'
+import type { Sql } from '@/server/db/sql'
 
 export type TestProfile = {
   id: string
@@ -49,7 +50,7 @@ export function createTestDb(): Sql {
     process.env.TEST_DATABASE_URL ??
     'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
-  return postgres(url, { max: 1, prepare: false })
+  return createDatabase(url).sql
 }
 
 export function createSecondConnection(): Sql {
@@ -57,7 +58,7 @@ export function createSecondConnection(): Sql {
     process.env.TEST_DATABASE_URL ??
     'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
-  return postgres(url, { max: 1, prepare: false })
+  return createDatabase(url).sql
 }
 
 export async function truncateProductTables(sql: Sql): Promise<void> {

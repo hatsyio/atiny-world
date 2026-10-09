@@ -27,14 +27,25 @@ se comprobaron después de migrar las cuentas.
 | Google Cloud / Google Auth Platform | Cliente OAuth para «Continuar con Google» | Credenciales propias configuradas en Clerk Production. URI de retorno: `https://clerk.atinyatlas.com/v1/oauth_callback`. El estado de publicación y la marca se gestionan en Google Cloud. |
 | Supabase | PostgreSQL con PostGIS para perfiles, cartas y moderación | Proyecto remoto documentado como `atiny-world`, región París. Acceso desde el backend mediante `DATABASE_URL`; la autenticación de la aplicación la gestiona Clerk. Production y Preview comparten actualmente la base remota. |
 
-El cliente de runtime utiliza `DATABASE_URL` sin cambiar el puerto. Mantiene
-`prepare: false`, una conexión por proceso y cierra conexiones tras 20 segundos
-de inactividad; la siguiente consulta abre una nueva conexión. El pooler de
-sesión permanece en 5432: antes de pasar a modo transacción (6543) hay que
-validar consultas concurrentes y transacciones con el driver. En la
-investigación del 8 de octubre, las lecturas secuenciales funcionaron en 6543,
-pero una mezcla concurrente de consultas simples, parametrizadas y
-transacciones se bloqueó. La misma mezcla terminó correctamente en 5432.
+El cliente de runtime usa `pg` y respeta el puerto de `DATABASE_URL`. En Vercel,
+configura esa URL con Supavisor en modo transacción (6543); no hay conversión
+automática ni fallback a sesión. Cada proceso mantiene como máximo una
+conexión, con cierre tras 20 segundos de inactividad y `attachDatabasePool`
+para liberar conexiones inactivas antes de que Vercel suspenda la instancia.
+Las transacciones reservan un único cliente hasta COMMIT o ROLLBACK. Las
+consultas no usan prepared statements con nombre ni pipelining.
+
+Las migraciones y tareas administrativas conservan su conexión independiente
+(directa o sesión 5432). No se cambia el puerto de las credenciales de Supabase
+CLI. Cambiar solo el driver dejando el runtime en 5432 no elimina el límite
+global del pool de sesión: el despliegue requiere configurar 6543 en Preview
+y Production. Valida primero el Preview y observa errores, latencia y
+conexiones antes de promoverlo. Para revertir, restaura el código y la URL de
+sesión 5432 juntos.
+
+La [investigación y reproducción](docs/research/postgres-supavisor-pooling.md)
+documenta el bloqueo de Postgres.js en 6543 y la misma batería completada con
+`pg`, incluyendo concurrencia, rollback y reconexión tras inactividad.
 
 Referencia: [conexiones de Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres).
 | GitHub / GitHub Actions | Repositorio, PR y validación de CI | Repositorio `hatsyio/atiny-world`. Actions ejecuta los controles; Vercel realiza los despliegues. |

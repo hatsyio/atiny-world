@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 
 vi.mock('server-only', () => ({}))
 

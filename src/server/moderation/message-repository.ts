@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 import { errorResult, okResult, isMessageStatus, type ActionResult, type MessageStatus } from '@/domain/contracts'
 import { availableModerationDecisions, canModerate, type ModerationDecision } from '@/domain/moderation/policies'
 import { visibilityCondition } from '@/server/messages/public-repository'

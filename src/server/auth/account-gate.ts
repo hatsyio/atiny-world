@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 import { authRoute } from './auth-destination'
 
 import { auth } from '@clerk/nextjs/server'

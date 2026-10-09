@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 
 import {
   resolveAccountGate,

@@ -1,4 +1,4 @@
-import type { Fragment, Sql, TransactionSql } from 'postgres'
+import type { Fragment, Sql, TransactionSql } from '@/server/db/sql'
 import { parsePublicId } from '@/domain/contracts'
 
 import {

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { parseEnv } from 'node:util'
 import { createClerkClient } from '@clerk/nextjs/server'
-import postgres from 'postgres'
+import { createDatabase } from '../src/server/db/client'
 import { bootstrapOwner } from '../src/server/moderation/bootstrap-owner'
 
 async function main() {
@@ -41,7 +41,7 @@ async function main() {
   }
   console.log(JSON.stringify({ environment, clerkUserId: user.id, username: user.username, databaseHost: databaseUrl.hostname, apply: args.includes('--apply') }))
   if (!args.includes('--apply')) return
-  const sql = postgres(connectionString, { max: 1, prepare: false, ssl: isLocal ? false : 'require' })
+  const sql = createDatabase(connectionString).sql
   try { console.log(JSON.stringify(await bootstrapOwner(sql, { clerkUserId: user.id, displayName: user.username, verifiedOtherInstanceUserId }))) }
   finally { await sql.end() }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 import { recoverProfile } from '../../../../src/server/auth/profile-recovery'
 
 const identity = { clerkUserId: 'fan' }

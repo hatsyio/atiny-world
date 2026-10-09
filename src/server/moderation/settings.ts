@@ -1,4 +1,4 @@
-import type { Sql, TransactionSql } from 'postgres'
+import type { Sql, TransactionSql } from '@/server/db/sql'
 import { errorResult, okResult, type ActionResult } from '@/domain/contracts'
 import { canModerate } from '@/domain/moderation/policies'
 

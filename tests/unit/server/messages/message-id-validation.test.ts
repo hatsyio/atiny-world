@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 import { describe, expect, it, vi } from 'vitest'
 
 import { getVisibleMessage } from '@/server/messages/public-repository'
