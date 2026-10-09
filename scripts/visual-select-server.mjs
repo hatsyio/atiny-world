@@ -9,6 +9,12 @@ const stubs = resolve(root, 'tests/visual/fixtures')
 await build({
   entryPoints: [resolve(stubs, 'selects.tsx')], bundle: true, format: 'esm', platform: 'browser', jsx: 'automatic',
   outdir: output, external: ['/images/*'],
+  loader: { '.png': 'dataurl' },
+  plugins: [{ name: 'location-map-fixture', setup(builder) {
+    builder.onResolve({ filter: /^\.\/(letter-location-map|location-selection-map)$/ }, args =>
+      args.importer === resolve(root, 'src/components/map/location-picker.tsx')
+        ? { path: resolve(stubs, 'location-map.tsx') } : undefined)
+  } }],
   alias: {
     '@': resolve(root, 'src'),
     'next/navigation': resolve(stubs, 'navigation.ts'),

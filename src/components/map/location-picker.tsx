@@ -276,14 +276,16 @@ export function LocationPicker({ onChange, initialLocation, onPendingChange, rea
                 aria-describedby={status !== 'idle' && selected === null ? 'location-search-status' : undefined}
               />
               <Popover className="location-picker__popover" placement="bottom start">
-                {searchFeedback}
-                <ListBox<LocationSuggestion> className="location-picker__suggestions" aria-label={t('suggestionsLabel')}>
-                  {suggestion => (
-                    <ListBoxItem id={suggestion.selectionToken} textValue={suggestionLabel(suggestion)} className="location-picker__option">
-                      {suggestionLabel(suggestion)}
-                    </ListBoxItem>
-                  )}
-                </ListBox>
+                <div className="location-picker__panel">
+                  {searchFeedback}
+                  <ListBox<LocationSuggestion> className="location-picker__suggestions" aria-label={t('suggestionsLabel')}>
+                    {suggestion => (
+                      <ListBoxItem id={suggestion.selectionToken} textValue={suggestionLabel(suggestion)} className="location-picker__option">
+                        {suggestionLabel(suggestion)}
+                      </ListBoxItem>
+                    )}
+                  </ListBox>
+                </div>
               </Popover>
               {!isOpen ? searchFeedback : null}
             </>
