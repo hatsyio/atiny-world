@@ -1,7 +1,9 @@
 # Public map exploration (#120)
 
 `/map` is the dedicated geographic reading workspace. The landing continues to use
-`PublicMapController`; global and landing entry points belong to the landing issue.
+`PublicMapController` and links to `/map` below its preview, matching the letters
+archive action. The global Map navigation link opens `/map` and marks that page
+as current; Home stays current throughout the landing.
 The dedicated page uses `MapExplorer` with the existing Leaflet map, clustering,
 public endpoints and moderation policy.
 

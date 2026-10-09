@@ -72,6 +72,7 @@ export function PublicHome({
             {publicationPending && <p className="profile-note" role="status">{t('publicationPending')}</p>}
             <p className="map-hint">{t('mapHint')}</p>
             <div className="live-map-frame"><PublicMapController selectedMessage={selectedMessage} /></div>
+            <div className="map-browse"><Link className="ornate-button" href="/map">{t('exploreMap')}</Link></div>
           </section>
 
           <section className="letters-section" id="letters" tabIndex={-1} aria-labelledby="letters-title">
