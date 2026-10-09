@@ -24,12 +24,18 @@ for (const width of [320, 390, 1440]) {
     })
     await page.goto('/?variant=location')
     const input = page.getByRole('combobox')
+    const panel = page.locator('.location-picker__panel')
+    const heights: number[] = []
     for (const query of ['Seoul', 'Seoul long', 'Seoul longer', 'Seoul very long', 'Seoul']) {
       await input.fill(query)
       await expect(page.getByRole('option', { name: `${query} 0, South Korea`, exact: true })).toBeVisible()
       // Let the browser deliver resize notifications after React renders results.
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+      await expect(panel).toBeVisible()
+      heights.push((await panel.boundingBox())!.height)
     }
+    expect(heights[2]).toBeLessThan(heights[1] - 50)
+    expect(heights[4]).toBeGreaterThan(heights[3] + 50)
     await page.setViewportSize({ width, height: 460 })
     await expect(page.getByRole('option').first()).toBeVisible()
     const popover = page.locator('.location-picker__popover')
@@ -41,6 +47,21 @@ for (const width of [320, 390, 1440]) {
     await expect(page.getByRole('option').last()).toBeInViewport()
     await page.getByRole('option').first().click()
     await expect(input).toHaveValue('Seoul 0, South Korea')
+    await expect(page.getByRole('listbox')).toBeHidden()
+    await input.fill('Seoul longer')
+    await expect(page.getByRole('option', { name: 'Seoul longer 0, South Korea', exact: true })).toBeVisible()
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    const outerBounds = (await popover.boundingBox())!
+    const panelBounds = (await panel.boundingBox())!
+    const above = await popover.getAttribute('data-placement') === 'top'
+    // Anchor the visible panel to the input on either side. The transparent
+    // reserved space must behave like an outside click, not swallow input.
+    expect(Math.abs(above
+      ? panelBounds.y + panelBounds.height - outerBounds.y - outerBounds.height
+      : panelBounds.y - outerBounds.y)).toBeLessThan(1)
+    expect(outerBounds.height - panelBounds.height).toBeGreaterThan(10)
+    await page.mouse.click(outerBounds.x + outerBounds.width / 2,
+      above ? outerBounds.y + 2 : outerBounds.y + outerBounds.height - 2)
     await expect(page.getByRole('listbox')).toBeHidden()
     expect(await page.evaluate(() => (window as Window & { resizeErrors?: string[] }).resizeErrors)).toEqual([])
   })

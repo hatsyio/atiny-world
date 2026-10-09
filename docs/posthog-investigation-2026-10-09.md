@@ -43,18 +43,28 @@ eliminó. Mantener estable la altura del Popover sí eliminó el fallo reproduci
 
 ## Corrección y comprobaciones
 
-El Popover reserva 230 píxeles de lista más su padding y borde. El `max-height`
-inline de React Aria conserva el límite del espacio disponible en el viewport.
-La lista ocupa el espacio restante, permite scroll y mantiene las opciones
-alineadas arriba, sin estirarlas. Las listas cortas y el estado de carga dejan
-espacio vacío dentro del desplegable para evitar que su altura oscile.
+El Popover transparente reserva 230 píxeles de lista más el padding y borde
+del panel interior. Su altura observada permanece estable. El panel visible
+ajusta su altura al contenido; en el ensayo pasa de unos 253 píxeles con doce
+sugerencias a unos 108 con dos. El `max-height` inline de React Aria limita
+el contenedor y el panel al espacio disponible en el viewport.
+
+Cuando el Popover se coloca encima del input, el panel se alinea al borde
+inferior del contenedor; cuando se coloca debajo, al borde superior. Así el
+panel visible queda junto al input sin mostrar el espacio reservado. La zona
+transparente usa `pointer-events: none` y el panel `pointer-events: auto`:
+un clic en la zona reservada llega al contenido subyacente y cierra el
+desplegable como un clic exterior. La lista puede reducirse, mantiene las
+opciones alineadas arriba y permite scroll.
 
 La prueba de navegador escucha los eventos `error` de `window`: estos avisos
 no llegan como excepciones `pageerror` de Playwright. Usa respuestas de búsqueda
 controladas y mapas de prueba, sin peticiones de tiles ni escrituras remotas.
 Ejercita carga, listas cortas y largas, selección y reducción del viewport a
 460 píxeles de alto; comprueba que las opciones se pueden desplazar y el Popover
-cabe en la pantalla.
+cabe en la pantalla. Verifica también que el panel se contrae y crece con los
+resultados, queda anclado al lado correcto del input y los clics en la zona
+transparente cierran la lista.
 
 - Antes del cambio: dos pruebas fallan con tres avisos cada una; escritorio pasa.
 - Después: las 17 pruebas de navegador pasan, incluidos los desplegables existentes.

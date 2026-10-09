@@ -295,10 +295,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .location-picker__combobox > input { width: 100%; padding: .65rem .8rem; border: 1px solid #6b3e20; background: #faf0da; color: #171b20; font: inherit; }
 .location-picker__search-feedback { position: relative; z-index: 500; }
 .location-picker__search-feedback > * { position: absolute; inset: 0 0 auto; margin: 0; padding: .65rem; background: #faf0da; border: 1px solid #6b3e20; box-shadow: 0 5px 12px #34221540; }
-/* Keep loading/results from resizing the observed overlay during positioning.
-   React Aria's inline max-height still caps it to the available viewport space. */
-.location-picker__popover { width: var(--trigger-width); height: calc(230px + 1.3rem + 2px); display: flex; flex-direction: column; padding: .65rem; background: #faf0da; border: 1px solid #6b3e20; box-shadow: 0 5px 12px #34221540; }
-.location-picker__suggestions { flex: 1; min-height: 0; max-height: 230px; overflow-y: auto; display: grid; align-content: start; gap: .3rem; }
+/* Position a stable transparent overlay; let its visible panel fit the content.
+   React Aria's inline max-height still caps both to available viewport space. */
+.location-picker__popover { width: var(--trigger-width); height: calc(230px + 1.3rem + 2px); display: flex; flex-direction: column; pointer-events: none; }
+.location-picker__popover[data-placement="top"] { justify-content: flex-end; }
+.location-picker__panel { display: flex; flex-direction: column; max-height: 100%; min-height: 0; padding: .65rem; background: #faf0da; border: 1px solid #6b3e20; box-shadow: 0 5px 12px #34221540; pointer-events: auto; }
+.location-picker__suggestions { flex: 0 1 auto; min-height: 0; max-height: 230px; overflow-y: auto; display: grid; align-content: start; gap: .3rem; }
 .location-picker__option { padding: .5rem .65rem; border: 1px solid #6b3e20; color: #4a2a13; cursor: pointer; }
 .location-picker__option[data-focused] { outline: 2px solid #171b20; outline-offset: -2px; background: #ecd7af; }
 .location-picker button { padding: .5rem .65rem; font: inherit; border: 1px solid #6b3e20; background: #faf0da; color: #4a2a13; cursor: pointer; }
