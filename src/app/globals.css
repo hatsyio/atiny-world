@@ -114,6 +114,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map__filters-toggle { cursor: pointer; background: var(--navy); color: #f4dab0; border: 1px solid var(--gold); padding: .65rem 1rem; }
 .map__filters-toggle:hover, .map__filters-toggle[aria-expanded='true'] { background: #213c55; }
 .map__filters-panel { width: 100%; background: #f2dfb7; border: 2px solid #87582c; }
+.map__filters-panel .map-filters { grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1rem; }
 .map__overlay { position: absolute; z-index: 500; right: 1rem; bottom: 1rem; width: min(350px, calc(100% - 2rem)); display: flex; flex-direction: column-reverse; align-items: flex-end; gap: .5rem; pointer-events: none; }
 .map__group-toggle, .map__message-panel { pointer-events: auto; box-shadow: 0 3px 14px #241a1766; }
 .map__group-toggle { cursor: pointer; background: var(--navy); color: #f4dab0; border: 1px solid var(--gold); padding: .65rem 1rem; }
