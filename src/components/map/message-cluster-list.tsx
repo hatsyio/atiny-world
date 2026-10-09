@@ -38,9 +38,8 @@ export function MessageClusterList({ requestUrl, onSelect, selectedPublicId, sho
   }
 
   return (
-    <div className="cluster-list-wrap">
+    <div className="cluster-list-wrap" aria-busy={query.isFetching}>
       {isLoading && page.length === 0 ? <p role="status">{t('loading')}</p> : null}
-      {query.isPlaceholderData ? <p role="status">{t('loading')}</p> : null}
       {error ? <div role="status"><p>{t('unavailable')}</p><button type="button" onClick={retryLoad}>{t('retry')}</button></div> : null}
       {!isLoading && !error && page.length === 0 ? <p role="status">{t('empty')}</p> : null}
       {showLoadedCount && page.length > 0 ? <p className="cluster-list__count" role="status">{t('loaded', { count: page.length })}</p> : null}

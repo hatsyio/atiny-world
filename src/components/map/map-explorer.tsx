@@ -99,7 +99,6 @@ function Exploration({ search, onWrite }: { search: string; onWrite: (search: st
     <div className="map-explorer__workspace">
       <div className="map-explorer__map">
         <div className="map-feedback" aria-live="polite">
-          {query.isFetching ? <p role="status">{t('loading')}</p> : null}
           {query.isError ? <div role="status"><p>{t('error')}</p><button onClick={() => void query.refetch()}>{t('retry')}</button></div> : null}
           {query.data?.truncated ? <p role="status">{t('truncated')}</p> : null}
           {linked && !initialSelection ? <p role="status">{t('letterUnavailable')}</p> : null}

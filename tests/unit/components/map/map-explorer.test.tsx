@@ -12,6 +12,7 @@ vi.mock('@/components/map/public-map-loader', () => ({ PublicMapLoader: (props: 
   <span aria-label="Selected marker">{props.selectedPublicId}</span>
   <span aria-label="Markers">{props.features.map(feature => feature.publicId).join(',')}</span>
   <button onClick={() => { props.onViewChange?.({ latitude: 40.5, longitude: -3.5, zoom: 10 }); props.onViewportChange?.({ west: -4, south: 40, east: -3, north: 41 }) }}>Move map</button>
+  <button onClick={() => props.onViewportChange?.({ west: -5, south: 40, east: -4, north: 41 })}>Move map again</button>
   <button onClick={() => props.onSelect('letter-1')}>Read full message</button>
 </div> }))
 const message = { publicId: 'letter-1', content: 'Hello from Madrid', point: { latitude: 40.4, longitude: -3.7 }, precision: 'approximate', locality: 'Madrid', country: 'España', countryCode: 'es', publishedAt: '2026-10-01T10:00:00Z', author: { publicId: 'author', displayName: 'Fan' } }
@@ -21,6 +22,30 @@ beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(url.startsWith('/api/messages/') ? message : url.startsWith('/api/map/features') ? { features: [] } : { items: [message], nextCursor: null }))))
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); navigation.push.mockReset() })
+
+it('keeps markers without a loading overlay while the next viewport loads, then replaces them', async () => {
+  let resolveViewport!: (response: Response) => void
+  vi.stubGlobal('fetch', vi.fn((url: string) => {
+    if (url.includes('/api/map/features')) {
+      if (url.includes('west=-5')) return new Promise<Response>(resolve => { resolveViewport = resolve })
+      if (url.includes('city=Seoul')) return new Promise<Response>(() => {})
+      return Promise.resolve(new Response(JSON.stringify({ features: [message] })))
+    }
+    return Promise.resolve(new Response(JSON.stringify({ items: [], nextCursor: null })))
+  }))
+  render(<MapExplorer />)
+  fireEvent.click(screen.getByRole('button', { name: 'Move map' }))
+  await waitFor(() => expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-1'))
+  fireEvent.click(screen.getByRole('button', { name: 'Move map again' }))
+  await waitFor(() => expect(resolveViewport).toBeTypeOf('function'))
+  expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-1')
+  expect(screen.queryByText('Loading this area…')).not.toBeInTheDocument()
+  await act(async () => { resolveViewport(new Response(JSON.stringify({ features: [{ ...message, publicId: 'letter-2' }] }))) })
+  await waitFor(() => expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-2'))
+  expect(screen.getByLabelText('Markers')).not.toHaveTextContent('letter-1')
+  fireEvent.change(screen.getByRole('textbox', { name: 'City' }), { target: { value: 'Seoul' } })
+  await waitFor(() => expect(screen.getByLabelText('Markers')).toBeEmptyDOMElement())
+})
 
 it('loads the visible area, previews a panel letter omitted from markers and preserves context on reading', async () => {
   render(<MapExplorer />)

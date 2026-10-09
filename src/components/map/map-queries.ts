@@ -39,6 +39,15 @@ export function mapFeaturesQuery(requestUrl: string) {
     ...publicQueryPolicy,
     queryKey: [...publicMapQueryKey, 'features', requestUrl],
     queryFn: ({ signal }) => readPublicJson<{ features: PublicMapFeature[]; truncated?: boolean }>(requestUrl, signal),
+    placeholderData: (previousData, previousQuery) => {
+      const previousUrl = previousQuery?.queryKey[2]
+      if (typeof previousUrl !== 'string') return undefined
+      const previous = new URL(previousUrl, 'https://atiny.invalid').searchParams
+      const next = new URL(requestUrl, 'https://atiny.invalid').searchParams
+      // Keep mounted markers during pans/zoom; changing filters must clear them.
+      return ['city', 'country'].every(name => (previous.get(name) ?? '') === (next.get(name) ?? ''))
+        ? previousData : undefined
+    },
   })
 }
 

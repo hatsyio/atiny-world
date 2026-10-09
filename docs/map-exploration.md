@@ -29,6 +29,11 @@ emptying City or choosing All countries removes that criterion and resets the se
 and both result sets. Map filters align with the map edges and have no separate clear button. The fields carry
 the current criteria; no duplicate summary is displayed.
 
+Panning and zooming keep the previous markers mounted while the new viewport is
+fetched, without displaying a loading overlay. The response replaces the previous
+results; changing city or country clears them immediately. Error and retry notices
+remain available, and public visibility is still revalidated.
+
 ## Results and visibility
 
 Requests start after Leaflet reports the visible bounds. `/api/map/features`

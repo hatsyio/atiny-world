@@ -108,11 +108,42 @@ test('combines country and debounced city, clears filters and updates both queri
   expect(new URL(page.url()).searchParams.has('mapCity')).toBe(false)
 })
 
+test('keeps existing marker nodes while a pan refreshes the viewport without a loading overlay', async ({ page }) => {
+  await page.goto(`/map?mapView=40.4,-3.7,8&mapCity=${city}`)
+  const cluster = page.locator('.map-message-cluster').first()
+  await expect(cluster).toContainText('23')
+  const node = await cluster.elementHandle()
+  let requested = false
+  let release!: () => void
+  const held = new Promise<void>(resolve => { release = resolve })
+  await page.route('**/api/map/features?**', async route => {
+    requested = true
+    await held
+    await route.continue()
+  })
+  try {
+    const map = await page.locator('.map__canvas').boundingBox()
+    await page.mouse.move(map!.x + map!.width / 2, map!.y + map!.height * .7)
+    await page.mouse.down()
+    await page.mouse.move(map!.x + map!.width / 2 + 60, map!.y + map!.height * .7, { steps: 8 })
+    await page.mouse.up()
+    await expect.poll(() => requested).toBe(true)
+    await expect(page.locator('.map-feedback')).not.toContainText('Loading this area')
+    expect(await node!.evaluate(element => element.isConnected)).toBe(true)
+    const refreshed = page.waitForResponse(response => response.url().includes('/api/map/features?'))
+    release()
+    await refreshed
+    await expect(cluster).toContainText('23')
+    expect(await node!.evaluate(element => element.isConnected)).toBe(true)
+  } finally {
+    release()
+  }
+})
+
 test('deep-links to a public letter and reports a non-public letter without blocking controls', async ({ page }) => {
   await page.goto(`/map?letter=${publicId}`)
   await expect(page.locator('.map-message-letter')).toContainText('Map120 letter 22')
-  const view = new URL(page.url()).searchParams.get('mapView')!.split(',').map(Number)
-  expect(view[2]).toBeGreaterThanOrEqual(8)
+  await expect.poll(() => Number(new URL(page.url()).searchParams.get('mapView')?.split(',')[2] ?? 0)).toBeGreaterThanOrEqual(8)
   await page.goto(`/map?letter=${hiddenId}`)
   await expect(page.getByText('This letter is no longer publicly available.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Zoom in' })).toBeEnabled()

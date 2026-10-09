@@ -110,16 +110,6 @@ function MapExploration({ selectedPublicId, selectedMessage, initialView, initia
   const query = useQuery({
     ...mapFeaturesQuery(buildFeatureRequest(bounds, filters)),
     enabled: hasBasemap,
-    placeholderData: (previousData, previousQuery) => {
-      const previousUrl = previousQuery?.queryKey[2]
-      if (typeof previousUrl !== 'string') return undefined
-      const previousFilters = new URLSearchParams(previousUrl.split('?')[1])
-      // A viewport refresh must not remove the marker that owns the open popup.
-      // Filter changes still clear the old results immediately.
-      if ((previousFilters.get('city') ?? '') === filters.city &&
-        (previousFilters.get('country') ?? '') === filters.country) return previousData
-      return undefined
-    },
   })
   // A located letter can fall outside the viewport's 2000 most recent markers.
   // Revalidate it separately so keeping the selection never bypasses moderation.

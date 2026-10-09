@@ -88,6 +88,8 @@ it('keeps the focused panel row through a pending viewport resize when filters s
   page.rerender(element(2))
   expect(screen.getByRole('button', { name: /same letter/ })).toHaveFocus()
   await waitFor(() => expect(resolve).toBeTypeOf('function'))
+  expect(screen.queryByText('Loading messages…')).not.toBeInTheDocument()
+  expect(row.closest('.cluster-list-wrap')).toHaveAttribute('aria-busy', 'true')
   await act(async () => { resolve(response('same letter')) })
   expect(screen.getByRole('button', { name: /same letter/ })).toHaveFocus()
 })
