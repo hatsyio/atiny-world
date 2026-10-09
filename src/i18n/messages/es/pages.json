@@ -10,6 +10,7 @@
     "mapNote": "Tierras distintas. El mismo cariño. Siempre ATEEZ.",
     "mapHint": "Explora el mapa y encuentra cartas de todo el mundo.",
     "lettersTitle": "Cartas de ATINY",
+    "exploreLetters": "Explorar cartas",
     "lettersNote": "Mensajes públicos recientes compartidos por ATINY de todo el mundo.",
     "emptyLetters": "Todavía no hay cartas públicas. Sé la primera persona en compartir una.",
     "letterStat": "{count, plural, one {Carta} other {Cartas}}",

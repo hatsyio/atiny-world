@@ -87,6 +87,7 @@ export function PublicHome({
                 </LetterLink>
               ))}
             </div>
+            <div className="letters-browse"><Link className="ornate-button" href="/letters">{t('exploreLetters')}</Link></div>
           </section>
         </div>
 

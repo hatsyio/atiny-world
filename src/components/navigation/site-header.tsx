@@ -69,7 +69,7 @@ export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean 
   const reading = !writing && pathname?.startsWith('/messages/')
   const account = pathname?.startsWith('/my-messages') || pathname?.startsWith('/admin') || pathname === '/profile' || pathname === '/settings'
   const close = () => setOpenedPath(null)
-  const current = (id: Section) => isHome && section === id ? (id === 'home' ? 'page' : 'location') : undefined
+  const current = (id: Section) => isHome && (section === id || (id === 'home' && section === 'letters')) ? (id === 'home' ? 'page' : 'location') : undefined
 
   return (
     <header className="site-header" ref={header} onKeyDown={event => {
@@ -95,7 +95,7 @@ export function SiteHeader({ canAdminister = false }: { canAdminister?: boolean 
       }}>
         <Link href={home} aria-current={current('home')}>{t('home')}</Link>
         <Link href={`${home}#map`} aria-current={current('map')}>{t('map')}</Link>
-        <Link href={`${home}#letters`} aria-current={reading ? 'page' : current('letters')}>{t('letters')}</Link>
+        <Link href="/letters" aria-current={reading || pathname === '/letters' ? 'page' : undefined}>{t('letters')}</Link>
         <Link className="navigation-write" href={writeHref} aria-current={writing ? 'page' : undefined}>{t('write')}</Link>
         <AccountMenu
           visitor={!isSignedIn}

@@ -10,6 +10,7 @@
     "mapNote": "Different lands. Same love. Always ATEEZ.",
     "mapHint": "Explore the map and find letters from around the world.",
     "lettersTitle": "Letters from ATINY",
+    "exploreLetters": "Explore letters",
     "lettersNote": "Recent messages shared publicly by ATINY around the world.",
     "emptyLetters": "No public letters yet. Be the first to share one.",
     "letterStat": "{count, plural, one {Letter} other {Letters}}",
