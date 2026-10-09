@@ -8,6 +8,7 @@ import { mapCountries } from '@/i18n/countries'
 import { letterHref, mapOrigin, readMapFilters, readMapView, type MapView } from '@/components/navigation/letter-origin'
 import { rememberLetterOrigin } from '@/components/navigation/letter-link'
 import type { MapBounds } from '@/domain/messages/public-message'
+import { matchesCity } from '@/domain/location/city-search'
 import { buildFeatureRequest, buildMessageRequest } from './public-map-controller'
 import { isMissingPublicMessage, mapFeaturesQuery, publicMessageQuery } from './map-queries'
 import { MapFilters, type MapFilterValues } from './map-filters'
@@ -64,7 +65,7 @@ function Exploration({ search, onWrite }: { search: string; onWrite: (search: st
   const selected = selection.isError ? undefined : selection.data
   const visible = (query.isError ? [] : query.data?.features ?? []).filter(feature => !selection.isError || feature.publicId !== selectedId)
   // A panel page can contain a letter omitted by the marker cap, including a shared point.
-  const matches = selected && (!filters.city || selected.locality?.toLowerCase().includes(filters.city.toLowerCase())) && (!filters.country || selected.countryCode === filters.country)
+  const matches = selected && matchesCity(selected.locality, filters.city ?? '') && (!filters.country || selected.countryCode === filters.country)
   const features = matches && !visible.some(feature => feature.publicId === selected.publicId) ? [...visible, selected] : visible
 
   const origin = useCallback((nextFilters = filters, nextId = selectedId) => {

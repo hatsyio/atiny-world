@@ -1,5 +1,6 @@
 import type { Fragment, Sql, TransactionSql } from '@/server/db/sql'
 import { parsePublicId } from '@/domain/contracts'
+import { normalizeCitySearch } from '@/domain/location/city-search'
 
 import {
   type MapBounds,
@@ -166,7 +167,13 @@ function extraConditions(sql: Sql | TransactionSql, options: MapFeatureOptions):
   const conditions: Fragment[] = []
 
   if (options.city !== undefined && options.city !== null) {
-    conditions.push(sql`strpos(lower(m.locality), lower(${options.city})) > 0`)
+    const city = normalizeCitySearch(options.city)
+    // ICU keeps Unicode letters/numbers, regardless of the database's default locale.
+    // Match the NFKD normalization used by selected markers in the browser.
+    conditions.push(city ? sql`strpos(
+      regexp_replace(lower(normalize(m.locality, NFKD) collate "und-x-icu"), '[^[:alnum:]]', '', 'g'),
+      ${city}
+    ) > 0` : sql`false`)
   }
 
   if (options.country !== undefined && options.country !== null) {

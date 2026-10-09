@@ -62,8 +62,23 @@ it('counts only letters matching the filters and visibility rules', async () => 
   expect(result.page).toBe(1)
 })
 
-it('treats city fragments literally and case-insensitively', async () => {
+it('ignores case, accents, punctuation and spacing in city fragments', async () => {
   expect((await pagePublicLetters(db, { city: 'DRI' })).totalPages).toBe(2)
+  expect((await pagePublicLetters(db, { city: ' MÁ-D ' })).totalPages).toBe(2)
+  expect((await pagePublicLetters(db, { city: 'Mad༳' })).totalPages).toBe(2)
   expect((await pagePublicLetters(db, { city: '%' })).items).toEqual([])
   expect((await pagePublicLetters(db, { city: '_' })).items).toEqual([])
+})
+
+it('normalizes stored city names while preserving other alphabets', async () => {
+  const author = await insertProfile(db, 'archive-unicode')
+  try {
+    for (const [locality, city] of [['São-Paulo', ' SAO PA '], ['Torrejón', 'torrejo\u0301'], ['München', 'MUN'], ['東京', '東'], ['서울', '서']]) {
+      const letter = await insertMessage(db, author.id, { locality, status: 'approved' })
+      expect((await pagePublicLetters(db, { city })).items.map(item => item.publicId)).toContain(letter.public_id)
+    }
+  } finally {
+    await db`delete from app_private.messages where author_id = ${author.id}`
+    await db`delete from app_private.profiles where id = ${author.id}`
+  }
 })

@@ -20,8 +20,11 @@ URL writes do not remount the map; external navigation starts a new exploration.
 Country labels and order come from stable English and Spanish catalogs. This
 avoids differences between server and browser ICU versions during hydration.
 City and country use equally sized controls with labels above them, in two columns
-on desktop and one column on narrow screens. City typing is applied after 350 ms and matches literal, case-insensitive fragments
-(`Mad` also finds Madrid). Country changes apply immediately. Country and city combine for both endpoints;
+on desktop and one column on narrow screens. City typing is applied after 350 ms and matches normalized city fragments
+(`Mad` or `MÁ-D` also finds Madrid). City matching ignores case, accents, punctuation and spacing,
+and preserves letters from other alphabets. Queries containing only symbols match no cities.
+The database uses its standard `und-x-icu` collation for Unicode character classification.
+Country changes apply immediately. Country and city combine for both endpoints;
 clearing filters resets the selection and both result sets. Clear stays mounted and
 is disabled when there are no filters, keeping the layout stable. The fields carry
 the current criteria; no duplicate summary is displayed.

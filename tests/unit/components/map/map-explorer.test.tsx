@@ -39,12 +39,13 @@ it('loads the visible area, previews a panel letter omitted from markers and pre
 })
 
 it('restores the saved view, filters and selected letter on reload', async () => {
-  window.history.replaceState(null, '', '/map?mapView=40.5,-3.5,10&mapCity=Madrid&mapCountry=es&letter=letter-1#map')
+  window.history.replaceState(null, '', '/map?mapView=40.5,-3.5,10&mapCity=M%C3%81-D&mapCountry=es&letter=letter-1#map')
   render(<MapExplorer />)
   expect(screen.getByLabelText('Initial view')).toHaveTextContent('"zoom":10')
-  expect(screen.getByRole('textbox', { name: 'City' })).toHaveValue('Madrid')
+  expect(screen.getByRole('textbox', { name: 'City' })).toHaveValue('MÁ-D')
   expect(screen.getByRole('button', { name: /Country/ })).toHaveTextContent('Spain')
   await waitFor(() => expect(screen.getByLabelText('Selected marker')).toHaveTextContent('letter-1'))
+  expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-1')
 })
 
 it('applies city typing once to markers and panel, then clears both filters', async () => {
