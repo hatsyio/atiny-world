@@ -100,11 +100,14 @@ describe('MapFilters', () => {
     const onChange = vi.fn()
     const { rerender } = render(<MapFilters value={{ city: 'Seoul', country: 'kr' }} onChange={onChange} />)
     await user.click(screen.getByRole('button', { name: /Country/ }))
-    await user.click(await screen.findByRole('option', { name: 'ES' }))
+    // Scope text lookup to the accessible open list instead of computing 250 option names.
+    const countries = within(await screen.findByRole('listbox'))
+    await user.click(countries.getByText('ES'))
     expect(onChange).toHaveBeenLastCalledWith({ city: 'Seoul', country: 'es' })
     rerender(<MapFilters value={{ city: 'Seoul', country: 'es' }} onChange={onChange} />)
     await user.click(screen.getByRole('button', { name: /Country/ }))
-    await user.click(await screen.findByRole('option', { name: 'All' }))
+    const updatedCountries = within(await screen.findByRole('listbox'))
+    await user.click(updatedCountries.getByText('All'))
     expect(onChange).toHaveBeenLastCalledWith({ city: 'Seoul', country: '' })
   })
 

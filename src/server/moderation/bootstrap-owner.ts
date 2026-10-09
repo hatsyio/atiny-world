@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 
 /** Administrative CLI only. Never expose initial owner assignment as a web action. */
 export async function bootstrapOwner(sql: Sql, input: { clerkUserId: string; displayName: string; verifiedOtherInstanceUserId?: string }) {

@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 import { currentUser } from '@clerk/nextjs/server'
 import { errorResult, okResult, type ActionResult } from '@/domain/contracts'
 import { recoverProfile, type ClerkUserReader, type ProfileSessionReader } from '@/server/auth/profile-recovery'

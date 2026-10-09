@@ -78,7 +78,7 @@ Then('la decisión y su auditoría conservan la versión revisada sin copiar el 
   assert.equal(actions.length, 1)
   assert.equal(actions[0].message_public_id, this.publicId)
   assert.equal(actions[0].message_version, 1)
-  const audit = await db`select metadata from app_private.admin_audit`
+  const audit = await db<{ metadata: Record<string, number> }[]>`select metadata from app_private.admin_audit`
   assert.equal(audit.length, 1)
   assert.equal(audit[0].metadata.messageVersion, 1)
   assert.equal(audit[0].metadata.resultingVersion, 2)
@@ -135,7 +135,7 @@ Then('se ocultan {int} cartas pendientes sin reescribir su contenido ni ubicaci�
 })
 Then('la configuración y su auditoría quedan guardadas juntas', async () => {
   assert.deepEqual([...(await db`select premoderation_enabled, version from app_private.settings`)], [{ premoderation_enabled: true, version: 2 }])
-  const audit = await db`select action, metadata from app_private.admin_audit`
+  const audit = await db<{ action: string; metadata: Record<string, number> }[]>`select action, metadata from app_private.admin_audit`
   assert.equal(audit.length, 1)
   assert.equal(audit[0].action, 'update_settings')
   assert.equal(audit[0].metadata.hiddenPendingMessages, 2)

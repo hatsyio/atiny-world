@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 
 import { createProblem, toProblemEnvelope } from '@/domain/contracts'
 import type { PublicMapFeature } from '@/domain/messages/public-message'

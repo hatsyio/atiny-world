@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 import { isLanguagePreference, type LanguagePreference } from '@/i18n/locale'
 import { getSessionIdentity, type SessionIdentity } from '@/server/auth/session'
 

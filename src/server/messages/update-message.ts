@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 
 import { errorResult, okResult, parsePublicId, type ActionResult } from '@/domain/contracts'
 import { validateMessageContent } from '@/domain/messages/content'

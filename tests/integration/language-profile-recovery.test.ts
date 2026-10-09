@@ -1,5 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 import { createSecondConnection, createTestDb, insertProfile, truncateProductTables } from '../support/database'
 
 const boundary = vi.hoisted(() => ({

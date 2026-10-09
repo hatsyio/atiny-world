@@ -1,4 +1,4 @@
-import type { Sql } from 'postgres'
+import type { Sql } from '@/server/db/sql'
 
 // Session identity is supplied by the server; no target profile comes from the client.
 // Return only the public reason code for this account, never the internal note.
