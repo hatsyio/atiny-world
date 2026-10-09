@@ -3,7 +3,7 @@ import { letterDestination, mapOrigin, readMapView } from '@/components/navigati
 
 describe('letter reading origins', () => {
   it.each([
-    ['/letters?q=love&country=es&city=Madrid&cursor=abc#letter-one', '/letters?q=love&country=es&city=Madrid&cursor=abc#letter-one', 'Volver a las cartas'],
+    ['/letters?q=love&country=es&city=Madrid&page=2#letter-one', '/letters?q=love&country=es&city=Madrid&page=2#letter-one', 'Volver a las cartas'],
     ['/map?mapView=40%2C-3%2C8#map', '/map?mapView=40%2C-3%2C8#map', 'Volver al mapa'],
     ['/es#letters-letter-1', '/#letters-letter-1', 'Volver a las cartas'],
     ['/es/my-messages?cursor=older%2Bpage#own-letter-1', '/my-messages?cursor=older%2Bpage#own-letter-1', 'Volver a mis cartas'],

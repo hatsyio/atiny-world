@@ -58,7 +58,7 @@ export function letterDestination(lang: Locale, returnTo?: string | string[]) {
     if (url.searchParams.has('mapView') && !readMapView(url.searchParams)) return fallback
   } else if (url.pathname === '/letters' && /^(?:#letter-[a-zA-Z0-9-]+)?$/.test(url.hash)) {
     destination = 'letters'
-    allowed = ['q', 'country', 'city', 'cursor']
+    allowed = ['q', 'country', 'city', 'page']
   } else if (url.pathname === '/' && /^#letters(?:-[a-zA-Z0-9-]+)?$/.test(url.hash)) {
     destination = 'letters'
     allowed = []

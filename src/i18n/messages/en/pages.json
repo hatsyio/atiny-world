@@ -222,8 +222,9 @@
     "read": "Read full letter",
     "readBy": "Read letter by {name}",
     "pagination": "Letter pages",
-    "first": "Most recent letters",
-    "older": "Older letters",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {number}",
     "loading": "Loading letters…",
     "error": "Letters could not be loaded. Try again.",
     "retry": "Try again"

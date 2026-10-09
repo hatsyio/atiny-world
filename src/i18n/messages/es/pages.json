@@ -222,8 +222,9 @@
     "read": "Leer carta completa",
     "readBy": "Leer carta de {name}",
     "pagination": "Páginas de cartas",
-    "first": "Cartas más recientes",
-    "older": "Cartas anteriores",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {number}",
     "loading": "Cargando cartas…",
     "error": "No se han podido cargar las cartas. Inténtalo de nuevo.",
     "retry": "Reintentar"

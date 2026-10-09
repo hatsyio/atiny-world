@@ -25,37 +25,52 @@ export interface PublicMessagePage {
   nextCursor: string | null
 }
 
+export interface PublicLetterPage {
+  items: PublicMessageDetail[]
+  page: number
+  totalPages: number
+}
+
 export interface LetterCriteria {
   q?: string
   country?: string
   city?: string
-  cursor?: string
+  page?: number
 }
 
-/** Global archive: deliberately independent of map bounds. */
-export async function pagePublicLetters(sql: Sql, args: LetterCriteria): Promise<PublicMessagePage> {
-  const cursor = args.cursor ? await verifyCursor(args.cursor) : null
-  const conditions = extraConditions(sql, {
-    city: args.city || undefined,
-    country: args.country || undefined,
+/** Numbered archive pages support direct links and arbitrary page jumps. */
+export async function pagePublicLetters(sql: Sql, args: LetterCriteria): Promise<PublicLetterPage> {
+  return sql.begin(async tx => {
+    // Count and rows must see the same publication/moderation snapshot.
+    await tx`set transaction isolation level repeatable read, read only`
+    const conditions = extraConditions(tx, {
+      city: args.city || undefined,
+      country: args.country || undefined,
+    })
+    if (args.q) conditions.push(tx`strpos(lower(m.content), lower(${args.q})) > 0`)
+    const where = tx`${visibilityCondition(tx)} and ${joinConditions(tx, conditions)}`
+    const [count] = await tx<Array<{ total: string }>>`
+      select count(*) as total
+        from app_private.messages m
+        join app_private.profiles p on p.id = m.author_id
+       where ${where}
+    `
+    const totalPages = Math.ceil(Number(count.total) / 20)
+    const requested = Number.isSafeInteger(args.page) && args.page! > 0 ? args.page! : 1
+    const page = Math.min(requested, Math.max(1, totalPages))
+    const rows = await tx<FeatureRow[]>`
+      select ${featureColumnsWithContent(tx, true)}
+        from app_private.messages m
+        join app_private.profiles p on p.id = m.author_id
+       where ${where}
+       order by m.published_at desc, m.id desc
+       limit 20 offset ${(page - 1) * 20}
+    `
+    return {
+      items: rows.map(row => ({ ...projectPublicFeature(row), content: row.content ?? '' })),
+      page, totalPages,
+    }
   })
-  if (args.q) conditions.push(sql`strpos(lower(m.content), lower(${args.q})) > 0`)
-  if (cursor?.publishedAt) conditions.push(sql`(m.published_at, m.id) < (${cursor.publishedAt}::timestamptz, ${cursor.id}::bigint)`)
-  const rows = await sql<Array<FeatureRow & { cursor_timestamp: string }>>`
-    select ${featureColumnsWithContent(sql, true)},
-           to_char(m.published_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as cursor_timestamp
-      from app_private.messages m
-      join app_private.profiles p on p.id = m.author_id
-     where ${visibilityCondition(sql)} and ${joinConditions(sql, conditions)}
-     order by m.published_at desc, m.id desc
-     limit 21
-  `
-  const page = rows.slice(0, 20)
-  const last = page.at(-1)
-  return {
-    items: page.map(row => ({ ...projectPublicFeature(row), content: row.content ?? '' })),
-    nextCursor: rows.length > 20 && last ? await signCursor({ publishedAt: last.cursor_timestamp, id: last.id }) : null,
-  }
 }
 
 export async function listPublicLetterCountries(sql: Sql): Promise<string[]> {
@@ -147,7 +162,7 @@ function bboxCondition(sql: Sql, bounds: MapBounds): Fragment {
   )`
 }
 
-function extraConditions(sql: Sql, options: MapFeatureOptions): Fragment[] {
+function extraConditions(sql: Sql | TransactionSql, options: MapFeatureOptions): Fragment[] {
   const conditions: Fragment[] = []
 
   if (options.city !== undefined && options.city !== null) {
@@ -161,14 +176,14 @@ function extraConditions(sql: Sql, options: MapFeatureOptions): Fragment[] {
   return conditions
 }
 
-function joinConditions(sql: Sql, conditions: Fragment[]): Fragment {
+function joinConditions(sql: Sql | TransactionSql, conditions: Fragment[]): Fragment {
   if (conditions.length === 0) return sql`true`
   return conditions.slice(1).reduce((acc, condition) => {
     return sql`(${acc}) and (${condition})`
   }, conditions[0])
 }
 
-function featureColumnsWithContent(sql: Sql, includeContent: boolean): Fragment {
+function featureColumnsWithContent(sql: Sql | TransactionSql, includeContent: boolean): Fragment {
   if (includeContent) {
     return sql`m.id as id, m.public_id, st_y(m.public_point::geometry) as latitude,
       st_x(m.public_point::geometry) as longitude, m.location_precision,

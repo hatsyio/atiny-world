@@ -12,7 +12,7 @@ export default async function LettersPage({ searchParams }: {
   const criteria = readLetterExploration(await searchParams)
   const db = getDb()
   const [page, countries] = await Promise.all([pagePublicLetters(db, criteria), listPublicLetterCountries(db)])
-  return <LettersArchive criteria={criteria} countries={countries} page={page} />
+  return <LettersArchive criteria={{ ...criteria, page: page.page }} countries={countries} page={page} />
 }
 
 export async function generateMetadata() {
