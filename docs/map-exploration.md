@@ -25,8 +25,8 @@ on desktop and one column on narrow screens. City typing is applied after 350 ms
 and preserves letters from other alphabets. Queries containing only symbols match no cities.
 The database uses its standard `und-x-icu` collation for Unicode character classification.
 Country changes apply immediately. Country and city combine for both endpoints;
-clearing filters resets the selection and both result sets. Clear stays mounted and
-is disabled when there are no filters, keeping the layout stable. The fields carry
+emptying City or choosing All countries removes that criterion and resets the selection
+and both result sets. Map filters align with the map edges and have no separate clear button. The fields carry
 the current criteria; no duplicate summary is displayed.
 
 ## Results and visibility

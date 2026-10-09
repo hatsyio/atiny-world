@@ -48,7 +48,7 @@ it('restores the saved view, filters and selected letter on reload', async () =>
   expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-1')
 })
 
-it('applies city typing once to markers and panel, then clears both filters', async () => {
+it('applies city typing once to markers and panel, then removes the city by emptying its field', async () => {
   render(<MapExplorer />)
   fireEvent.click(screen.getByRole('button', { name: 'Move map' }))
   await screen.findByRole('button', { name: /Hello from Madrid/ })
@@ -58,7 +58,8 @@ it('applies city typing once to markers and panel, then clears both filters', as
   expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).includes('city=Mad'))).toBe(false)
   await waitFor(() => expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes('city=Madrid'))).toHaveLength(2))
   expect(vi.mocked(fetch).mock.calls.some(([url]) => new URL(String(url), window.location.origin).searchParams.get('city') === 'Mad')).toBe(false)
-  fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
+  expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument()
+  fireEvent.change(city, { target: { value: '' } })
   expect(city).toHaveValue('')
   await waitFor(() => expect(new URLSearchParams(window.location.search).has('mapCity')).toBe(false))
 })

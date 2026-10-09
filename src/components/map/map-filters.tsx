@@ -64,7 +64,6 @@ export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
       </div>
 
       <AppSelect label={t('country')} name="country" variant="paper" value={normalizeCountry(value.country ?? '')} onChange={country => onChange({ ...value, country: normalizeCountry(country) })} options={[{ value: '', label: t('all') }, ...countries]} />
-      <button className="map-filters__clear" type="button" disabled={!value.city && !value.country && !city} onClick={() => { setCity(''); onChange({ city: '', country: '' }) }}>{t('clear')}</button>
     </div>
   )
 }
