@@ -1,0 +1,178 @@
+import { expect, test } from '@playwright/test'
+import postgres from 'postgres'
+
+const sql = postgres(process.env.TEST_DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres', { max: 1 })
+let authorId: string
+let publicId: string
+let hiddenId: string
+const city = 'Map120Madrid'
+
+test.beforeAll(async () => {
+  // Share the repository's test lock without deleting other suites' fixtures.
+  await sql`select pg_advisory_lock(4811, 20260921)`
+  const username = `map120-${Date.now()}`
+  const [author] = await sql`insert into app_private.profiles (clerk_user_id, username, username_normalized, display_name) values (${username}, ${username}, ${username}, 'ATINY120') returning id`
+  authorId = author.id
+  for (let index = 0; index < 24; index++) {
+    const [letter] = await sql`insert into app_private.messages (author_id, content, status, moderation_reason_code, location_precision, location_algorithm_version, public_point, locality, country, country_code, published_at)
+      values (${authorId}, ${`Map120 letter ${index}`}, ${index === 23 ? 'withdrawn' : 'approved'}, ${index === 23 ? 'spam' : null}, 'approximate', 1,
+        extensions.st_setsrid(extensions.st_makepoint(-3.7, 40.4), 4326)::extensions.geography, ${city}, 'España', 'es', now()) returning public_id`
+    if (index === 22) publicId = letter.public_id
+    if (index === 23) hiddenId = letter.public_id
+  }
+})
+test.afterAll(async () => {
+  if (authorId) {
+    await sql`delete from app_private.messages where author_id = ${authorId}`
+    await sql`delete from app_private.profiles where id = ${authorId}`
+  }
+  await sql`select pg_advisory_unlock(4811, 20260921)`
+  await sql.end()
+})
+test.beforeEach(async ({ page }) => {
+  await page.route('**/basemaps.cartocdn.com/**', route => route.abort())
+})
+
+for (const width of [320, 390, 1440]) {
+  test(`paginates, previews shared points, reads a letter and restores exploration at ${width}px`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', error => errors.push(error.message))
+    await page.setViewportSize({ width, height: 844 })
+    await page.goto(`/map?mapView=40.4,-3.7,8&mapCity=${city}&mapCountry=es`)
+    const map = page.locator('.map__canvas')
+    await expect(map).toBeVisible()
+    if (width < 760) await page.getByRole('button', { name: 'Show letters' }).click()
+    await expect(page.getByText('20 letters loaded', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Load more messages' }).click()
+    await expect(page.getByText('23 letters loaded', { exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Map120 letter 23/ })).toHaveCount(0)
+    await page.getByRole('button', { name: /Map120 letter 22/ }).click()
+    await expect(page.locator('.map-message-marker--selected')).toBeVisible()
+    await expect(page.locator('.map-message-letter')).toContainText('ATINY120')
+    await expect(page.locator('.map-message-letter')).toContainText(city)
+    // Selecting either letter at the shared point must target that precise letter.
+    if (width < 760) await page.getByRole('button', { name: 'Show letters' }).click()
+    await page.getByRole('button', { name: /Map120 letter 21/ }).click()
+    await expect(page.locator('.map-message-letter')).toContainText('Map120 letter 21')
+    let origin = page.url()
+    await page.getByRole('button', { name: 'Read full message' }).click()
+    await expect(page.locator('.letter-reading__content')).toHaveText('Map120 letter 21')
+    const returnTo = new URL(page.url()).searchParams.get('returnTo')!
+    const readingContext = new URL(returnTo, origin)
+    expect(readingContext.searchParams.get('mapCity')).toBe(city)
+    expect(readingContext.searchParams.get('mapCountry')).toBe('es')
+    expect(readingContext.searchParams.get('letter')).toBe(new URL(origin).searchParams.get('letter'))
+    // Popup auto-pan can finish between locating the preview and clicking Read.
+    // The reading action must restore the viewport captured at the actual click.
+    origin = readingContext.href
+    await page.getByRole('link', { name: '← Back to the map' }).click()
+    await expect(page.getByRole('button', { name: 'Read full message' })).toBeVisible()
+    expect(page.url()).toBe(origin)
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Read full message' })).toBeVisible()
+    expect(page.url()).toBe(origin)
+    await page.getByRole('button', { name: 'Read full message' }).click()
+    await expect(page.locator('.letter-reading__content')).toBeVisible()
+    await page.goBack()
+    await expect(page.getByRole('button', { name: 'Read full message' })).toBeVisible()
+    expect(page.url()).toBe(origin)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false)
+    const size = await map.boundingBox()
+    expect(size!.height).toBeGreaterThan(350)
+    expect(errors).toEqual([])
+  })
+}
+
+test('combines country and debounced city, clears filters and updates both queries after panning', async ({ page }) => {
+  const urls: string[] = []
+  page.on('request', request => { if (request.url().includes('/api/map/')) urls.push(request.url()) })
+  await page.goto('/map?mapView=40.4,-3.7,8')
+  await page.getByRole('textbox', { name: 'City' }).fill(city)
+  await page.getByRole('button', { name: /Country/ }).click()
+  await page.getByRole('option', { name: 'Spain', exact: true }).click()
+  await expect(page.getByText('20 letters loaded', { exact: true })).toBeVisible()
+  await expect.poll(() => urls.filter(url => url.includes(`city=${city}`) && url.includes('country=es')).length).toBeGreaterThanOrEqual(2)
+  const map = await page.locator('.map__canvas').boundingBox()
+  const beforePan = page.url()
+  await page.mouse.move(map!.x + map!.width / 2, map!.y + map!.height * .7)
+  await page.mouse.down()
+  await page.mouse.move(map!.x + map!.width / 2 + 80, map!.y + map!.height * .7, { steps: 8 })
+  await page.mouse.up()
+  await expect.poll(() => page.url()).not.toBe(beforePan)
+  await page.getByRole('button', { name: 'Clear filters' }).click()
+  await expect(page.getByRole('textbox', { name: 'City' })).toHaveValue('')
+  expect(new URL(page.url()).searchParams.has('mapCountry')).toBe(false)
+  expect(new URL(page.url()).searchParams.has('mapCity')).toBe(false)
+})
+
+test('deep-links to a public letter and reports a non-public letter without blocking controls', async ({ page }) => {
+  await page.goto(`/map?letter=${publicId}`)
+  await expect(page.locator('.map-message-letter')).toContainText('Map120 letter 22')
+  const view = new URL(page.url()).searchParams.get('mapView')!.split(',').map(Number)
+  expect(view[2]).toBeGreaterThanOrEqual(8)
+  await page.goto(`/map?letter=${hiddenId}`)
+  await expect(page.getByText('This letter is no longer publicly available.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Zoom in' })).toBeEnabled()
+  await expect(page.locator('.map-message-letter')).toHaveCount(0)
+})
+
+test('recovers marker and panel errors and explains an empty filtered area', async ({ page }) => {
+  let failing = true
+  await page.route('**/api/map/**', async route => {
+    if (failing) await route.fulfill({ status: 503, json: { code: 'MAP_DATA_UNAVAILABLE' } })
+    else await route.continue()
+  })
+  await page.goto(`/map?mapView=40.4,-3.7,8&mapCity=${city}`)
+  await expect(page.getByText('The letters in this area could not be loaded.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Zoom in' })).toBeEnabled()
+  failing = false
+  for (const button of await page.getByRole('button', { name: 'Try again', exact: true }).all()) await button.click()
+  await expect(page.getByText('20 letters loaded', { exact: true })).toBeVisible()
+  await page.getByRole('textbox', { name: 'City' }).fill('Map120NoLetters')
+  await expect(page.getByText('No messages in this area.')).toBeVisible()
+  await expect(page.locator('.map-message-marker')).toHaveCount(0)
+})
+
+test('removes a remotely moderated selection on reconnect', async ({ page, context }) => {
+  await page.goto(`/map?letter=${publicId}`)
+  await expect(page.locator('.map-message-letter')).toContainText('Map120 letter 22')
+  try {
+    await sql`update app_private.messages set status = 'withdrawn', moderation_reason_code = 'spam' where public_id = ${publicId}`
+    await context.setOffline(true)
+    await context.setOffline(false)
+    await expect(page.getByText('This letter is no longer publicly available.')).toBeVisible()
+    await expect(page.locator('.map-message-marker--selected')).toHaveCount(0)
+    await expect(page.locator('.map-message-letter')).toHaveCount(0)
+  } finally {
+    await sql`update app_private.messages set status = 'approved', moderation_reason_code = null where public_id = ${publicId}`
+  }
+})
+
+test('uses translated filters and reopens a selected preview entirely by keyboard', async ({ page, context }) => {
+  await context.addCookies([{ name: 'atiny-language', value: 'es', url: 'http://localhost:3011' }])
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`/map?mapView=40.4,-3.7,8&mapCity=${city}`)
+  const country = page.getByRole('button', { name: /País/ })
+  await country.focus()
+  await page.keyboard.press('Enter')
+  const option = page.getByRole('option', { name: 'España', exact: true })
+  await option.focus()
+  await page.keyboard.press('Enter')
+  await expect(country).toHaveText('España')
+  const toggle = page.getByRole('button', { name: 'Mostrar cartas' })
+  await toggle.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByText('20 cartas cargadas', { exact: true })).toBeVisible()
+  const letter = page.getByRole('button', { name: /Map120 letter 22/ })
+  await letter.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('button', { name: 'Leer completo' })).toBeFocused()
+  await page.getByRole('button', { name: 'Cerrar ventana' }).press('Enter')
+  await expect(page.locator('.map-message-letter')).toHaveCount(0)
+  await toggle.focus()
+  await page.keyboard.press('Enter')
+  await letter.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.map-message-letter')).toContainText('Map120 letter 22')
+  await expect(page.locator('.map-message-marker--selected')).toBeVisible()
+})

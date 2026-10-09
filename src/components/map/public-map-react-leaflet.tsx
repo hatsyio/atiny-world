@@ -16,15 +16,20 @@ import { CARTO_ATTRIBUTION, cartoTileUrl, configureMarkerIcons, createMessageIco
 import { publicMessageQuery } from './map-queries'
 import { MarkerCluster } from './marker-cluster'
 
-type Props = Pick<LeafletMapProps, 'features' | 'onSelect' | 'initialView' | 'onViewChange' | 'onViewportChange' | 'selectedPublicId'> & {
+type Props = Pick<LeafletMapProps, 'features' | 'onSelect' | 'initialView' | 'onViewChange' | 'onViewportChange' | 'selectedPublicId' | 'focusSelection' | 'onPreview' | 'selectionVersion'> & {
   apiKey: string
   isFullscreen: boolean
   onToggleFullscreen: () => void
 }
 
-function MessageContent({ publicId, onSelect, popup }: { publicId: string; onSelect: Props['onSelect']; popup: RefObject<leaflet.Popup | null> }) {
+function MessageContent({ publicId, onSelect, popup, focusOnLoad }: { publicId: string; onSelect: Props['onSelect']; popup: RefObject<leaflet.Popup | null>; focusOnLoad: boolean }) {
   const t = useTranslations('Map.leaflet')
   const result = useQuery(publicMessageQuery(publicId))
+  const readButton = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    // A mobile panel selection hides its original button; continue in the preview.
+    if (focusOnLoad && result.isSuccess) readButton.current?.focus({ preventScroll: true })
+  }, [focusOnLoad, result.isSuccess, publicId])
   useLayoutEffect(() => {
     // The query updates inside the portal, so React Leaflet cannot detect its new size.
     // Recalculate before paint so auto-pan uses the loaded letter's height.
@@ -33,17 +38,23 @@ function MessageContent({ publicId, onSelect, popup }: { publicId: string; onSel
   if (result.isError || !result.data) return <p className="map-message-popup">{t(result.isError ? 'messageUnavailable' : 'loadingMessage')}</p>
   return <div className="map-message-letter">
     <p className="map-message-popup">{result.data.content}</p>
-    <button type="button" className="map-message-read" onClick={() => onSelect(publicId)}>{t('readFullMessage')}</button>
+    <p className="map-message-meta">{result.data.author?.displayName}</p>
+    <p className="map-message-meta">{[result.data.locality, result.data.country].filter(Boolean).join(', ')}</p>
+    <button ref={readButton} type="button" className="map-message-read" onClick={() => onSelect(publicId)}>{t('readFullMessage')}</button>
   </div>
 }
 
-function PublicMarker({ feature, onSelect, selected, centered }: { feature: PublicMapFeature; onSelect: Props['onSelect']; selected: boolean; centered: RefObject<string | null> }) {
+function PublicMarker({ feature, onSelect, selected, centered, focusSelection = true, onPreview, selectionVersion = 0 }: { feature: PublicMapFeature; onSelect: Props['onSelect']; selected: boolean; centered: RefObject<string | null>; focusSelection?: boolean; onPreview?: Props['onPreview']; selectionVersion?: number }) {
   const t = useTranslations('Map.leaflet')
   const { map } = useLeafletContext()
   const marker = useRef<leaflet.Marker>(null)
   const popup = useRef<leaflet.Popup>(null)
   const [open, setOpen] = useState(false)
-  const icon = useMemo(() => createMessageIcon(leaflet), [])
+  const icon = useMemo(() => {
+    const icon = createMessageIcon(leaflet)
+    if (selected) icon.options.className += ' map-message-marker--selected'
+    return icon
+  }, [selected])
   const position = useMemo<[number, number]>(() => [feature.point.latitude, feature.point.longitude], [feature.point.latitude, feature.point.longitude])
   const title = t('viewMessages', { count: 1 })
   const closeLabel = t('closePopup')
@@ -60,24 +71,24 @@ function PublicMarker({ feature, onSelect, selected, centered }: { feature: Publ
   }, [title, closeLabel])
 
   useEffect(() => {
-    if (!selected || centered.current === feature.publicId) return
+    if (!selected || centered.current === `${feature.publicId}:${selectionVersion}`) return
     // Located letters live outside the cluster, so later marker batches cannot
     // absorb their marker or close the reading popup.
     const timer = window.setTimeout(() => {
       const current = marker.current
       if (!current) return
-      centered.current = feature.publicId
-      map.setView(position, 8)
+      centered.current = `${feature.publicId}:${selectionVersion}`
+      if (focusSelection) map.setView(position, Math.max(8, map.getZoom()))
       current.openPopup()
     }, 0)
     return () => { window.clearTimeout(timer) }
-  }, [selected, feature.publicId, position, map, centered])
+  }, [selected, feature.publicId, position, map, centered, focusSelection, selectionVersion])
 
   return <Marker ref={marker} position={position} icon={icon} title={title}
-    eventHandlers={{ popupopen: () => setOpen(true), popupclose: () => setOpen(false) }}>
-    <Popup ref={popup} className="map-letter-popup" autoClose closeOnClick minWidth={340} maxWidth={340} autoPanPadding={[16, 16]}
+    eventHandlers={{ popupopen: () => { setOpen(true); if (!selected) onPreview?.(feature.publicId) }, popupclose: () => setOpen(false) }}>
+    <Popup ref={popup} autoPan={focusSelection} className="map-letter-popup" autoClose closeOnClick minWidth={340} maxWidth={340} autoPanPadding={[16, 16]}
       eventHandlers={{ add: labelCloseButton }}>
-      {open ? <MessageContent publicId={feature.publicId} onSelect={onSelect} popup={popup} /> : null}
+      {open ? <MessageContent publicId={feature.publicId} onSelect={onSelect} popup={popup} focusOnLoad={selected && focusSelection} /> : null}
     </Popup>
   </Marker>
 }
@@ -91,6 +102,12 @@ function MapBehavior({ onViewChange, onViewportChange, isFullscreen }: Pick<Prop
     onViewportChange?.({ west: bounds.getWest(), south: bounds.getSouth(), east: bounds.getEast(), north: bounds.getNorth() })
   } })
   useEffect(() => { map.fire('moveend') }, [map])
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => map.invalidateSize())
+    observer.observe(map.getContainer())
+    return () => observer.disconnect()
+  }, [map])
   useEffect(() => {
     for (const [selector, key] of [['.leaflet-control-zoom-in', 'zoomIn'], ['.leaflet-control-zoom-out', 'zoomOut']] as const) {
       const button = map.getContainer().querySelector<HTMLAnchorElement>(selector)
@@ -124,7 +141,7 @@ function FullscreenControl({ isFullscreen, onToggleFullscreen }: Pick<Props, 'is
     aria-pressed={isFullscreen} onClick={onToggleFullscreen}>⛶</button>, container)
 }
 
-export function ReactLeafletPublicMap({ features, onSelect, initialView, apiKey, selectedPublicId, ...behavior }: Props) {
+export function ReactLeafletPublicMap({ features, onSelect, initialView, apiKey, selectedPublicId, focusSelection, onPreview, selectionVersion, ...behavior }: Props) {
   const t = useTranslations('Map.leaflet')
   const centered = useRef<string | null>(null)
   configureMarkerIcons(leaflet)
@@ -136,8 +153,8 @@ export function ReactLeafletPublicMap({ features, onSelect, initialView, apiKey,
     <ZoomControl position="topleft" zoomInTitle={t('zoomIn')} zoomOutTitle={t('zoomOut')} />
     <FullscreenControl {...behavior} />
     <MarkerCluster>{features.filter(feature => feature.publicId !== selectedPublicId).map(feature => <PublicMarker key={feature.publicId} feature={feature} onSelect={onSelect}
-      selected={false} centered={centered} />)}</MarkerCluster>
-    {located ? <PublicMarker key={located.publicId} feature={located} onSelect={onSelect} selected centered={centered} /> : null}
+      selected={false} centered={centered} onPreview={onPreview} />)}</MarkerCluster>
+    {located ? <PublicMarker key={located.publicId} feature={located} onSelect={onSelect} selected centered={centered} focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={onPreview} /> : null}
     <MapBehavior {...behavior} />
   </MapContainer>
 }

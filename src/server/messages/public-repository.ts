@@ -244,8 +244,9 @@ export async function pagePublicMessages(
 
   const where = sql`${visibilityCondition(sql)} and ${bboxCondition(sql, args.bounds)} and ${joinConditions(sql, extra)} and ${cursorCondition}`
 
-  const rows = await sql<FeatureRow[]>`
-    select ${featureColumnsWithContent(sql, true)}
+  const rows = await sql<Array<FeatureRow & { cursor_published_at: string }>>`
+    select ${featureColumnsWithContent(sql, true)},
+      to_char(m.published_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as cursor_published_at
       from app_private.messages m
       join app_private.profiles p on p.id = m.author_id
      where ${where}
@@ -262,7 +263,7 @@ export async function pagePublicMessages(
       ...projectPublicFeature(row),
       content: row.content ?? '',
     })),
-    nextCursor: hasMore && last ? await signCursor({ publishedAt: last.published_at, id: last.id }) : null,
+    nextCursor: hasMore && last ? await signCursor({ publishedAt: last.cursor_published_at, id: last.id }) : null,
   }
 }
 

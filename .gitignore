@@ -9,6 +9,7 @@ build/
 coverage/
 .visual-test-build/
 test-results/
+test-results-map/
 playwright-report/
 .DS_Store
 *.log

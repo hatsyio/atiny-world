@@ -52,6 +52,7 @@ function requestBounds(bounds: MapBounds): MapBounds {
 export function buildFeatureRequest(
   bounds: MapBounds,
   filters: MapFilterValues,
+  zoom?: number,
 ): string {
   const viewport = requestBounds(bounds)
   const params = new URLSearchParams({
@@ -61,6 +62,7 @@ export function buildFeatureRequest(
     north: String(viewport.north),
   })
 
+  if (zoom !== undefined) params.set('zoom', String(zoom))
   appendFilter(params, 'city', filters.city)
   appendFilter(params, 'country', filters.country)
   return `/api/map/features?${params.toString()}`

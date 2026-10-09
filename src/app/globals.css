@@ -378,3 +378,42 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .letters-archive__pagination a:focus-visible { outline: 2px solid var(--navy); outline-offset: 3px; }
 .letters-archive__pagination > span[aria-disabled] { opacity: .55; }
 .letters-archive__ellipsis { padding: 0 .15rem; }
+
+/* Geographic exploration keeps the atlas and its letters in one workspace. */
+.map-page { padding: 1rem clamp(.75rem, 2vw, 2rem) 1.5rem; background: var(--paper); color: var(--ink); }
+.map-page > h1 { margin: 0 0 .75rem; font-size: clamp(1.3rem, 2vw, 1.8rem); }
+.map-explorer__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.5rem; border-block: 1px solid #b88d59; }
+.map-explorer__toolbar .map-filters { grid-template-columns: auto minmax(8rem, 14rem) minmax(10rem, 17rem) auto; flex: 1; }
+.map-explorer__toolbar .map-filters > .app-select { grid-column: auto; }
+.map-explorer__criteria { font-size: .85rem; margin: .5rem; }
+.map-filters__clear { grid-column: 1 / -1; justify-self: start; padding: .5rem; cursor: pointer; }
+.map-explorer__toolbar .map-filters__clear { grid-column: auto; }
+.map-explorer__workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(17rem, 23rem); min-height: 0; height: max(560px, calc(100dvh - 220px)); border: 1px solid #b88d59; border-top: 0; }
+.map-explorer__map { position: relative; min-width: 0; min-height: 0; }
+.map-explorer__map > .map, .map-explorer__map .map__canvas { height: 100%; min-height: 0; }
+.map-explorer__map > .map--fullscreen { height: auto; }
+.map-explorer__map .map-feedback { position: absolute; top: .75rem; left: 3.5rem; right: .75rem; z-index: 500; pointer-events: none; }
+.map-explorer__map .map-feedback [role='status'] { margin: 0; padding: .5rem; background: #faf0da; color: var(--ink); pointer-events: auto; }
+.map-explorer__panel { min-height: 0; overflow-y: auto; border-left: 1px solid #b88d59; background: #faf0da; }
+.map-explorer__panel h2 { padding: 1rem; margin: 0; font-size: 1.1rem; }
+.map-explorer__panel-toggle { display: none; }
+.map-explorer__results { padding: 0 .5rem 1rem; }
+.cluster-list__count { font-size: .85rem; padding-inline: .5rem; }
+.cluster-list button[aria-pressed='true'] { background: #eed4a7; outline: 2px solid var(--brown); outline-offset: -2px; }
+.map-explorer :is(button, input):focus-visible { outline: 2px solid var(--brown); outline-offset: 3px; }
+.leaflet-marker-icon.map-message-marker--selected { background: #513d2b; color: #faf0da; outline: 3px solid #b88d59; outline-offset: 2px; }
+.map-message-letter .map-message-meta { font-size: .8rem; margin: .6rem 0 0; }
+@media (max-width: 760px) {
+  .map-page { padding: .75rem .5rem 1rem; }
+  .map-explorer__toolbar { display: block; }
+  .map-explorer__toolbar .map-filters { grid-template-columns: auto minmax(0, 1fr); padding: .5rem; }
+  .map-explorer__toolbar .map-filters > .app-select { grid-column: 1 / -1; }
+  .map-explorer__criteria { margin: 0 .5rem .5rem; }
+  .map-explorer__workspace { display: flex; flex-direction: column; height: max(540px, calc(100dvh - 250px)); }
+  .map-explorer__map { flex: 1; min-height: 260px; }
+  .map-explorer__panel { flex: 0 0 auto; border-left: 0; border-top: 1px solid #b88d59; overflow: visible; }
+  .map-explorer__panel h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); padding: 0; }
+  .map-explorer__panel-toggle { display: block; width: 100%; min-height: 44px; padding: .75rem; border: 0; background: var(--navy); color: #f4dab0; cursor: pointer; }
+  .map-explorer__results { display: none; }
+  .map-explorer__panel--open .map-explorer__results { display: block; height: min(35dvh, 240px); overflow-y: auto; }
+}

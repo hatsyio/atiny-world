@@ -202,7 +202,7 @@ it('translates controls and an open popup without losing the map, view or filter
   const canvas = result.container.querySelector('.map__canvas')
   result.rerender(view('es'))
   expect(result.getByRole('textbox', { name: 'Ciudad' })).toHaveValue('서울')
-  expect(result.getByRole('button', { name: /País/ })).toHaveTextContent('KR')
+  expect(result.getByRole('button', { name: /País/ })).toHaveTextContent('Corea del Sur')
   expect(result.getByRole('button', { name: 'Entrar en pantalla completa' })).toHaveAttribute('title', 'Entrar en pantalla completa')
   expect(result.getByRole('button', { name: 'Acercar' })).toBeTruthy()
   expect(result.getByRole('button', { name: 'Leer completo' })).toBeTruthy()

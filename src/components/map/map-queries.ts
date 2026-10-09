@@ -7,6 +7,10 @@ class PublicMapRequestError extends Error {
   constructor(readonly status: number, readonly invalidCursor = false) { super(`Public map request failed: ${status}`) }
 }
 
+export function isMissingPublicMessage(error: unknown): boolean {
+  return error instanceof PublicMapRequestError && error.status === 404
+}
+
 export function isInvalidMapCursor(error: unknown): boolean {
   return error instanceof PublicMapRequestError && error.invalidCursor
 }
@@ -34,7 +38,7 @@ export function mapFeaturesQuery(requestUrl: string) {
   return queryOptions({
     ...publicQueryPolicy,
     queryKey: [...publicMapQueryKey, 'features', requestUrl],
-    queryFn: ({ signal }) => readPublicJson<{ features: PublicMapFeature[] }>(requestUrl, signal),
+    queryFn: ({ signal }) => readPublicJson<{ features: PublicMapFeature[]; truncated?: boolean }>(requestUrl, signal),
   })
 }
 

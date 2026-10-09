@@ -30,9 +30,13 @@ interface Props {
   filters?: MapFilterValues
   onFiltersChange?: (values: MapFilterValues) => void
   groupRequestUrl?: string
+  selectionVersion?: number
+  focusSelection?: boolean
+  onPreview?: (publicId: string) => void
+  hideGroupList?: boolean
   selectedPublicId?: string
 }
 
-export function PublicMapLoader({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: Props) {
-  return <LeafletMap initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect} onViewportChange={onViewportChange} filters={filters} onFiltersChange={onFiltersChange} groupRequestUrl={groupRequestUrl} selectedPublicId={selectedPublicId} />
+export function PublicMapLoader({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId, focusSelection, onPreview, hideGroupList, selectionVersion }: Props) {
+  return <LeafletMap initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect} onViewportChange={onViewportChange} filters={filters} onFiltersChange={onFiltersChange} groupRequestUrl={groupRequestUrl} selectedPublicId={selectedPublicId} focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={onPreview} hideGroupList={hideGroupList} />
 }

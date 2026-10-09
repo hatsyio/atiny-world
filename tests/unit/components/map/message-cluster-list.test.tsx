@@ -75,3 +75,19 @@ it('restarts pagination when a previous deployment cursor is rejected without du
   await screen.findByText('refreshed letter')
   expect(screen.queryByText('old page')).toBeNull()
 })
+
+it('keeps the focused panel row through a pending viewport resize when filters stay the same', async () => {
+  let resolve!: (response: Response) => void
+  vi.stubGlobal('fetch', vi.fn((url: string) => url.includes('west=2')
+    ? new Promise<Response>(done => { resolve = done })
+    : Promise.resolve(response('same letter'))))
+  const element = (west: number) => <MessageClusterList keepPreviousViewport requestUrl={`/api/map/messages?west=${west}&city=Madrid`} onSelect={() => {}} />
+  const page = render(element(1))
+  const row = await screen.findByRole('button', { name: /same letter/ })
+  row.focus()
+  page.rerender(element(2))
+  expect(screen.getByRole('button', { name: /same letter/ })).toHaveFocus()
+  await waitFor(() => expect(resolve).toBeTypeOf('function'))
+  await act(async () => { resolve(response('same letter')) })
+  expect(screen.getByRole('button', { name: /same letter/ })).toHaveFocus()
+})

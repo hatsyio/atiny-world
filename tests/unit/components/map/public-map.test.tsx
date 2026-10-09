@@ -102,7 +102,7 @@ describe('MapFilters', () => {
     await user.click(screen.getByRole('button', { name: /Country/ }))
     // Scope text lookup to the accessible open list instead of computing 250 option names.
     const countries = within(await screen.findByRole('listbox'))
-    await user.click(countries.getByText('ES'))
+    await user.click(countries.getByText('Spain'))
     expect(onChange).toHaveBeenLastCalledWith({ city: 'Seoul', country: 'es' })
     rerender(<MapFilters value={{ city: 'Seoul', country: 'es' }} onChange={onChange} />)
     await user.click(screen.getByRole('button', { name: /Country/ }))

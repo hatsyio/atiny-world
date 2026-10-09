@@ -3,14 +3,16 @@
     "filters": "Filters",
     "city": "City",
     "country": "Country",
-    "all": "All"
+    "all": "All",
+    "clear": "Clear filters"
   },
   "cluster": {
     "loading": "Loading messages…",
     "unavailable": "The messages could not be loaded.",
     "retry": "Try again",
     "empty": "No messages in this area.",
-    "more": "Load more messages"
+    "more": "Load more messages",
+    "loaded": "{count, plural, one {# letter loaded} other {# letters loaded}}"
   },
   "public": {
     "unavailable": "This message is not available.",
@@ -42,5 +44,20 @@
   "controls": {
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out"
+  },
+  "explorer": {
+    "title": "Explore the map",
+    "description": "Explore public letters around the world.",
+    "areaLetters": "Letters in this area",
+    "showLetters": "Show letters",
+    "hideLetters": "Hide letters",
+    "allAreas": "All countries and cities",
+    "loading": "Loading this area…",
+    "error": "The letters in this area could not be loaded.",
+    "retry": "Try again",
+    "truncated": "Some markers are not shown. Zoom in to explore a smaller area.",
+    "letterUnavailable": "This letter is no longer publicly available.",
+    "mapUnavailable": "The interactive map is unavailable.",
+    "letterError": "The selected letter could not be loaded. Try again."
   }
 }
