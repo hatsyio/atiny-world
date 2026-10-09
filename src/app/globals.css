@@ -80,12 +80,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .stat-plaque { min-width: 160px; flex: 1; max-width: 215px; min-height: 72px; display: grid; place-content: center; text-align: center; color: #f2d6a7; background: #181c20; border: 4px double #dfb778; outline: 2px solid #332117; box-shadow: 0 2px 6px #5e391d8c; clip-path: polygon(6% 0, 94% 0, 100% 22%, 100% 78%, 94% 100%, 6% 100%, 0 78%, 0 22%); text-transform: uppercase; letter-spacing: .12em; }
 .stat-plaque strong { font-size: 1.55rem; font-weight: 500; line-height: 1; }
 .stat-plaque span { font-size: .73rem; margin-top: .3rem; }
-.map-section { max-width: 1360px; margin: auto; scroll-margin-top: 1rem; }
+.map-section { max-width: 1360px; margin: auto; padding-bottom: clamp(3rem, 5vw, 4.5rem); scroll-margin-top: 1rem; }
 .map-heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: .2rem; }
 .map-heading h2 { max-width: 13ch; font-size: clamp(1.45rem, 2.5vw, 2.5rem); letter-spacing: .15em; text-transform: uppercase; line-height: 1.2; }
 .map-heading p { max-width: 20ch; font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: clamp(1.2rem, 2.2vw, 2rem); font-style: italic; text-align: right; }
 .map-hint { margin: 0 0 .7rem; text-align: center; font-style: italic; }
-.live-map-frame { max-width: 1200px; margin: 0 auto 4.5rem; }
+.live-map-frame { max-width: 1200px; margin: 0 auto; }
 .live-map-frame > section { background: transparent; }
 .map-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: .75rem 1rem; padding: .8rem 0; font-family: var(--font-interface), sans-serif; }
 .map-filters__field { display: grid; gap: .5rem; min-width: 0; }
@@ -258,7 +258,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .map-heading { display: block; text-align: center; }
   .map-heading h2 { max-width: none; margin: 0; }
   .map-heading p { max-width: none; text-align: center; margin: .5rem 0; }
-  .live-map-frame { margin-bottom: 3rem; }
   .map__canvas { height: 310px; }
   .map-message-letter .map-message-popup { -webkit-line-clamp: 5; }
   .map__filters { top: .5rem; right: .5rem; width: min(250px, calc(100% - 1rem)); }
