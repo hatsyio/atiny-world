@@ -45,6 +45,7 @@ it('lets the owner read and edit their pending letter without making it public',
   expect(screen.getByText('Private pending letter')).toBeVisible()
   expect(screen.getByRole('button', { name: 'Edit letter' })).toBeVisible()
   expect(getOwnMessage).toHaveBeenCalledWith({}, { clerkUserId: 'owner-1', publicId: 'letter-1' })
+  expect(screen.queryByRole('link', { name: 'Locate on the map' })).toBeNull()
 })
 it('does not expose a pending letter to another signed-in account', async () => {
   render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }) }))
@@ -57,6 +58,7 @@ it('shows a public letter without edit controls to a suspended account', async (
   render(await PublicMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }) }))
   expect(screen.getByText('Private pending letter')).toBeVisible()
   expect(screen.queryByRole('button', { name: 'Edit letter' })).toBeNull()
+  expect(screen.getByRole('link', { name: 'Locate on the map' })).toHaveAttribute('href', '/map?letter=letter-1#map')
 })
 it('lets a suspended owner read their private letter without edit controls', async () => {
   vi.mocked(authorizeSession).mockResolvedValue({ ok: false, error: { code: 'ACCOUNT_SUSPENDED' } })

@@ -38,6 +38,7 @@ export default async function PublicMessagePage({ params, searchParams }: { para
         <p className="auth-script">{t('script')}</p>
         <h1>{t('title')}</h1>
         {message ? <LetterDetail message={message} ownMessage={ownMessage} canEdit={authorization.ok} /> : <PublicMessageCard message={null} />}
+        {publicMessage ? <Link className="letter-map-link" href={`/map?letter=${encodeURIComponent(publicMessage.publicId)}#map`}>{t('showMap')}</Link> : null}
       </div>
     </main>
   )

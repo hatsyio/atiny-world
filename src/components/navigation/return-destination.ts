@@ -19,6 +19,9 @@ export function returnDestination(lang: Locale, returnTo?: string | string[]) {
         destination = section === '' ? 'home' : section
         href = `${home}${url.search}${url.hash}`
       }
+    } else if (path === '/letters' || path === '/map') {
+      destination = path === '/letters' ? 'letters' : 'map'
+      href = `${path}${url.search}${url.hash}`
     } else if (path === '/about') {
       destination = 'about'
       href = path

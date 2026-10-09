@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 
 import { useCallback, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { mapFeaturesQuery } from './map-queries'
+import { mapFeaturesQuery, publicMessageQuery } from './map-queries'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { rememberLetterOrigin } from '@/components/navigation/letter-link'
@@ -78,9 +78,10 @@ export function buildMessageRequest(
   return `/api/map/messages?${params.toString()}`
 }
 
-export function PublicMapController({ selectedPublicId: requestedPublicId, selectedMessage }: {
+export function PublicMapController({ selectedPublicId: requestedPublicId, selectedMessage, originPath = '/' }: {
   selectedPublicId?: string
   selectedMessage?: PublicMapFeature
+  originPath?: '/' | '/map'
 }) {
   const params = useSearchParams()
   const selectedPublicId = selectedMessage?.publicId ?? requestedPublicId
@@ -88,14 +89,15 @@ export function PublicMapController({ selectedPublicId: requestedPublicId, selec
   const initialFilters = selectedPublicId ? { city: '', country: '' } : readMapFilters(params)
   // Next can retain a page between visits. A different URL context is a different exploration.
   const contextKey = JSON.stringify([selectedPublicId, initialView, initialFilters])
-  return <MapExploration key={contextKey} selectedPublicId={selectedPublicId} selectedMessage={selectedMessage} initialView={initialView} initialFilters={initialFilters} />
+  return <MapExploration key={contextKey} selectedPublicId={selectedPublicId} selectedMessage={selectedMessage} initialView={initialView} initialFilters={initialFilters} originPath={originPath} />
 }
 
-function MapExploration({ selectedPublicId, selectedMessage, initialView, initialFilters }: {
+function MapExploration({ selectedPublicId, selectedMessage, initialView, initialFilters, originPath }: {
   selectedPublicId?: string
   selectedMessage?: PublicMapFeature
   initialView: MapView
   initialFilters: MapFilterValues
+  originPath: '/' | '/map'
 }) {
   const t = useTranslations('Map.controller')
   const router = useRouter()
@@ -117,13 +119,22 @@ function MapExploration({ selectedPublicId, selectedMessage, initialView, initia
       return undefined
     },
   })
-  const features = query.isError ? [] : query.data?.features ?? (query.isPending && selectedMessage && !filters.city && !filters.country ? [selectedMessage] : [])
+  // A located letter can fall outside the viewport's 2000 most recent markers.
+  // Revalidate it separately so keeping the selection never bypasses moderation.
+  const selection = useQuery({
+    ...publicMessageQuery(selectedPublicId ?? ''),
+    enabled: hasBasemap && Boolean(selectedPublicId),
+  })
+  const located = selection.isError ? undefined : selection.data ?? (selection.isPending ? selectedMessage : undefined)
+  const viewportFeatures = query.data?.features ?? []
+  const features = query.isError ? [] : located && !filters.city && !filters.country && !viewportFeatures.some(feature => feature.publicId === located.publicId)
+    ? [...viewportFeatures, located] : viewportFeatures
 
   const selectMessage = useCallback((publicId: string) => {
-    const origin = mapOrigin(view.current, filters)
+    const origin = mapOrigin(view.current, filters, originPath)
     rememberLetterOrigin(origin)
     router.push(letterHref(publicId, origin))
-  }, [router, filters])
+  }, [router, filters, originPath])
 
   return (
     <section aria-label={t('explore')}>

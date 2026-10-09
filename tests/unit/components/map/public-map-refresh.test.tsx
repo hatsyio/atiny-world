@@ -46,6 +46,26 @@ afterEach(() => {
 })
 
 describe('PublicMapController', () => {
+  it('retains a selected older letter omitted by the viewport limit and revalidates its visibility', async () => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+    const selectedMessage = {
+      publicId: 'older-letter', point: { latitude: 40.4, longitude: -3.7 },
+      precision: 'approximate' as const, locality: 'Madrid', country: 'España', countryCode: 'es',
+      publishedAt: '2026-10-01T10:00:00Z', author: { publicId: 'author', displayName: 'ATINY' },
+    }
+    let hidden = false
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.startsWith('/api/messages/')
+      ? hidden ? new Response(null, { status: 404 }) : new Response(JSON.stringify({ ...selectedMessage, content: 'Public letter' }))
+      : new Response(JSON.stringify({ features: [{ publicId: 'recent-letter' }] }))))
+    const client = new QueryClient()
+    const page = render(<QueryClientProvider client={client}><PublicMapController selectedMessage={selectedMessage} /></QueryClientProvider>)
+    await waitFor(() => expect(page.getByLabelText('Visible markers')).toHaveTextContent('recent-letter'))
+    expect(page.getByLabelText('Visible markers')).toHaveTextContent('older-letter')
+    hidden = true
+    await act(async () => { await client.invalidateQueries({ queryKey: publicMapQueryKey }) })
+    await waitFor(() => expect(page.getByLabelText('Visible markers')).not.toHaveTextContent('older-letter'))
+  })
+
   it('keeps markers during a viewport request but clears them when filters change', async () => {
     vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
     let resolveViewport!: (response: Response) => void

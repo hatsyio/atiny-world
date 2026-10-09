@@ -25,6 +25,50 @@ export interface PublicMessagePage {
   nextCursor: string | null
 }
 
+export interface LetterCriteria {
+  q?: string
+  country?: string
+  city?: string
+  cursor?: string
+}
+
+/** Global archive: deliberately independent of map bounds. */
+export async function pagePublicLetters(sql: Sql, args: LetterCriteria): Promise<PublicMessagePage> {
+  const cursor = args.cursor ? await verifyCursor(args.cursor) : null
+  const conditions = extraConditions(sql, {
+    city: args.city || undefined,
+    country: args.country || undefined,
+  })
+  if (args.q) conditions.push(sql`strpos(lower(m.content), lower(${args.q})) > 0`)
+  if (cursor?.publishedAt) conditions.push(sql`(m.published_at, m.id) < (${cursor.publishedAt}::timestamptz, ${cursor.id}::bigint)`)
+  const rows = await sql<Array<FeatureRow & { cursor_timestamp: string }>>`
+    select ${featureColumnsWithContent(sql, true)},
+           to_char(m.published_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as cursor_timestamp
+      from app_private.messages m
+      join app_private.profiles p on p.id = m.author_id
+     where ${visibilityCondition(sql)} and ${joinConditions(sql, conditions)}
+     order by m.published_at desc, m.id desc
+     limit 21
+  `
+  const page = rows.slice(0, 20)
+  const last = page.at(-1)
+  return {
+    items: page.map(row => ({ ...projectPublicFeature(row), content: row.content ?? '' })),
+    nextCursor: rows.length > 20 && last ? await signCursor({ publishedAt: last.cursor_timestamp, id: last.id }) : null,
+  }
+}
+
+export async function listPublicLetterCountries(sql: Sql): Promise<string[]> {
+  const rows = await sql<Array<{ country_code: string }>>`
+    select distinct m.country_code
+      from app_private.messages m
+      join app_private.profiles p on p.id = m.author_id
+     where ${visibilityCondition(sql)}
+     order by m.country_code
+  `
+  return rows.map(row => row.country_code)
+}
+
 export interface PublicMessageStats {
   letters: number
   countries: number

@@ -8,7 +8,7 @@ import { letterHref } from './letter-origin'
 /** Replace the source entry before pushing the detail, so browser Back has the same origin. */
 export function rememberLetterOrigin(origin: string) {
   const path = origin.split(/[?#]/)[0]
-  if (window.location.pathname === path) window.history.replaceState(null, '', origin)
+  if (window.location.pathname === path) window.history.replaceState(window.history.state, '', origin)
 }
 
 export function LetterLink({ publicId, origin, children, ...props }: {

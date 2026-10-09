@@ -60,7 +60,8 @@
   },
   "publicLetter": {
     "title": "Una carta de ATINY",
-    "script": "Queridos ATEEZ…"
+    "script": "Queridos ATEEZ…",
+    "showMap": "Ubicar en el mapa"
   },
   "settings": {
     "title": "Ajustes de cuenta",
@@ -204,5 +205,26 @@
     "idea": "Idea original",
     "support": "Ayuda y apoyo",
     "development": "Desarrollo web"
+  },
+  "letters": {
+    "title": "Cartas de ATINY",
+    "intro": "Lee cartas públicas de todo el mundo. Encuentra un lugar o unas palabras que conecten contigo.",
+    "search": "Buscar en el texto de las cartas",
+    "country": "País",
+    "allCountries": "Todos los países",
+    "city": "Ciudad",
+    "apply": "Buscar cartas",
+    "active": "Criterios activos: {criteria}",
+    "recent": "Las cartas más recientes primero",
+    "clear": "Limpiar búsqueda y filtros",
+    "empty": "No hay cartas que coincidan con estos criterios. Limpia la búsqueda y los filtros para explorar todas las cartas públicas.",
+    "read": "Leer carta completa",
+    "readBy": "Leer carta de {name}",
+    "pagination": "Páginas de cartas",
+    "first": "Cartas más recientes",
+    "older": "Cartas anteriores",
+    "loading": "Cargando cartas…",
+    "error": "No se han podido cargar las cartas. Inténtalo de nuevo.",
+    "retry": "Reintentar"
   }
 }
