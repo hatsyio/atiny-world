@@ -103,11 +103,15 @@ describe('PublicHome', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/todavía no hay cartas públicas/i)
   })
 
-  it.each([['en', 'Explore letters'], ['es', 'Explorar cartas']] as const)('links the homepage letters section to the archive in %s', (locale, label) => {
+  it.each([['en', 'Explore letters'], ['es', 'Explorar cartas']] as const)('links the homepage exploration sections to their public pages in %s', (locale, label) => {
     render(<Home latestLetters={[letter]} />, { locale })
     const link = screen.getByRole('link', { name: label })
     expect(link).toHaveAttribute('href', '/letters')
     expect(document.getElementById('letters')).toContainElement(link)
+    const mapSection = document.getElementById('map')!
+    const mapLink = mapSection.querySelector('a')!
+    expect(mapLink).toHaveTextContent(locale === 'es' ? 'Explorar el mapa' : 'Explore the map')
+    expect(mapLink).toHaveAttribute('href', '/map')
   })
 
   it('shows the localized homepage statistics and the fixed number of pirates', () => {

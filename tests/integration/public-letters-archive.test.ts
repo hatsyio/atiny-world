@@ -26,9 +26,11 @@ beforeAll(async () => {
 afterAll(async () => { await truncateProductTables(db); await db.end() })
 
 it('combines text, country and city globally and traverses timestamp ties without gaps', async () => {
-  const criteria = { q: 'LOVE', country: 'es', city: 'madrid' }
+  const criteria = { q: 'LOVE', country: 'es', city: 'Mad' }
   const first = await pagePublicLetters(db, criteria)
   expect(first.items).toHaveLength(20)
+  expect(typeof first.items[0].publishedAt).toBe('string')
+  expect(first.items[0].publishedAt).toMatch(/Z$/)
   expect(first.totalPages).toBe(2)
   expect(first.page).toBe(1)
   const second = await pagePublicLetters(db, { ...criteria, page: 2 })
@@ -58,4 +60,25 @@ it('counts only letters matching the filters and visibility rules', async () => 
   expect(result.items).toEqual([])
   expect(result.totalPages).toBe(0)
   expect(result.page).toBe(1)
+})
+
+it('ignores case, accents, punctuation and spacing in city fragments', async () => {
+  expect((await pagePublicLetters(db, { city: 'DRI' })).totalPages).toBe(2)
+  expect((await pagePublicLetters(db, { city: ' MÁ-D ' })).totalPages).toBe(2)
+  expect((await pagePublicLetters(db, { city: 'Mad༳' })).totalPages).toBe(2)
+  expect((await pagePublicLetters(db, { city: '%' })).items).toEqual([])
+  expect((await pagePublicLetters(db, { city: '_' })).items).toEqual([])
+})
+
+it('normalizes stored city names while preserving other alphabets', async () => {
+  const author = await insertProfile(db, 'archive-unicode')
+  try {
+    for (const [locality, city] of [['São-Paulo', ' SAO PA '], ['Torrejón', 'torrejo\u0301'], ['München', 'MUN'], ['東京', '東'], ['서울', '서']]) {
+      const letter = await insertMessage(db, author.id, { locality, status: 'approved' })
+      expect((await pagePublicLetters(db, { city })).items.map(item => item.publicId)).toContain(letter.public_id)
+    }
+  } finally {
+    await db`delete from app_private.messages where author_id = ${author.id}`
+    await db`delete from app_private.profiles where id = ${author.id}`
+  }
 })

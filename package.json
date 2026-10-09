@@ -24,7 +24,8 @@
     "docker:up:pro": "docker compose --profile pro up --build",
     "docker:down": "docker compose --profile local --profile pro down",
     "docker:logs": "docker compose --profile local logs --follow app-local",
-    "docker:logs:pro": "docker compose --profile pro logs --follow app-pro"
+    "docker:logs:pro": "docker compose --profile pro logs --follow app-pro",
+    "test:map": "playwright test --config playwright.map.config.ts"
   },
   "dependencies": {
     "@clerk/localizations": "4.16.1",

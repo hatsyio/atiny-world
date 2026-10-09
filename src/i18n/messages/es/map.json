@@ -3,14 +3,16 @@
     "filters": "Filtros",
     "city": "Ciudad",
     "country": "País",
-    "all": "Todos"
+    "all": "Todos",
+    "clear": "Limpiar filtros"
   },
   "cluster": {
     "loading": "Cargando mensajes…",
     "unavailable": "No se pudieron cargar los mensajes.",
     "retry": "Reintentar",
     "empty": "No hay mensajes en esta zona.",
-    "more": "Cargar más mensajes"
+    "more": "Cargar más mensajes",
+    "loaded": "{count, plural, one {# carta cargada} other {# cartas cargadas}}"
   },
   "public": {
     "unavailable": "Este mensaje no está disponible.",
@@ -42,5 +44,20 @@
   "controls": {
     "zoomIn": "Acercar",
     "zoomOut": "Alejar"
+  },
+  "explorer": {
+    "title": "Explorar el mapa",
+    "description": "Explora cartas públicas de todo el mundo.",
+    "areaLetters": "Cartas en esta zona",
+    "showLetters": "Mostrar cartas",
+    "hideLetters": "Ocultar cartas",
+    "allAreas": "Todos los países y ciudades",
+    "loading": "Cargando esta zona…",
+    "error": "No se pudieron cargar las cartas de esta zona.",
+    "retry": "Reintentar",
+    "truncated": "Algunos marcadores no se muestran. Acerca el mapa para explorar una zona menor.",
+    "letterUnavailable": "Esta carta ya no está disponible públicamente.",
+    "mapUnavailable": "El mapa interactivo no está disponible.",
+    "letterError": "No se pudo cargar la carta seleccionada. Reinténtalo."
   }
 }

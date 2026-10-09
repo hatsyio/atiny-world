@@ -53,8 +53,8 @@ for (const width of [1440, 390]) {
         await expect(page.getByRole('status')).toHaveText('Idioma guardado.')
       } else if (variant === 'paper') {
         await trigger.click()
-        await page.getByRole('option', { name: 'ZW', exact: true }).click()
-        await expect(trigger).toHaveText('ZW')
+        await page.getByRole('option', { name: 'Zimbabue', exact: true }).click()
+        await expect(trigger).toHaveText('Zimbabue')
       }
     })
   }
@@ -68,8 +68,8 @@ test('country dropdown works while the map panel is fullscreen', async ({ page }
   await page.locator('.app-select-trigger').click()
   await expect(page.getByRole('listbox')).toBeVisible()
   expect(await page.locator('.app-select-popover').evaluate(element => document.fullscreenElement?.contains(element))).toBe(true)
-  await page.getByRole('option', { name: 'ES', exact: true }).click()
-  await expect(page.locator('.app-select-trigger')).toHaveText('ES')
+  await page.getByRole('option', { name: 'España', exact: true }).click()
+  await expect(page.locator('.app-select-trigger')).toHaveText('España')
   await page.evaluate(() => document.exitFullscreen())
 })
 
@@ -83,6 +83,6 @@ test('country dropdown stays above the fullscreen map and fits a short viewport'
   const bounds = await menu.boundingBox()
   expect(bounds!.y).toBeGreaterThanOrEqual(0)
   expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(250)
-  await page.getByRole('option', { name: 'ZW', exact: true }).click()
-  await expect(page.locator('.app-select-trigger')).toHaveText('ZW')
+  await page.getByRole('option', { name: 'Zimbabue', exact: true }).click()
+  await expect(page.locator('.app-select-trigger')).toHaveText('Zimbabue')
 })

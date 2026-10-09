@@ -18,6 +18,10 @@ export interface LeafletMapProps {
   filters?: MapFilterValues
   onFiltersChange?: (values: MapFilterValues) => void
   groupRequestUrl?: string
+  selectionVersion?: number
+  focusSelection?: boolean
+  onPreview?: (publicId: string) => void
+  hideGroupList?: boolean
   selectedPublicId?: string
 }
 
@@ -27,7 +31,7 @@ const ClientMap = dynamic(() => import('./public-map-react-leaflet').then(module
   ssr: false, loading: () => <div className="map__canvas" />,
 })
 
-export function LeafletMap({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId }: LeafletMapProps) {
+export function LeafletMap({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId, focusSelection, onPreview, hideGroupList, selectionVersion }: LeafletMapProps) {
   const t = useTranslations('Map.leaflet')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isClusterListOpen, setIsClusterListOpen] = useState(false)
@@ -56,7 +60,7 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
     <section aria-label={t('label')} className={isFullscreen ? 'map map--fullscreen' : 'map'}>
       <MapErrorBoundary fallback={<><div className="map__canvas" /><p role="status">{t('unavailable')}</p></>}>
         <ClientMap initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect}
-          onViewportChange={onViewportChange} selectedPublicId={selectedPublicId} apiKey={cartoApiKey}
+          onViewportChange={onViewportChange} selectedPublicId={selectedPublicId} focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={onPreview} apiKey={cartoApiKey}
           isFullscreen={isFullscreen} onToggleFullscreen={() => setIsFullscreen(current => !current)} />
       </MapErrorBoundary>
       {filters && onFiltersChange ? (
@@ -76,7 +80,7 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
           {isFiltersOpen ? <div id="map-filters-panel" className="map__filters-panel"><MapFilters value={filters} onChange={onFiltersChange} /></div> : null}
         </div>
       ) : null}
-      {features.length > 1 ? (
+      {!hideGroupList && features.length > 1 ? (
         <div className="map__overlay">
           <button
             className="map__group-toggle"

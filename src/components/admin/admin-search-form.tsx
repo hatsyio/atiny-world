@@ -1,21 +1,12 @@
 'use client'
 
-import { useTransition, type ReactNode, type FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import { AdminLoading } from './admin-loading'
+import { type ReactNode } from 'react'
+import { useTranslations } from 'next-intl'
+import { AutoFilterForm } from '@/components/ui/auto-filter-form'
 
-export function AdminSearchForm({ action, className, children }: { action: string; className: string; children: ReactNode }) {
-  const router = useRouter()
-  const [pending, startTransition] = useTransition()
-  function search(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (pending) return
-    const params = new URLSearchParams()
-    for (const [key, value] of new FormData(event.currentTarget)) if (typeof value === 'string') params.append(key, value)
-    startTransition(() => router.push(`${action}?${params.toString()}`))
-  }
-  return <form action={action} method="get" className={className} onSubmit={search} aria-busy={pending}>
+export function AdminSearchForm({ action, className, values, children }: { action: string; className: string; values: Record<string, string>; children: ReactNode }) {
+  const t = useTranslations('Pages.admin')
+  return <AutoFilterForm action={action} className={className} values={values} defaults={{ status: 'pending' }} resetValues={{ status: 'all' }} clearLabel={t('clearFilters')} loadingLabel={t('loading')}>
     {children}
-    {pending && <AdminLoading />}
-  </form>
+  </AutoFilterForm>
 }

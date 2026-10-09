@@ -11,6 +11,7 @@ import { rememberLetterOrigin } from '@/components/navigation/letter-link'
 import { letterHref, mapOrigin, readMapFilters, readMapView, type MapView } from '@/components/navigation/letter-origin'
 
 import type { MapBounds, PublicMapFeature } from '@/domain/messages/public-message'
+import { matchesCity } from '@/domain/location/city-search'
 
 import type { MapFilterValues } from './map-filters'
 import { PublicMapLoader } from './public-map-loader'
@@ -52,6 +53,7 @@ function requestBounds(bounds: MapBounds): MapBounds {
 export function buildFeatureRequest(
   bounds: MapBounds,
   filters: MapFilterValues,
+  zoom?: number,
 ): string {
   const viewport = requestBounds(bounds)
   const params = new URLSearchParams({
@@ -61,6 +63,7 @@ export function buildFeatureRequest(
     north: String(viewport.north),
   })
 
+  if (zoom !== undefined) params.set('zoom', String(zoom))
   appendFilter(params, 'city', filters.city)
   appendFilter(params, 'country', filters.country)
   return `/api/map/features?${params.toString()}`
@@ -104,30 +107,21 @@ function MapExploration({ selectedPublicId, selectedMessage, initialView, initia
   const view = useRef(initialView)
   const [bounds, setBounds] = useState<MapBounds>(WORLD_BOUNDS)
   const [filters, setFilters] = useState<MapFilterValues>(initialFilters)
+  const [previewId, setPreviewId] = useState(selectedPublicId)
   const hasBasemap = Boolean(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY)
   const query = useQuery({
     ...mapFeaturesQuery(buildFeatureRequest(bounds, filters)),
     enabled: hasBasemap,
-    placeholderData: (previousData, previousQuery) => {
-      const previousUrl = previousQuery?.queryKey[2]
-      if (typeof previousUrl !== 'string') return undefined
-      const previousFilters = new URLSearchParams(previousUrl.split('?')[1])
-      // A viewport refresh must not remove the marker that owns the open popup.
-      // Filter changes still clear the old results immediately.
-      if ((previousFilters.get('city') ?? '') === filters.city &&
-        (previousFilters.get('country') ?? '') === filters.country) return previousData
-      return undefined
-    },
   })
   // A located letter can fall outside the viewport's 2000 most recent markers.
   // Revalidate it separately so keeping the selection never bypasses moderation.
   const selection = useQuery({
-    ...publicMessageQuery(selectedPublicId ?? ''),
-    enabled: hasBasemap && Boolean(selectedPublicId),
+    ...publicMessageQuery(previewId ?? ''),
+    enabled: hasBasemap && Boolean(previewId),
   })
-  const located = selection.isError ? undefined : selection.data ?? (selection.isPending ? selectedMessage : undefined)
-  const viewportFeatures = query.data?.features ?? []
-  const features = query.isError ? [] : located && !filters.city && !filters.country && !viewportFeatures.some(feature => feature.publicId === located.publicId)
+  const located = selection.isError ? undefined : selection.data ?? (selection.isPending && previewId === selectedPublicId ? selectedMessage : undefined)
+  const viewportFeatures = (query.data?.features ?? []).filter(feature => !selection.isError || feature.publicId !== previewId)
+  const features = query.isError ? [] : located && matchesCity(located.locality, filters.city ?? '') && (!filters.country || located.countryCode === filters.country) && !viewportFeatures.some(feature => feature.publicId === located.publicId)
     ? [...viewportFeatures, located] : viewportFeatures
 
   const selectMessage = useCallback((publicId: string) => {
@@ -157,7 +151,9 @@ function MapExploration({ selectedPublicId, selectedMessage, initialView, initia
         filters={filters}
         onFiltersChange={setFilters}
         groupRequestUrl={buildMessageRequest(bounds, filters)}
-        selectedPublicId={selectedPublicId}
+        selectedPublicId={previewId}
+        focusSelection={previewId === selectedPublicId}
+        onPreview={setPreviewId}
       />
     </section>
   )

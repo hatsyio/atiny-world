@@ -1,5 +1,6 @@
 import type { Fragment, Sql, TransactionSql } from '@/server/db/sql'
 import { parsePublicId } from '@/domain/contracts'
+import { normalizeCitySearch } from '@/domain/location/city-search'
 
 import {
   type MapBounds,
@@ -128,7 +129,7 @@ type FeatureRow = {
   locality: string | null
   country: string
   country_code: string
-  published_at: string
+  published_at: string | Date
   author_public_id: string
   display_name: string
   content: string | null
@@ -166,7 +167,13 @@ function extraConditions(sql: Sql | TransactionSql, options: MapFeatureOptions):
   const conditions: Fragment[] = []
 
   if (options.city !== undefined && options.city !== null) {
-    conditions.push(sql`lower(m.locality) = lower(${options.city})`)
+    const city = normalizeCitySearch(options.city)
+    // ICU keeps Unicode letters/numbers, regardless of the database's default locale.
+    // Match the NFKD normalization used by selected markers in the browser.
+    conditions.push(city ? sql`strpos(
+      regexp_replace(lower(normalize(m.locality, NFKD) collate "und-x-icu"), '[^[:alnum:]]', '', 'g'),
+      ${city}
+    ) > 0` : sql`false`)
   }
 
   if (options.country !== undefined && options.country !== null) {
@@ -244,8 +251,9 @@ export async function pagePublicMessages(
 
   const where = sql`${visibilityCondition(sql)} and ${bboxCondition(sql, args.bounds)} and ${joinConditions(sql, extra)} and ${cursorCondition}`
 
-  const rows = await sql<FeatureRow[]>`
-    select ${featureColumnsWithContent(sql, true)}
+  const rows = await sql<Array<FeatureRow & { cursor_published_at: string }>>`
+    select ${featureColumnsWithContent(sql, true)},
+      to_char(m.published_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as cursor_published_at
       from app_private.messages m
       join app_private.profiles p on p.id = m.author_id
      where ${where}
@@ -262,7 +270,7 @@ export async function pagePublicMessages(
       ...projectPublicFeature(row),
       content: row.content ?? '',
     })),
-    nextCursor: hasMore && last ? await signCursor({ publishedAt: last.published_at, id: last.id }) : null,
+    nextCursor: hasMore && last ? await signCursor({ publishedAt: last.cursor_published_at, id: last.id }) : null,
   }
 }
 

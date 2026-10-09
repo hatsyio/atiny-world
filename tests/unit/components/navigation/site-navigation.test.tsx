@@ -54,12 +54,12 @@ describe('shared navigation', () => {
     render(<SiteHeader />)
     const links = within(screen.getByRole('navigation', { name: 'Navegación principal' })).getAllByRole('link')
     expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual([
-      ['Inicio', '/'], ['Mapa', '/#map'], ['Cartas', '/letters'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/messages/new?returnTo=${encodeURIComponent(suffix)}` : '/messages/new'],
+      ['Inicio', '/'], ['Mapa', '/map'], ['Cartas', '/letters'], ['Escribir una carta', suffix === '/my-messages' || suffix === '/messages/letter-1' ? `/messages/new?returnTo=${encodeURIComponent(suffix)}` : '/messages/new'],
     ])
     expect(screen.getByRole('link', { name: 'Atiny Atlas' })).toHaveAttribute('href', '/')
     expect(screen.getAllByRole('link').filter(link => link.hasAttribute('aria-current')).length).toBeLessThanOrEqual(1)
   })
-  it.each([['/letters', 'Cartas'], ['/messages/new', 'Escribir una carta'], ['/messages/id', 'Cartas'], ['/my-messages', 'Mi cuenta'], ['/my-messages/id/edit', 'Mi cuenta'], ['/profile', 'Mi cuenta'], ['/settings', 'Mi cuenta'], ['/admin/users', 'Mi cuenta']])('marks the current destination on %s', (pathname, label) => {
+  it.each([['/map', 'Mapa'], ['/letters', 'Cartas'], ['/messages/new', 'Escribir una carta'], ['/messages/id', 'Cartas'], ['/my-messages', 'Mi cuenta'], ['/my-messages/id/edit', 'Mi cuenta'], ['/profile', 'Mi cuenta'], ['/settings', 'Mi cuenta'], ['/admin/users', 'Mi cuenta']])('marks the current destination on %s', (pathname, label) => {
     state.pathname = pathname; state.signedIn = true
     render(<SiteHeader />)
     expect(screen.getByText(label)).toHaveAttribute('aria-current', 'page')
@@ -147,7 +147,7 @@ describe('shared navigation', () => {
     fireEvent.pointerDown(document.body)
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
   })
-  it('tracks the visible home section and hash changes with just one active link', () => {
+  it('keeps home active through scrolling and hash changes with just one active link', () => {
     vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockReturnValue(3000)
     let mapTop = 900, lettersTop = 1800
     render(<><SiteHeader /><section id="map" /><section id="letters" /></>)
@@ -155,12 +155,14 @@ describe('shared navigation', () => {
     vi.spyOn(document.getElementById('letters')!, 'getBoundingClientRect').mockImplementation(() => ({ top: lettersTop }) as DOMRect)
     expect(screen.getByRole('link', { name: 'Inicio' })).toHaveAttribute('aria-current', 'page')
     act(() => { mapTop = -100; fireEvent.scroll(window) })
-    expect(screen.getByRole('link', { name: 'Mapa' })).toHaveAttribute('aria-current', 'location')
+    expect(screen.getByRole('link', { name: 'Inicio' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Mapa' })).not.toHaveAttribute('aria-current')
     act(() => { lettersTop = 50; fireEvent.scroll(window) })
     expect(screen.getByRole('link', { name: 'Inicio' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Cartas' })).not.toHaveAttribute('aria-current')
     act(() => { window.history.replaceState(null, '', '#map'); fireEvent(window, new HashChangeEvent('hashchange')) })
-    expect(screen.getByRole('link', { name: 'Mapa' })).toHaveAttribute('aria-current', 'location')
+    expect(screen.getByRole('link', { name: 'Inicio' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Mapa' })).not.toHaveAttribute('aria-current')
     expect(document.querySelectorAll('[aria-current]')).toHaveLength(1)
   })
   it('keeps home active when the latest letters section is visible', () => {
@@ -179,13 +181,13 @@ describe('shared navigation', () => {
     expect(screen.getByRole('link', { name: 'Inicio' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Cartas' })).not.toHaveAttribute('aria-current')
   })
-  it('moves focus to the destination when a mobile anchor closes the menu', async () => {
-    render(<><SiteHeader /><section id="map" tabIndex={-1} /></>)
+  it('moves focus to home when its mobile link closes the menu', async () => {
+    render(<><SiteHeader /><section id="home" tabIndex={-1} /></>)
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: 'Menú' }))
-    screen.getByRole('link', { name: 'Mapa' }).addEventListener('click', event => event.preventDefault())
-    await user.click(screen.getByRole('link', { name: 'Mapa' }))
-    expect(document.getElementById('map')).toHaveFocus()
+    screen.getByRole('link', { name: 'Inicio' }).addEventListener('click', event => event.preventDefault())
+    await user.click(screen.getByRole('link', { name: 'Inicio' }))
+    expect(document.getElementById('home')).toHaveFocus()
   })
   it.each(['en', 'es'] as const)('wraps internal content with one shared header and a project footer in %s', async lang => {
     state.pathname = '/profile'

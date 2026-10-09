@@ -86,9 +86,16 @@ it('keeps the same open popup while a map movement refreshes viewport markers', 
   const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const page = render(<PublicMapController />)
   const map = await getMap(factory)
-  const marker = (await getGroup(map)).getLayers()[0] as leaflet.Marker
-  clickMarker(marker)
-  await page.findByText('visible letter')
+  const clustered = (await getGroup(map)).getLayers()[0] as leaflet.Marker
+  clickMarker(clustered)
+  let marker!: leaflet.Marker
+  await waitFor(() => {
+    map.eachLayer(layer => {
+      if (layer instanceof leaflet.Marker && layer.options.icon?.options.className?.includes('map-message-marker--selected')) marker = layer
+    })
+    expect(marker?.isPopupOpen()).toBe(true)
+    expect(page.getByText('visible letter')).toBeInTheDocument()
+  })
   const popup = marker.getPopup()
   pending = true
   act(() => { map.panBy([0, -20], { animate: false }) })
@@ -96,7 +103,7 @@ it('keeps the same open popup while a map movement refreshes viewport markers', 
   expect(marker.isPopupOpen()).toBe(true)
   expect(page.getByText('visible letter')).toBeInTheDocument()
   await act(async () => { resolveViewport(new Response(JSON.stringify({ features: [feature] }))) })
-  expect((await getGroup(map)).getLayers()[0]).toBe(marker)
+  expect(map.hasLayer(marker)).toBe(true)
   expect(marker.getPopup()).toBe(popup)
   expect(marker.isPopupOpen()).toBe(true)
 })
@@ -134,7 +141,7 @@ it('keeps group and filter panels mutually exclusive and available in fullscreen
   expect(fullscreen).toHaveClass('leaflet-bar')
   fireEvent.click(result.getByRole('button', { name: 'Filtros' }))
   fireEvent.change(result.getByRole('textbox', { name: 'Ciudad' }), { target: { value: 'Madrid' } })
-  expect(onFiltersChange).toHaveBeenCalledWith({ city: 'Madrid', country: '' })
+  await waitFor(() => expect(onFiltersChange).toHaveBeenCalledWith({ city: 'Madrid', country: '' }))
   fireEvent.click(result.getByRole('button', { name: /Ver 2 mensajes/ }))
   expect(result.container.querySelector('.map-filters')).toBeNull()
   expect(result.container.querySelector('#map-cluster-list')).toBeTruthy()
@@ -202,7 +209,7 @@ it('translates controls and an open popup without losing the map, view or filter
   const canvas = result.container.querySelector('.map__canvas')
   result.rerender(view('es'))
   expect(result.getByRole('textbox', { name: 'Ciudad' })).toHaveValue('서울')
-  expect(result.getByRole('button', { name: /País/ })).toHaveTextContent('KR')
+  expect(result.getByRole('button', { name: /País/ })).toHaveTextContent('Corea del Sur')
   expect(result.getByRole('button', { name: 'Entrar en pantalla completa' })).toHaveAttribute('title', 'Entrar en pantalla completa')
   expect(result.getByRole('button', { name: 'Acercar' })).toBeTruthy()
   expect(result.getByRole('button', { name: 'Leer completo' })).toBeTruthy()

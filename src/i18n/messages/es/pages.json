@@ -9,6 +9,7 @@
     "mapTitle": "Un océano global de ATINY",
     "mapNote": "Tierras distintas. El mismo cariño. Siempre ATEEZ.",
     "mapHint": "Explora el mapa y encuentra cartas de todo el mundo.",
+    "exploreMap": "Explorar el mapa",
     "lettersTitle": "Cartas de ATINY",
     "exploreLetters": "Explorar cartas",
     "lettersNote": "Mensajes públicos recientes compartidos por ATINY de todo el mundo.",
@@ -70,6 +71,7 @@
     "intro": "Elige el idioma de Atiny Atlas y administra la seguridad de tu cuenta."
   },
   "admin": {
+    "clearFilters": "Limpiar filtros",
     "loading": "Cargando administración…",
     "manage": "Gestionar",
     "permissions": "Permisos",
