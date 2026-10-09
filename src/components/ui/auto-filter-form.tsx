@@ -11,7 +11,7 @@ const keyOf = (values: Values) => JSON.stringify(Object.keys(values).sort().map(
 
 export function AutoFilterForm({ action, values, defaults = {}, resetValues = {}, className, clearLabel, loadingLabel, children }: {
   action: string; values: Values; defaults?: Values; resetValues?: Values; className: string
-  clearLabel: string; loadingLabel: string; children: ReactNode
+  clearLabel?: string; loadingLabel: string; children: ReactNode
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -55,11 +55,11 @@ export function AutoFilterForm({ action, values, defaults = {}, resetValues = {}
   return <Context value={{ values: state.values, change }}>
     <form action={action} method="get" className={className} aria-busy={pending} onSubmit={event => { event.preventDefault(); apply(state.values) }}>
       {children}
-      <div className="filter-form__actions">
-        <button className="filter-form__clear" type="button" disabled={keyOf(state.values) === keyOf(cleared)} onClick={() => {
+      <div className={`filter-form__actions${clearLabel ? '' : ' filter-form__actions--status'}`}>
+        {clearLabel ? <button className="filter-form__clear" type="button" disabled={keyOf(state.values) === keyOf(cleared)} onClick={() => {
           setState(current => ({ ...current, values: cleared }))
           apply(cleared)
-        }}>{clearLabel}</button>
+        }}>{clearLabel}</button> : null}
         <span role={pending ? 'status' : undefined} aria-live="polite" className="filter-form__status">{pending ? loadingLabel : ''}</span>
       </div>
     </form>

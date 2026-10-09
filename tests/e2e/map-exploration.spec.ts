@@ -254,8 +254,7 @@ for (const width of [390, 1440]) {
       await page.goto(path === '/map' ? '/map?mapView=40.4,-3.7,8' : '/letters')
       const filters = page.locator(path === '/map' ? '.map-filters' : '.letters-archive__filters')
       const clear = page.getByRole('button', { name: path === '/map' ? 'Clear filters' : 'Clear search and filters', exact: true })
-      if (path === '/map') await expect(clear).toHaveCount(0)
-      else await expect(clear).toBeDisabled()
+      await expect(clear).toHaveCount(0)
       const before = await filters.boundingBox()
       if (path === '/map') {
         const map = await page.locator('.map__canvas').boundingBox()
@@ -268,7 +267,6 @@ for (const width of [390, 1440]) {
       await cityField.fill('map120 MÁ-D')
       await expect.poll(() => new URL(page.url()).searchParams.get(path === '/map' ? 'mapCity' : 'city')).toBe('map120 MÁ-D')
       await expect(cityField).toBeFocused()
-      if (path !== '/map') await expect(clear).toBeEnabled()
       await page.getByRole('button', { name: /Country/ }).click()
       await page.getByRole('option', { name: /Spain/ }).click()
       await expect.poll(() => new URL(page.url()).searchParams.get(path === '/map' ? 'mapCountry' : 'country')).toBe('es')
@@ -291,14 +289,10 @@ for (const width of [390, 1440]) {
         await expect(cityField).toHaveValue('map120 MÁ-D')
         await expect(page.getByRole('searchbox', { name: 'Search letter text' })).toHaveValue('letter 22')
       }
-      if (path === '/map') {
-        await cityField.fill('')
-        await page.getByRole('button', { name: /Country/ }).click()
-        await page.getByRole('option', { name: 'All', exact: true }).click()
-      } else {
-        await clear.click()
-        await expect(clear).toBeDisabled()
-      }
+      await cityField.fill('')
+      if (path === '/letters') await page.getByRole('searchbox', { name: 'Search letter text' }).fill('')
+      await page.getByRole('button', { name: /Country/ }).click()
+      await page.getByRole('option', { name: path === '/map' ? 'All' : 'All countries', exact: true }).click()
       await expect(cityField).toHaveValue('')
       expect((await filters.boundingBox())!.height).toBeCloseTo(before!.height, 1)
       await expect.poll(() => new URL(page.url()).searchParams.has(path === '/map' ? 'mapCity' : 'city')).toBe(false)

@@ -35,7 +35,7 @@ export function LettersArchive({ criteria, countries, page }: {
       <h1>{t('title')}</h1>
       <p>{t('intro')}</p>
     </header>
-    <AutoFilterForm action="/letters" className="letters-archive__filters" values={{ q: criteria.q ?? '', country: criteria.country ?? '', city: criteria.city ?? '' }} clearLabel={t('clear')} loadingLabel={t('loading')}>
+    <AutoFilterForm action="/letters" className="letters-archive__filters" values={{ q: criteria.q ?? '', country: criteria.country ?? '', city: criteria.city ?? '' }} loadingLabel={t('loading')}>
       <label>{t('search')}<AutoFilterInput type="search" name="q" maxLength={200} /></label>
       <AppSelect label={t('country')} name="country" variant="paper" options={[{ value: '', label: t('allCountries') }, ...options]} />
       <label>{t('city')}<AutoFilterInput type="text" name="city" maxLength={100} /></label>

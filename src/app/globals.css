@@ -386,6 +386,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map-explorer__toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(17rem, 23rem); border-block: 1px solid #b88d59; }
 .map-explorer__toolbar .map-filters { min-width: 0; }
 .filter-form__actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 1rem; min-height: 44px; }
+.filter-form__actions--status { min-height: 1.5em; }
 .filter-form__clear { min-height: 44px; padding: .5rem .75rem; cursor: pointer; }
 .filter-form__status { min-height: 1.5em; font-size: .85rem; }
 .filter-form__clear:disabled { opacity: .45; cursor: default; }

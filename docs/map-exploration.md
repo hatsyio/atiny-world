@@ -86,7 +86,8 @@ The landing map uses the same 350 ms text debounce as `/map`. The letters archiv
 and administration searches use `AutoFilterForm`: text changes debounce, selects
 apply immediately, new criteria reset pagination, and URL updates preserve focus
 and scroll. New typing survives older responses; external navigation and Back
-restore fields. Clear cancels pending typing and resets all fields without changing
+restore fields. Public letter filters have no clear button: empty the fields or choose
+All countries to remove criteria. Administration Clear cancels pending typing and resets all fields without changing
 the form height. Publication and management actions retain explicit confirmation.
 
 Public publication dates are serialized as ISO strings before crossing the server/client

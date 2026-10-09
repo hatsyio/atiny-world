@@ -21,13 +21,13 @@ it('preserves criteria and page in detail and pagination links, but resets page 
   expect(screen.getByRole('link', { name: 'Previous' })).toHaveAttribute('href', '/letters?q=love&country=es&city=Madrid')
   expect(screen.getByRole('link', { name: 'Page 2' })).toHaveAttribute('aria-current', 'page')
   expect(container.querySelector('[name="page"]')).toBeNull()
-  expect(screen.getByRole('button', { name: 'Clear search and filters' })).toBeEnabled()
+  expect(screen.queryByRole('button', { name: 'Clear search and filters' })).not.toBeInTheDocument()
   expect(screen.getByRole('searchbox', { name: 'Search letter text' })).toHaveValue('love')
 })
 it('offers an empty result recovery translated into Spanish', () => {
   render(<LettersArchive criteria={{ q: 'no matches' }} countries={[]} page={{ items: [], page: 1, totalPages: 0 }} />, { locale: 'es' })
   expect(screen.getByRole('status')).toHaveTextContent('No hay cartas que coincidan')
-  expect(screen.getByRole('button', { name: 'Limpiar búsqueda y filtros' })).toBeEnabled()
+  expect(screen.queryByRole('button', { name: 'Limpiar búsqueda y filtros' })).not.toBeInTheDocument()
 })
 
 it('shows flags alongside locations and country options', async () => {
