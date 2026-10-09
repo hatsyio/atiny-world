@@ -19,7 +19,8 @@ URL writes do not remount the map; external navigation starts a new exploration.
 
 Country labels and order come from stable English and Spanish catalogs. This
 avoids differences between server and browser ICU versions during hydration.
-City typing is applied after 350 ms. Country and city combine for both endpoints;
+City and country use equally sized controls with labels above them, in two columns
+on desktop and one column on narrow screens. City typing is applied after 350 ms. Country and city combine for both endpoints;
 clearing filters resets the selection and both result sets.
 
 ## Results and visibility

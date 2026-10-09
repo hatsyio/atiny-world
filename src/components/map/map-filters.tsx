@@ -47,19 +47,21 @@ export function MapFilters({ value, onChange, debounceMs = 0 }: Props) {
   const t = useTranslations('Map.filters')
   return (
     <div className="map-filters" role="group" aria-label={t('filters')}>
-      <label htmlFor={cityId}>{t('city')}</label>
-      <input
-        id={cityId}
-        type="text"
-        name="city"
-        aria-label={t('city')}
-        value={city}
-        maxLength={MAX_TEXT_FILTER_LENGTH}
-        onChange={(event) => {
-          setCity(event.target.value)
-          if (!debounceMs) onChange({ ...value, city: normalizeTextFilter(event.target.value) })
-        }}
-      />
+      <div className="map-filters__field">
+        <label htmlFor={cityId}>{t('city')}</label>
+        <input
+          id={cityId}
+          type="text"
+          name="city"
+          aria-label={t('city')}
+          value={city}
+          maxLength={MAX_TEXT_FILTER_LENGTH}
+          onChange={(event) => {
+            setCity(event.target.value)
+            if (!debounceMs) onChange({ ...value, city: normalizeTextFilter(event.target.value) })
+          }}
+        />
+      </div>
 
       <AppSelect label={t('country')} name="country" variant="paper" value={normalizeCountry(value.country ?? '')} onChange={country => onChange({ ...value, country: normalizeCountry(country) })} options={[{ value: '', label: t('all') }, ...countries]} />
       {value.city || value.country || city ? <button className="map-filters__clear" type="button" onClick={() => { setCity(''); onChange({ city: '', country: '' }) }}>{t('clear')}</button> : null}
