@@ -50,6 +50,21 @@ function PublicMarker({ feature, onSelect, selected, centered, focusSelection = 
   const marker = useRef<leaflet.Marker>(null)
   const popup = useRef<leaflet.Popup>(null)
   const [open, setOpen] = useState(false)
+  const [mapSize, setMapSize] = useState(() => map.getSize())
+  useEffect(() => {
+    const resize = () => setMapSize(map.getSize())
+    map.on('resize', resize)
+    return () => { map.off('resize', resize) }
+  }, [map])
+  // Reserve the content margins, close control, tip and auto-pan padding.
+  const maxWidth = Math.max(80, Math.min(340, mapSize.x - 80))
+  const maxHeight = Math.max(32, mapSize.y - 120)
+  useLayoutEffect(() => {
+    const current = popup.current
+    if (!current) return
+    Object.assign(current.options, { minWidth: Math.min(180, maxWidth), maxWidth, maxHeight })
+    current.update()
+  }, [maxWidth, maxHeight])
   const icon = useMemo(() => {
     const icon = createMessageIcon(leaflet)
     if (selected) icon.options.className += ' map-message-marker--selected'
@@ -86,7 +101,7 @@ function PublicMarker({ feature, onSelect, selected, centered, focusSelection = 
 
   return <Marker ref={marker} position={position} icon={icon} title={title}
     eventHandlers={{ popupopen: () => { setOpen(true); if (!selected) onPreview?.(feature.publicId) }, popupclose: () => setOpen(false) }}>
-    <Popup ref={popup} autoPan={focusSelection} className="map-letter-popup" autoClose closeOnClick minWidth={340} maxWidth={340} autoPanPadding={[16, 16]}
+    <Popup ref={popup} autoPan className="map-letter-popup" autoClose closeOnClick minWidth={Math.min(180, maxWidth)} maxWidth={maxWidth} maxHeight={maxHeight} autoPanPadding={[16, 16]}
       eventHandlers={{ add: labelCloseButton }}>
       {open ? <MessageContent publicId={feature.publicId} onSelect={onSelect} popup={popup} focusOnLoad={selected && focusSelection} /> : null}
     </Popup>

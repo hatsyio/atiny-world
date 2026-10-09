@@ -34,6 +34,12 @@ fetched, without displaying a loading overlay. The response replaces the previou
 results; changing city or country clears them immediately. Error and retry notices
 remain available, and public visibility is still revalidated.
 
+Letter previews always pan into view when opened from a marker or the panel.
+Their width and scrollable height follow the actual map size, including fullscreen
+changes, so long previews remain inside the map on narrow or short screens.
+The landing also retains and revalidates the selected letter outside the cluster,
+preventing resize/reclustering from removing its open preview.
+
 ## Results and visibility
 
 Requests start after Leaflet reports the visible bounds. `/api/map/features`

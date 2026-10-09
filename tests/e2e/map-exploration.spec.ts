@@ -140,6 +140,36 @@ test('keeps existing marker nodes while a pan refreshes the viewport without a l
   }
 })
 
+for (const width of [320, 1440]) {
+  for (const [path, fullscreen] of [['/map', false], ['/map', true], ['/', true]] as const) {
+    test(`fits a marker's loaded popup inside ${path} at ${width}px, fullscreen=${fullscreen}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: width === 320 ? 600 : 900 })
+      await page.route('**/api/messages/*', async route => {
+        const response = await route.fetch()
+        const letter = await response.json()
+        await route.fulfill({ json: { ...letter, content: 'A long letter with several paragraphs.\n'.repeat(40) } })
+      })
+      await page.goto(`${path}?mapView=40.4,-3.7,8&mapCity=${city}`)
+      if (fullscreen) await page.getByRole('button', { name: 'Enter fullscreen' }).click()
+      await page.locator('.map-message-cluster').first().click()
+      await page.locator('.map-message-marker').first().click()
+      await expect(page.getByRole('button', { name: 'Read full message' })).toBeVisible()
+      const fits = async () => {
+        const map = await page.locator('.map__canvas').boundingBox()
+        const popup = await page.locator('.map-letter-popup').filter({ has: page.locator('.map-message-letter') }).boundingBox()
+        return map && popup ? Math.min(popup.x - map.x, popup.y - map.y,
+          map.x + map.width - popup.x - popup.width, map.y + map.height - popup.y - popup.height) : -Infinity
+      }
+      await expect.poll(fits).toBeGreaterThanOrEqual(-1)
+      await page.screenshot({ path: test.info().outputPath('popup.png') })
+      if (fullscreen) {
+        await page.getByRole('button', { name: 'Exit fullscreen' }).click()
+        await expect.poll(fits).toBeGreaterThanOrEqual(-1)
+      }
+    })
+  }
+}
+
 test('deep-links to a public letter and reports a non-public letter without blocking controls', async ({ page }) => {
   await page.goto(`/map?letter=${publicId}`)
   await expect(page.locator('.map-message-letter')).toContainText('Map120 letter 22')
@@ -158,9 +188,13 @@ test('recovers marker and panel errors and explains an empty filtered area', asy
   })
   await page.goto(`/map?mapView=40.4,-3.7,8&mapCity=${city}`)
   await expect(page.getByText('The letters in this area could not be loaded.')).toBeVisible()
+  await expect(page.getByText('The messages could not be loaded.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Zoom in' })).toBeEnabled()
   failing = false
-  for (const button of await page.getByRole('button', { name: 'Try again', exact: true }).all()) await button.click()
+  await Promise.all([
+    page.locator('.map-feedback').getByRole('button', { name: 'Try again', exact: true }).click(),
+    page.locator('.cluster-list-wrap').getByRole('button', { name: 'Try again', exact: true }).click(),
+  ])
   await expect(page.getByText('20 letters loaded', { exact: true })).toBeVisible()
   await page.getByRole('textbox', { name: 'City' }).fill('Map120NoLetters')
   await expect(page.getByText('No messages in this area.')).toBeVisible()

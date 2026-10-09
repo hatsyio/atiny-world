@@ -86,9 +86,16 @@ it('keeps the same open popup while a map movement refreshes viewport markers', 
   const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const page = render(<PublicMapController />)
   const map = await getMap(factory)
-  const marker = (await getGroup(map)).getLayers()[0] as leaflet.Marker
-  clickMarker(marker)
-  await page.findByText('visible letter')
+  const clustered = (await getGroup(map)).getLayers()[0] as leaflet.Marker
+  clickMarker(clustered)
+  let marker!: leaflet.Marker
+  await waitFor(() => {
+    map.eachLayer(layer => {
+      if (layer instanceof leaflet.Marker && layer.options.icon?.options.className?.includes('map-message-marker--selected')) marker = layer
+    })
+    expect(marker?.isPopupOpen()).toBe(true)
+    expect(page.getByText('visible letter')).toBeInTheDocument()
+  })
   const popup = marker.getPopup()
   pending = true
   act(() => { map.panBy([0, -20], { animate: false }) })
@@ -96,7 +103,7 @@ it('keeps the same open popup while a map movement refreshes viewport markers', 
   expect(marker.isPopupOpen()).toBe(true)
   expect(page.getByText('visible letter')).toBeInTheDocument()
   await act(async () => { resolveViewport(new Response(JSON.stringify({ features: [feature] }))) })
-  expect((await getGroup(map)).getLayers()[0]).toBe(marker)
+  expect(map.hasLayer(marker)).toBe(true)
   expect(marker.getPopup()).toBe(popup)
   expect(marker.isPopupOpen()).toBe(true)
 })
