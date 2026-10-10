@@ -69,7 +69,6 @@
     "view": "View letter",
     "viewMap": "View on map",
     "copyLink": "Copy link",
-    "moreOptions": "More options",
     "copied": "Link copied",
     "copyError": "Could not copy the link. Try again.",
     "privatePending": "You can share it once it is approved.",

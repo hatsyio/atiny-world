@@ -2,6 +2,7 @@
 
 import { useFormatter, useTranslations } from 'next-intl'
 import Link from 'next/link'
+import { Button, Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { publicMapQueryKey } from '@/components/map/map-queries'
@@ -37,22 +38,11 @@ export function MyMessageList({
   const queryClient = useQueryClient()
   const t = useTranslations('Forms.own')
   const format = useFormatter()
-  const optionsId = useId()
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const confirmationId = useId()
   const [confirming, setConfirming] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-  const [copyFeedback, setCopyFeedback] = useState<{ publicId: string; key: 'copied' | 'copyError' } | null>(null)
-
-  async function copyLink(publicId: string) {
-    setCopyFeedback(null)
-    try {
-      await navigator.clipboard.writeText(new URL(`/messages/${encodeURIComponent(publicId)}`, window.location.origin).href)
-      setCopyFeedback({ publicId, key: 'copied' })
-    } catch {
-      setCopyFeedback({ publicId, key: 'copyError' })
-    }
-  }
+  const selectedMessage = messages.find(item => item.publicId === confirming)
 
   function remove(item: OwnMessageListItem) {
     setError(null)
@@ -81,13 +71,11 @@ export function MyMessageList({
 
   return (
     <section className="my-messages" aria-label={t('listLabel')}>
-      {error ? <p role="alert">{t('deleteError')}</p> : null}
       {messages.length === 0 ? <p role="status">{t('empty')}</p> : null}
       {messages.length > 0 ? (
         <ul className="my-message-list">
           {messages.map((item, index) => {
             const reason = item.moderationReasonCode ? (isModerationReasonCode(item.moderationReasonCode) ? t(`reasons.${item.moderationReasonCode}`) : t('reasonFallback')) : null
-            const isConfirming = confirming === item.publicId
             const origin = ownLetterOrigin(item.publicId, cursor)
             const publicVisible = item.publicVisible === true && !accountSuspended
 
@@ -106,29 +94,36 @@ export function MyMessageList({
                   <LetterLink className="my-message-view" publicId={item.publicId} origin={origin}>{t('view')}</LetterLink>
                   {publicVisible ? <Link className="my-message-map" href={`/?letter=${encodeURIComponent(item.publicId)}#map`}>{t('viewMap')}</Link> : null}
                   <button
-                    className="my-message-more"
+                    className="my-message-delete"
                     type="button"
-                    aria-expanded={expanded === item.publicId}
-                    aria-controls={`${optionsId}-${index}`}
                     disabled={isPending}
-                    onClick={() => setExpanded(expanded === item.publicId ? null : item.publicId)}
-                  >{t('moreOptions')}</button>
+                    onClick={() => { setError(null); setConfirming(item.publicId) }}
+                  >{t('delete')}</button>
                 </div>
-                <div id={`${optionsId}-${index}`} className="my-message-actions" hidden={expanded !== item.publicId}>
-                  {publicVisible ? <button type="button" onClick={() => void copyLink(item.publicId)}>{t('copyLink')}</button> : null}
-                  {!isConfirming ? <button className="my-message-delete" type="button" onClick={() => setConfirming(item.publicId)} disabled={isPending}>{t('delete')}</button> : null}
-                </div>
-                {copyFeedback?.publicId === item.publicId ? <p role="status">{t(copyFeedback.key)}</p> : null}
-                {isConfirming ? <div className="my-message-confirm" role="group" aria-label={t('confirm')}>
-                  <p>{t('confirmHint')}</p>
-                  <button className="my-message-delete" type="button" onClick={() => remove(item)} disabled={isPending}>{t('confirm')}</button>
-                  <button type="button" onClick={() => setConfirming(null)} disabled={isPending}>{t('keep')}</button>
-                </div> : null}
               </li>
             )
           })}
         </ul>
       ) : null}
+      <ModalOverlay
+        className="my-message-modal-overlay"
+        isOpen={Boolean(selectedMessage)}
+        onOpenChange={open => { if (!open && !isPending) setConfirming(null) }}
+        isDismissable={!isPending}
+        isKeyboardDismissDisabled={isPending}
+      >
+        <Modal className="my-message-modal">
+          <Dialog className="my-message-dialog" role="alertdialog" aria-describedby={confirmationId} aria-busy={isPending}>
+            <Heading slot="title">{t('delete')}</Heading>
+            <p id={confirmationId}>{t('confirmHint')}</p>
+            {error ? <p role="alert">{t('deleteError')}</p> : null}
+            <div className="my-message-confirm">
+              <Button autoFocus onPress={() => setConfirming(null)} isDisabled={isPending}>{t('keep')}</Button>
+              <Button className="my-message-delete" onPress={() => { if (selectedMessage) remove(selectedMessage) }} isDisabled={isPending}>{t('confirm')}</Button>
+            </div>
+          </Dialog>
+        </Modal>
+      </ModalOverlay>
     </section>
   )
 }

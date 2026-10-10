@@ -237,25 +237,31 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .my-message-content { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; margin: 1rem 0; white-space: pre-wrap; font-size: 1.08rem; }
 .my-message-item p { line-height: 1.55; }
 .my-message-note { color: #593e2b; font-size: .85rem; margin: .75rem 0; }
-.my-message-links, .my-message-actions, .my-message-confirm { display: flex; flex-wrap: wrap; gap: .65rem 1rem; align-items: center; }
+.my-message-links, .my-message-confirm { display: flex; flex-wrap: wrap; gap: .65rem 1rem; align-items: center; }
 .my-message-links { margin-top: 1.2rem; }
-.my-message-links a, .my-message-links button, .my-message-actions button, .my-message-confirm button { padding: .55rem .8rem; border: 1px solid #6b3e20; color: #4a2a13; background: transparent; cursor: pointer; font: inherit; }
+.my-message-links a, .my-message-links button, .my-message-confirm button { padding: .55rem .8rem; border: 1px solid #6b3e20; color: #4a2a13; background: transparent; cursor: pointer; font: inherit; }
 .my-message-links .my-message-view { background: #6b3e20; color: #fff1d9; text-decoration: none; }
-.my-message-links .my-message-map, .my-message-links .my-message-more { border-color: transparent; padding-inline: .25rem; text-underline-offset: .2em; }
-.my-message-links .my-message-more { margin-left: auto; text-decoration: underline; }
-.my-message-links a:hover, .my-message-links button:hover, .my-message-actions button:hover, .my-message-confirm button:hover { background: #e4c18e; }
+.my-message-links .my-message-map, .my-message-links .my-message-delete { border-color: transparent; padding-inline: .25rem; text-underline-offset: .2em; }
+.my-message-links .my-message-delete { margin-left: auto; text-decoration: underline; color: #7a281e; }
+.my-message-links a:hover, .my-message-links button:hover, .my-message-confirm button:hover { background: #e4c18e; }
 .my-message-links .my-message-view:hover { background: #4a2a13; }
 .my-message-item a:focus-visible, .my-message-item button:focus-visible { outline: 2px solid #4a2a13; outline-offset: 3px; }
 .my-message-item button:disabled { opacity: .55; cursor: default; }
-.my-message-actions { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid #9a613960; }
-.my-message-actions[hidden] { display: none; }
-.my-message-item .my-message-delete { color: #7a281e; border-color: #7a281e; }
-.my-message-confirm { margin-top: 1rem; padding: 1rem; border: 1px solid #7a281e; }
-.my-message-confirm p { flex-basis: 100%; margin: 0; }
+.my-message-modal-overlay { position: fixed; inset: 0; z-index: 1500; display: grid; place-items: center; padding: 1rem; background: #17100bd9; overflow-y: auto; }
+.my-message-modal { width: min(100%, 460px); max-height: calc(100dvh - 2rem); overflow-y: auto; background: #f2d9aa; color: #4a2a13; border: 4px double #6b3e20; box-shadow: 0 10px 32px #1b0e09a8; padding: clamp(1.25rem, 4vw, 2rem); }
+.my-message-dialog { outline: none; }
+.my-message-dialog h2 { margin: 0 0 1rem; font-size: 1.4rem; }
+.my-message-dialog p { line-height: 1.55; }
+.my-message-dialog [role='alert'] { color: #7a160f; }
+.my-message-confirm { margin-top: 1.5rem; justify-content: flex-end; }
+.my-message-confirm .my-message-delete { color: #fff1d9; background: #7a281e; border-color: #7a281e; }
+.my-message-confirm .my-message-delete:hover { background: #5a1d16; }
+.my-message-confirm button:focus-visible { outline: 2px solid #4a2a13; outline-offset: 3px; }
+.my-message-confirm button:disabled { opacity: .55; cursor: default; }
 @media (max-width: 480px) {
   .my-message-meta time { margin-left: 0; }
   .my-message-links { gap: .65rem; }
-  .my-message-links .my-message-more { margin-left: 0; }
+  .my-message-links .my-message-delete { margin-left: 0; }
 }
 
 @media (max-width: 1100px) {

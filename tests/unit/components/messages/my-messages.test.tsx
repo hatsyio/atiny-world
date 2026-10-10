@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { render } from '../../../support/intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -102,17 +102,12 @@ function entry(name: string | RegExp) {
 afterEach(cleanup)
 
 describe('MyMessageList presenta estado y motivo', () => {
-  it('permite leer y compartir una carta pendiente que ya es pública', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
-    renderList({ messages: [message({ status: 'pending', publicVisible: true, point: { latitude: 40.4, longitude: -3.7 } })] })
+  it('permite leer una carta pública y verla en el mapa sin ofrecer compartir todavía', () => {
+    renderList({ messages: [message({ status: 'pending', publicVisible: true })] })
     expect(screen.getByRole('link', { name: 'View letter' })).toHaveAttribute('href', expect.stringContaining('/messages/msg-1?returnTo='))
     expect(screen.getByRole('link', { name: 'View on map' })).toHaveAttribute('href', '/?letter=msg-1#map')
     expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }))
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/messages/msg-1`))
-    expect(screen.getByRole('status')).toHaveTextContent('Link copied')
+    expect(screen.queryByRole('button', { name: 'More options' })).toBeNull()
   })
 
   it.each(['pending', 'rejected', 'withdrawn'] as const)('conserva la lectura privada sin compartir una carta %s', status => {
@@ -128,14 +123,6 @@ describe('MyMessageList presenta estado y motivo', () => {
     expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull()
   })
 
-  it('explica el fallo del portapapeles sin afirmar que se copió', async () => {
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } })
-    renderList({ messages: [message({ publicVisible: true })] })
-    expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }))
-    expect(await screen.findByRole('status')).toHaveTextContent('Could not copy the link')
-  })
   it('muestra a la autora el estado y el motivo traducido de un mensaje rechazado', () => {
     renderList({
       locale: 'es',
@@ -214,23 +201,21 @@ describe('MyMessageList confirma el borrado antes de eliminar', () => {
     })
 
     const item = entry(/Carta a borrar/)
-    expect(item.queryByRole('button', { name: /delete/i })).toBeNull()
-    fireEvent.click(item.getByRole('button', { name: 'More options' }))
     const deleteButton = item.getByRole('button', { name: /delete/i })
 
     fireEvent.click(deleteButton)
     expect(onDelete).not.toHaveBeenCalled()
 
-    expect(item.getByText(actionCopy.en.confirmHint)).toBeVisible()
-    item.getByRole('button', { name: /confirm/i })
-    const keepButton = item.getByRole('button', { name: /keep/i })
+    const dialog = within(screen.getByRole('alertdialog', { name: 'Delete letter' }))
+    expect(dialog.getByText(actionCopy.en.confirmHint)).toBeVisible()
+    const keepButton = dialog.getByRole('button', { name: /keep/i })
 
     fireEvent.click(keepButton)
     expect(onDelete).not.toHaveBeenCalled()
-    expect(item.queryByRole('button', { name: /confirm/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
 
     fireEvent.click(item.getByRole('button', { name: /delete/i }))
-    fireEvent.click(item.getByRole('button', { name: /confirm/i }))
+    fireEvent.click(screen.getByRole('button', { name: /confirm/i }))
     expect(onDelete).toHaveBeenCalledTimes(1)
     expect(onDelete).toHaveBeenCalledWith('msg-borrar', 2)
   })
@@ -247,10 +232,9 @@ describe('MyMessageList limita los controles de una cuenta suspendida', () => {
     const item = entry(/Carta con suspensión/)
     expect(item.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
 
-    fireEvent.click(item.getByRole('button', { name: 'Más opciones' }))
     fireEvent.click(item.getByRole('button', { name: /eliminar/i }))
-    item.getByRole('button', { name: /confirmar/i })
-    fireEvent.click(item.getByRole('button', { name: /confirmar/i }))
+    screen.getByRole('alertdialog', { name: 'Eliminar carta' })
+    fireEvent.click(screen.getByRole('button', { name: /confirmar/i }))
     expect(onDelete).toHaveBeenCalledTimes(1)
     expect(onDelete).toHaveBeenCalledWith('msg-suspendida', 3)
   })
@@ -263,6 +247,6 @@ describe('MyMessageList limita los controles de una cuenta suspendida', () => {
     const item = entry(/Carta activa/)
     expect(item.queryByRole('button', { name: /edit/i })).toBeNull()
     expect(item.getByRole('link', { name: 'View letter' })).toBeVisible()
-    expect(item.queryByRole('button', { name: /delete/i })).toBeNull()
+    expect(item.getByRole('button', { name: 'Delete letter' })).toBeVisible()
   })
 })
