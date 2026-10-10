@@ -103,3 +103,22 @@ it.each(['suspended', 'deletion-pending'] as const)('redirects a %s account away
   vi.mocked(getOwnMessage).mockResolvedValue(letter)
   await expect(EditOwnMessagePage({ params: Promise.resolve({ publicId: 'letter-1' }) })).rejects.toThrow('redirect:/my-messages')
 })
+
+
+it('offers sharing only to the authorized author of a public letter', async () => {
+  vi.mocked(getOwnMessage).mockResolvedValue(letter)
+  vi.mocked(getVisibleMessage).mockResolvedValue(letter)
+  render(await PublicMessagePage({params: Promise.resolve({publicId: 'letter-1'})}))
+  expect(screen.getByRole('button', {name: 'Share'})).toBeVisible()
+})
+it('does not offer sharing to a visitor reading a public letter', async () => {
+  vi.mocked(authorizeSession).mockResolvedValue({ok:false, error:{code:'NOT_FOUND'}})
+  vi.mocked(getVisibleMessage).mockResolvedValue(letter)
+  render(await PublicMessagePage({params: Promise.resolve({publicId: 'letter-1'})}))
+  expect(screen.queryByRole('button', {name: 'Share'})).toBeNull()
+})
+it('does not offer sharing to an author reading their private letter', async () => {
+  vi.mocked(getOwnMessage).mockResolvedValue(letter)
+  render(await PublicMessagePage({params: Promise.resolve({publicId: 'letter-1'})}))
+  expect(screen.queryByRole('button', {name: 'Share'})).toBeNull()
+})

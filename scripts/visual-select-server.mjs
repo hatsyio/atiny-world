@@ -1,6 +1,7 @@
 import { build } from 'esbuild'
 import { createServer } from 'node:http'
 import { readFile, readdir } from 'node:fs/promises'
+import { pathToFileURL } from 'node:url'
 import { resolve, extname } from 'node:path'
 
 const root = process.cwd()
@@ -25,6 +26,13 @@ await build({
   },
 })
 
+// Server-side fixture exercises the actual PNG renderer without an authenticated database.
+await build({
+  entryPoints: [resolve(stubs, 'share-images.ts')], bundle: true, format: 'cjs', platform: 'node', jsx: 'automatic',
+  outfile: resolve(output, 'share-images.cjs'), packages: 'external', alias: {'@': resolve(root, 'src')},
+})
+const {renderFixtureShareImage} = (await import(pathToFileURL(resolve(output, 'share-images.cjs')).href)).default
+
 // Reuse the self-hosted fonts from the production build for stable typography.
 const chunks = resolve(root, '.next/static/chunks')
 const compiledCss = (await Promise.all((await readdir(chunks)).filter(name => name.endsWith('.css')).map(name => readFile(resolve(chunks, name), 'utf8')))).join('\n')
@@ -38,6 +46,17 @@ const types = { '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/wo
 createServer(async (request, response) => {
   const path = new URL(request.url, 'http://localhost').pathname
   try {
+    if (/^\/api\/messages\/a3a258ac-179d-40a6-ad22-d7ca4c59ac70\/share-image$/.test(path)) {
+      const params = new URL(request.url, 'http://localhost').searchParams
+      const format = params.get('format')
+      const locale = params.get('locale')
+      if (!['story', 'square'].includes(format) || !['es', 'en'].includes(locale)) {response.writeHead(400).end(); return}
+      const image = await renderFixtureShareImage(format, locale)
+      response.setHeader('Content-Type', 'image/png')
+      response.setHeader('Cache-Control', 'no-store')
+      response.end(Buffer.from(await image.arrayBuffer()))
+      return
+    }
     // A full fixture catalog exercises the dropdown's scrolling and long labels.
     if (path === '/api/map/filter-options') {
       const countries = JSON.parse(await readFile(resolve(root, 'src/i18n/countries/es.json'), 'utf8'))
