@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useId } from 'react'
 import type { PublicLetterLocation } from '@/domain/location/public-locations'
-import { CitySuggestions } from '@/components/ui/city-suggestions'
+import { AppCityInput } from '@/components/ui/app-city-input'
 import { useFormatter, useLocale, useTranslations } from 'next-intl'
 import { LetterLink } from '@/components/navigation/letter-link'
 import { AutoFilterForm, AutoFilterInput } from '@/components/ui/auto-filter-form'
@@ -24,7 +23,6 @@ export function LettersArchive({ criteria, countries, locations = [], page }: {
   locations?: PublicLetterLocation[]
   page: PublicLetterPage
 }) {
-  const suggestionsId = useId()
   const t = useTranslations('Pages.letters')
   const locale = useLocale()
   const format = useFormatter()
@@ -43,8 +41,7 @@ export function LettersArchive({ criteria, countries, locations = [], page }: {
     <AutoFilterForm action="/letters" className="letters-archive__filters" values={{ q: criteria.q ?? '', country: criteria.country ?? '', city: criteria.city ?? '' }} loadingLabel={t('loading')}>
       <label>{t('search')}<AutoFilterInput type="search" name="q" maxLength={200} /></label>
       <AppSelect label={t('country')} placeholder={t('countryUnavailable')} name="country" variant="paper" options={[{ value: '', label: t('allCountries') }, ...options]} />
-      <label>{t('city')}<AutoFilterInput type="text" name="city" list={suggestionsId} maxLength={100} /></label>
-      <CitySuggestions id={suggestionsId} locations={locations} />
+      <AppCityInput label={t('city')} locations={locations} />
     </AutoFilterForm>
     {page.items.length === 0 ? <p role="status" className="letters-archive__empty">{t('empty')}</p> :
       <div className="letters-archive__list">{page.items.map(letter => <article className="archive-letter" id={`letter-${letter.publicId}`} key={letter.publicId}>

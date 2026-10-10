@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 import { afterEach, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { render } from '../../../support/intl'
 import { LettersArchive } from '@/components/messages/letters-archive'
 
@@ -46,13 +47,14 @@ it('keeps a long page range compact and allows jumping to the last page', () => 
 })
 
 it('does not offer a URL country without public data and scopes autocomplete to live country changes', async () => {
-  const { container } = render(<LettersArchive criteria={{ country: 'al' }} countries={['es', 'kr']} locations={[
+  render(<LettersArchive criteria={{ country: 'al' }} countries={['es', 'kr']} locations={[
     { city: 'Madrid', country: 'es' }, { city: 'Seoul', country: 'kr' },
   ]} page={{ items: [], page: 1, totalPages: 0 }} />)
   fireEvent.click(screen.getByRole('button', { name: /Country/ }))
   expect(await screen.findByRole('option', { name: '🇪🇸 Spain' })).toBeVisible()
   expect(screen.queryByRole('option', { name: /Albania/ })).toBeNull()
   fireEvent.click(screen.getByRole('option', { name: '🇪🇸 Spain' }))
-  expect([...container.querySelectorAll('datalist option')].map(option => option.getAttribute('value'))).toEqual(['Madrid'])
-  expect(screen.getByRole('combobox', { name: 'City' })).toHaveAttribute('list', container.querySelector('datalist')?.id)
+  await userEvent.setup().click(screen.getByRole('combobox', { name: 'City' }))
+  expect(await screen.findByRole('option', { name: 'Madrid' })).toBeVisible()
+  expect(screen.queryByRole('option', { name: 'Seoul' })).toBeNull()
 })

@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useEffectEvent, useId, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { mapCountries } from '@/i18n/countries'
 import { useQuery } from '@tanstack/react-query'
 import { publicLocationOptionsQuery } from './map-queries'
-import { CitySuggestions } from '@/components/ui/city-suggestions'
+import { AppCityInput } from '@/components/ui/app-city-input'
 import { AppSelect } from '@/components/ui/app-select'
 
 export interface MapFilterValues {
@@ -32,8 +32,6 @@ function normalizeCountry(value: string): string {
 
 export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
   const locale = useLocale()
-  const cityId = useId()
-  const suggestionsId = useId()
   const optionsQuery = useQuery(publicLocationOptionsQuery())
   const locations = optionsQuery.isError ? [] : optionsQuery.data?.locations ?? []
   const [city, setCity] = useState(value.city ?? '')
@@ -54,24 +52,11 @@ export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
   const t = useTranslations('Map.filters')
   return (
     <div className="map-filters" role="group" aria-label={t('filters')} aria-busy={optionsQuery.isPending}>
-      <div className="map-filters__field">
-        <label htmlFor={cityId}>{t('city')}</label>
-        <input
-          id={cityId}
-          type="text"
-          list={suggestionsId}
-          name="city"
-          aria-label={t('city')}
-          value={city}
-          maxLength={MAX_TEXT_FILTER_LENGTH}
-          onChange={(event) => {
-            setCity(event.target.value)
-            if (!debounceMs) onChange({ ...value, city: normalizeTextFilter(event.target.value) })
-          }}
-        />
-      </div>
-
-      <CitySuggestions id={suggestionsId} locations={locations} country={value.country} />
+      <AppCityInput label={t('city')} value={city} locations={locations} country={value.country}
+        onChange={next => {
+          setCity(next)
+          if (!debounceMs) onChange({ ...value, city: normalizeTextFilter(next) })
+        }} />
       <AppSelect
         disabled={optionsQuery.isPending || optionsQuery.isError}
         label={t('country')}

@@ -42,7 +42,7 @@ createServer(async (request, response) => {
     if (path === '/api/map/filter-options') {
       const countries = JSON.parse(await readFile(resolve(root, 'src/i18n/countries/es.json'), 'utf8'))
       response.setHeader('Content-Type', 'application/json')
-      response.end(JSON.stringify({ locations: countries.map(country => ({ country: country.value, city: null })) }))
+      response.end(JSON.stringify({ locations: [...countries.map(country => ({ country: country.value, city: null })), ...['Barcelona', 'Badalona', 'Madrid'].map(city => ({ country: 'es', city }))] }))
       return
     }
     if (path === '/') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(html); return }

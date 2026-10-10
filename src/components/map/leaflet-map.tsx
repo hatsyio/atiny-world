@@ -80,7 +80,7 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
           {isFiltersOpen ? <div id="map-filters-panel" className="map__filters-panel"><MapFilters value={filters} onChange={onFiltersChange} /></div> : null}
         </div>
       ) : null}
-      {!hideGroupList && features.length > 1 ? (
+      {!hideGroupList ? (
         <div className="map__overlay">
           <button
             className="map__group-toggle"
