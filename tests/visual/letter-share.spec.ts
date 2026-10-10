@@ -12,7 +12,7 @@ for (const width of [1440, 390]) {
     expect(bounds!.x).toBeGreaterThanOrEqual(0)
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width)
     expect(bounds!.y).toBeGreaterThanOrEqual(0)
-    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(900)
+    await expect.poll(async () => {const box = await menu.boundingBox(); return box!.y + box!.height}).toBeLessThanOrEqual(900)
     await page.screenshot({path:test.info().outputPath(`share-menu-${width}.png`)})
     await page.keyboard.press('Escape')
     await expect(trigger).toBeFocused()
@@ -24,6 +24,13 @@ for (const width of [1440, 390]) {
     await expect(image).toBeVisible()
     await expect.poll(() => image.evaluate((img:HTMLImageElement) => img.naturalWidth)).toBe(1080)
     await expect.poll(() => image.evaluate((img:HTMLImageElement) => img.naturalHeight)).toBe(1920)
+    const edgeColors = await image.evaluate((img:HTMLImageElement) => {
+      const canvas = document.createElement('canvas'); canvas.width = img.naturalWidth; canvas.height = img.naturalHeight
+      const context = canvas.getContext('2d')!; context.drawImage(img, 0, 0)
+      return [[10,960], [1070,960], [540,10], [540,1910]].map(([x,y]) => Array.from(context.getImageData(x,y,1,1).data).slice(0,3))
+    })
+    expect(edgeColors).toEqual(Array(4).fill([16,32,51]))
+    expect(await image.evaluate(img => img.getBoundingClientRect().bottom - img.parentElement!.getBoundingClientRect().bottom)).toBeLessThanOrEqual(1)
     await page.screenshot({path:test.info().outputPath(`share-story-${width}.png`)})
     await page.getByRole('button', {name:'Publicación · 1:1'}).click()
     await expect.poll(() => image.evaluate((img:HTMLImageElement) => img.naturalHeight)).toBe(1080)

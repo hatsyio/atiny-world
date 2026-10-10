@@ -9,7 +9,7 @@ const output = resolve(root, '.visual-test-build')
 const stubs = resolve(root, 'tests/visual/fixtures')
 await build({
   entryPoints: [resolve(stubs, 'selects.tsx')], bundle: true, format: 'esm', platform: 'browser', jsx: 'automatic',
-  outdir: output, external: ['/images/*'],
+  outdir: output, external: ['/images/*'], define: {'process.env': JSON.stringify({NODE_ENV:'development'})},
   loader: { '.png': 'dataurl' },
   plugins: [{ name: 'location-map-fixture', setup(builder) {
     builder.onResolve({ filter: /^\.\/(letter-location-map|location-selection-map)$/ }, args =>

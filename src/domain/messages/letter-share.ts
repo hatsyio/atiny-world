@@ -1,3 +1,4 @@
+import twitterText from 'twitter-text'
 import type { Locale } from '@/i18n/locale'
 import type { PublicMessageDetail } from './public-message'
 
@@ -20,14 +21,9 @@ export function letterExcerpt(content: string, max: number, locale: Locale): str
   return (lastWord ? prefix.slice(0, lastWord.index + lastWord.segment.length) : prefix).trimEnd() + '…'
 }
 
-/** Conservatively counts joined emoji separately; overcounts rather than exceeding X's limit. */
+/** X's reference parser handles URL shortening, Unicode weights and joined emoji. */
 export function xTextWeight(text: string): number {
-  return Array.from(text).reduce((sum, char) => {
-    const point = char.codePointAt(0)!
-    const single = point <= 0x10ff || (point >= 0x2000 && point <= 0x200d) ||
-      (point >= 0x2010 && point <= 0x201f) || (point >= 0x2032 && point <= 0x2037)
-    return sum + (single ? 1 : 2)
-  }, 0)
+  return twitterText.parseTweet(text).weightedLength
 }
 
 function intent(base: string, params: Record<string, string>): string {

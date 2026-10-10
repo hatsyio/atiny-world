@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest'
-import { renderLetterShareImage, fitImageText } from '@/server/messages/letter-share-image'
+import satori from 'satori'
+import { renderLetterShareImage, fitImageText, prepareLetterShareImage } from '@/server/messages/letter-share-image'
 
 const letter = {
   publicId: 'a3a258ac-179d-40a6-ad22-d7ca4c59ac70', content: 'Una carta para quienes sienten la música. Seguimos navegando juntos.',
@@ -24,3 +25,22 @@ it('preserves the full letter when it fits', async () => {
   const fitted = await fitImageText(letter.content, {width: 900, height: 900, fontSize: 46}, 'es')
   expect(fitted.text).toBe(letter.content)
 })
+
+
+it.each(['story', 'square', 'og'] as const)('keeps every text block inside the %s paper for long content, location and signature', async format => {
+  const long = {...letter, content:'Wandering through the world with music in my heart and friends by my side. '.repeat(50), locality:'부산광역시'.repeat(10), country:'대한민국', author:{...letter.author, displayName:'김'.repeat(40)}}
+  const {element, size, fonts} = await prepareLetterShareImage(long, format, 'en')
+  const nodes: {id:string; left:number; top:number; width:number; height:number}[] = []
+  await satori(element, {...size, fonts, onNodeDetected: node => {if (typeof node.props.id === 'string') nodes.push({id:node.props.id, left:node.left, top:node.top, width:node.width, height:node.height})}})
+  const paper = nodes.find(node => node.id === 'letter-paper')!
+  for (const node of nodes.filter(node => node.id !== 'letter-paper')) {
+    expect(node.left, node.id).toBeGreaterThanOrEqual(paper.left)
+    expect(node.left + node.width, node.id).toBeLessThanOrEqual(paper.left + paper.width)
+    expect(node.top, node.id).toBeGreaterThanOrEqual(paper.top)
+    expect(node.top + node.height, node.id).toBeLessThanOrEqual(paper.top + paper.height)
+  }
+  const body = nodes.find(node => node.id === 'letter-body')!
+  const footer = nodes.find(node => node.id === 'letter-footer')!
+  expect(body.top + body.height).toBeLessThanOrEqual(footer.top)
+  expect(nodes.some(node => node.id === 'letter-domain')).toBe(true)
+}, 30000)

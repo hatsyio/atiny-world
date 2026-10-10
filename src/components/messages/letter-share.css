@@ -29,9 +29,9 @@
 .letter-share-image-header h2 { margin: 0; font-family: var(--font-display), Georgia, serif; font-weight: 500; font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.2; }
 .letter-share-image-header p { margin: .5rem 0 0; color: #6a3b20; font-size: .9rem; }
 .letter-share-image-layout { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(260px, 1fr); gap: 2rem; align-items: start; }
-.letter-share-preview { min-width: 0; display: grid; place-items: center; background: #102033; aspect-ratio: 9 / 16; max-height: 590px; width: 100%; overflow: hidden; }
-.letter-share-preview[data-format='square'] { aspect-ratio: 1; }
-.letter-share-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.letter-share-preview { min-width: 0; display: grid; place-items: center; background: #102033; aspect-ratio: 9 / 16; width: min(100%, 330px); justify-self: center; overflow: hidden; }
+.letter-share-preview[data-format='square'] { aspect-ratio: 1; width: 100%; }
+.letter-share-preview img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: contain; }
 .letter-share-preview-status { color: #fff0cb; text-align: center; padding: 1.5rem; line-height: 1.5; font-size: .9rem; }
 .letter-share-preview-status .letter-share-secondary { color: #fff0cb; border-color: #c79a50; }
 .letter-share-image-options { display: grid; gap: .9rem; }

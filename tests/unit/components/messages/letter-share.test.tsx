@@ -69,3 +69,16 @@ it('treats cancellation of native sharing as a normal dismissal', async () => {
   await waitFor(() => expect(navigator.share).toHaveBeenCalled())
   expect(screen.queryByRole('alert')).toBeNull()
 })
+
+it('shares an already prepared PNG file and preserves download when the system rejects sharing', async () => {
+  const native = vi.fn().mockRejectedValue(new Error('blocked'))
+  Object.defineProperty(navigator, 'share', {configurable:true, value:native})
+  Object.defineProperty(navigator, 'canShare', {configurable:true, value:() => true})
+  await open()
+  fireEvent.click(screen.getByRole('button', {name:'Instagram / Create image'}))
+  const button = await screen.findByRole('button', {name:'Share image'})
+  fireEvent.click(button)
+  await waitFor(() => expect(native).toHaveBeenCalledWith({files:[expect.objectContaining({name:expect.stringContaining('story.png'), type:'image/png'})]}))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not share')
+  expect(screen.getByRole('link', {name:'Download image'})).toBeVisible()
+})

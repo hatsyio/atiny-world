@@ -43,3 +43,11 @@ describe('sharing letter text', () => {
     expect(xText).toContain('Lee mi carta completa')
   })
 })
+
+it('counts short links in the letter using X’s fixed URL weight', () => {
+  expect(xTextWeight('https://a.co')).toBe(23)
+  const share = prepareLetterShare({...message, content:'https://a.co '.repeat(25)}, 'en', 'https://atinyatlas.com')
+  const text = new URL(share.destinations.x).searchParams.get('text')!
+  const normalized = text.replace(/https:\/\/a\.co/g, 'x'.repeat(23))
+  expect(Array.from(normalized).length + 24).toBeLessThanOrEqual(280)
+})
