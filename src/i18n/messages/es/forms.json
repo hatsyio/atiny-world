@@ -45,9 +45,9 @@
     "listLabel": "Tus cartas",
     "status": {
       "pending": "Pendiente de revisión",
-      "approved": "Aprobado",
-      "rejected": "Rechazado",
-      "withdrawn": "Retirado"
+      "approved": "Aprobada",
+      "rejected": "Rechazada",
+      "withdrawn": "Retirada"
     },
     "reasons": {
       "spam": "Contenido no deseado",
@@ -69,9 +69,10 @@
     "view": "Ver carta",
     "viewMap": "Ver en el mapa",
     "copyLink": "Copiar enlace",
+    "moreOptions": "Más opciones",
     "copied": "Enlace copiado",
     "copyError": "No se pudo copiar el enlace. Inténtalo de nuevo.",
-    "privatePending": "Pendiente de revisión. Podrás compartirla cuando sea aprobada.",
+    "privatePending": "Podrás compartirla cuando sea aprobada.",
     "privateHidden": "Esta carta no es pública. Puedes verla y consultar el motivo de moderación.",
     "privateSuspended": "Tus cartas no son públicas mientras tu cuenta esté suspendida."
   },

@@ -1,17 +1,15 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useFormatter, useTranslations } from 'next-intl'
 import Link from 'next/link'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { publicMapQueryKey } from '@/components/map/map-queries'
 
-import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useId, useState, useTransition } from 'react'
 
 import { LetterLink } from '@/components/navigation/letter-link'
 import { ownLetterOrigin } from '@/components/navigation/letter-origin'
-import type { MessageStatus } from '@/domain/contracts'
 import type { OwnMessage } from '@/domain/messages/own-message'
 import { isModerationReasonCode } from '@/i18n/moderation-reasons'
 import { deleteMessageAction } from '@/app/(site)/my-messages/delete-action'
@@ -27,36 +25,20 @@ type Props = {
   messages: OwnMessageListItem[]
   accountSuspended?: boolean
   onDelete?: (publicId: string, expectedVersion: number) => void | Promise<void>
-  onEdit?: (publicId: string, expectedVersion: number) => void | Promise<void>
 }
 
-
-function DefaultEditButton({ item, disabled, label }: {
-  item: OwnMessageListItem
-  disabled: boolean
-  label: string
-}) {
-  const router = useRouter()
-  return (
-    <button
-      type="button"
-      onClick={() => router.push(`/my-messages/${item.publicId}/edit`)}
-      disabled={disabled}
-    >
-      {label}
-    </button>
-  )
-}
 
 export function MyMessageList({
   cursor,
   messages,
   accountSuspended = false,
   onDelete,
-  onEdit,
 }: Props) {
   const queryClient = useQueryClient()
   const t = useTranslations('Forms.own')
+  const format = useFormatter()
+  const optionsId = useId()
+  const [expanded, setExpanded] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -69,13 +51,6 @@ export function MyMessageList({
       setCopyFeedback({ publicId, key: 'copied' })
     } catch {
       setCopyFeedback({ publicId, key: 'copyError' })
-    }
-  }
-
-  function edit(item: OwnMessageListItem) {
-    if (onEdit) {
-      void onEdit(item.publicId, item.version)
-      return
     }
   }
 
@@ -118,37 +93,37 @@ export function MyMessageList({
 
             return (
               <li id={`own-${item.publicId}`} className="my-message-item" key={`${item.publicId}-${index}`} aria-label={item.content}>
+                <header className="my-message-meta">
+                  <span className="my-message-status" data-status={item.status}>{t(`status.${item.status}`)}</span>
+                  {[item.locality, item.country].filter(Boolean).length > 0 ? <span>{[item.locality, item.country].filter(Boolean).join(', ')}</span> : null}
+                  {item.publishedAt ? <time dateTime={item.publishedAt}>{format.dateTime(new Date(item.publishedAt), { dateStyle: 'medium', timeZone: 'UTC' })}</time> : null}
+                </header>
                 <p className="my-message-content">{item.content}</p>
-                <p><strong>{t(`status.${item.status as MessageStatus}`)}</strong></p>
                 {reason ? <p><span>{reason}</span></p> : null}
                 {item.moderationNote ? <p><small><span>{t('moderationNote')}: </span><span>{item.moderationNote}</span></small></p> : null}
-                <p className="my-message-links">
-                  <LetterLink publicId={item.publicId} origin={origin}>{t('view')}</LetterLink>
-                  {publicVisible ? <>
-                    <Link href={`/?letter=${encodeURIComponent(item.publicId)}#map`}>{t('viewMap')}</Link>
-                    <button type="button" onClick={() => void copyLink(item.publicId)}>{t('copyLink')}</button>
-                  </> : null}
-                </p>
-                {!publicVisible ? <p className="profile-note">{t(accountSuspended ? 'privateSuspended' : item.status === 'pending' ? 'privatePending' : 'privateHidden')}</p> : null}
-                {copyFeedback?.publicId === item.publicId ? <p role="status">{t(copyFeedback.key)}</p> : null}
-                <div className="my-message-actions">
-                  {!accountSuspended ? (
-                    onEdit ? (
-                      <button type="button" onClick={() => edit(item)} disabled={isPending}>{t('edit')}</button>
-                    ) : (
-                      <DefaultEditButton item={item} disabled={isPending} label={t('edit')} />
-                    )
-                  ) : null}
-                  {!isConfirming ? (
-                    <button type="button" onClick={() => setConfirming(item.publicId)} disabled={isPending}>{t('delete')}</button>
-                  ) : (
-                    <div role="group" aria-label={t('confirm')}>
-                      <p>{t('confirmHint')}</p>
-                      <button type="button" onClick={() => remove(item)} disabled={isPending}>{t('confirm')}</button>
-                      <button type="button" onClick={() => setConfirming(null)} disabled={isPending}>{t('keep')}</button>
-                    </div>
-                  )}
+                {!publicVisible ? <p className="my-message-note">{t(accountSuspended ? 'privateSuspended' : item.status === 'pending' ? 'privatePending' : 'privateHidden')}</p> : null}
+                <div className="my-message-links">
+                  <LetterLink className="my-message-view" publicId={item.publicId} origin={origin}>{t('view')}</LetterLink>
+                  {publicVisible ? <Link className="my-message-map" href={`/?letter=${encodeURIComponent(item.publicId)}#map`}>{t('viewMap')}</Link> : null}
+                  <button
+                    className="my-message-more"
+                    type="button"
+                    aria-expanded={expanded === item.publicId}
+                    aria-controls={`${optionsId}-${index}`}
+                    disabled={isPending}
+                    onClick={() => setExpanded(expanded === item.publicId ? null : item.publicId)}
+                  >{t('moreOptions')}</button>
                 </div>
+                <div id={`${optionsId}-${index}`} className="my-message-actions" hidden={expanded !== item.publicId}>
+                  {publicVisible ? <button type="button" onClick={() => void copyLink(item.publicId)}>{t('copyLink')}</button> : null}
+                  {!isConfirming ? <button className="my-message-delete" type="button" onClick={() => setConfirming(item.publicId)} disabled={isPending}>{t('delete')}</button> : null}
+                </div>
+                {copyFeedback?.publicId === item.publicId ? <p role="status">{t(copyFeedback.key)}</p> : null}
+                {isConfirming ? <div className="my-message-confirm" role="group" aria-label={t('confirm')}>
+                  <p>{t('confirmHint')}</p>
+                  <button className="my-message-delete" type="button" onClick={() => remove(item)} disabled={isPending}>{t('confirm')}</button>
+                  <button type="button" onClick={() => setConfirming(null)} disabled={isPending}>{t('keep')}</button>
+                </div> : null}
               </li>
             )
           })}

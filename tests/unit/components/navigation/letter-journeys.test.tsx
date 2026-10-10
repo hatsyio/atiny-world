@@ -62,7 +62,7 @@ it.each(['en', 'es'] as const)('returns My letters → public letter → My lett
   setServerLocale(lang)
   window.history.replaceState(null, '', '/my-messages?cursor=older%2Bpage')
   const router = { push: vi.fn(), prefetch: vi.fn() } as unknown as NextRouter
-  const list = render(<RouterContext.Provider value={router}><MyMessageList cursor="older+page" messages={[letter]} onEdit={() => {}} /></RouterContext.Provider>)
+  const list = render(<RouterContext.Provider value={router}><MyMessageList cursor="older+page" messages={[letter]} /></RouterContext.Provider>)
   const link = screen.getByRole('link', { name: lang === 'es' ? 'Ver carta' : 'View letter' })
   const detail = new URL(link.getAttribute('href')!, window.location.origin)
   const origin = '/my-messages?cursor=older%2Bpage#own-letter-1'

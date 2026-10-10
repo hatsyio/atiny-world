@@ -226,15 +226,37 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .profile-cancel { background: transparent; color: #4a2a13; border: 1px solid #6b3e20; }
 .my-messages-panel { width: min(100%, 900px); }
 .my-messages { width: 100%; text-align: left; }
-.my-message-list { display: grid; gap: 1rem; padding: 0; margin: 1rem 0; list-style: none; }
-.my-message-item { padding: 1rem; background: #f2d9aa; border: 1px solid #9a6139; box-shadow: inset 0 0 18px #9c6b3b38; }
-.my-message-content { margin-top: 0; white-space: pre-wrap; }
-.my-message-item p { line-height: 1.45; }
-.my-message-links, .my-message-actions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
-.my-message-links a, .my-message-links button, .my-message-actions button { padding: .45rem .7rem; border: 1px solid #6b3e20; color: #4a2a13; background: transparent; cursor: pointer; }
-.my-message-links a:hover, .my-message-links button:hover, .my-message-actions button:hover { background: #e4c18e; }
-.my-message-actions [role='group'] { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
-.my-message-actions [role='group'] p { flex-basis: 100%; margin: 0; }
+.my-message-list { display: grid; gap: 1.25rem; padding: 0; margin: 1rem 0; list-style: none; }
+.my-message-item { min-width: 0; padding: clamp(1.1rem, 3vw, 1.6rem); background: #f2d9aa; border: 1px solid #9a6139; box-shadow: inset 0 0 18px #9c6b3b38; overflow-wrap: anywhere; }
+.my-message-meta { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; color: #593e2b; font-family: var(--font-interface), sans-serif; font-size: .82rem; }
+.my-message-meta time { margin-left: auto; }
+.my-message-status { padding: .25rem .55rem; border: 1px solid #9a613980; border-radius: .25rem; font-weight: 600; }
+.my-message-status[data-status='approved'] { background: #e1e6c9; color: #32432a; }
+.my-message-status[data-status='pending'] { background: #f9e6bd; color: #654414; }
+.my-message-status[data-status='rejected'], .my-message-status[data-status='withdrawn'] { background: #f0d1c1; color: #74352b; }
+.my-message-content { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; margin: 1rem 0; white-space: pre-wrap; font-size: 1.08rem; }
+.my-message-item p { line-height: 1.55; }
+.my-message-note { color: #593e2b; font-size: .85rem; margin: .75rem 0; }
+.my-message-links, .my-message-actions, .my-message-confirm { display: flex; flex-wrap: wrap; gap: .65rem 1rem; align-items: center; }
+.my-message-links { margin-top: 1.2rem; }
+.my-message-links a, .my-message-links button, .my-message-actions button, .my-message-confirm button { padding: .55rem .8rem; border: 1px solid #6b3e20; color: #4a2a13; background: transparent; cursor: pointer; font: inherit; }
+.my-message-links .my-message-view { background: #6b3e20; color: #fff1d9; text-decoration: none; }
+.my-message-links .my-message-map, .my-message-links .my-message-more { border-color: transparent; padding-inline: .25rem; text-underline-offset: .2em; }
+.my-message-links .my-message-more { margin-left: auto; text-decoration: underline; }
+.my-message-links a:hover, .my-message-links button:hover, .my-message-actions button:hover, .my-message-confirm button:hover { background: #e4c18e; }
+.my-message-links .my-message-view:hover { background: #4a2a13; }
+.my-message-item a:focus-visible, .my-message-item button:focus-visible { outline: 2px solid #4a2a13; outline-offset: 3px; }
+.my-message-item button:disabled { opacity: .55; cursor: default; }
+.my-message-actions { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid #9a613960; }
+.my-message-actions[hidden] { display: none; }
+.my-message-item .my-message-delete { color: #7a281e; border-color: #7a281e; }
+.my-message-confirm { margin-top: 1rem; padding: 1rem; border: 1px solid #7a281e; }
+.my-message-confirm p { flex-basis: 100%; margin: 0; }
+@media (max-width: 480px) {
+  .my-message-meta time { margin-left: 0; }
+  .my-message-links { gap: .65rem; }
+  .my-message-links .my-message-more { margin-left: 0; }
+}
 
 @media (max-width: 1100px) {
   .letter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

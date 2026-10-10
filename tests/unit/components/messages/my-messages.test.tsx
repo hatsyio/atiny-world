@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { MessageStatus } from '@/domain/contracts'
 import { MyMessageList } from '@/components/messages/my-message-list'
 
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
+
 // Contrato de T060: la lista recibe mensajes propios con estado y motivo en
 // bruto (codes estables) y traduce ambos para la autora. Este tipo se
 // trasladará a los exports del componente cuando se implemente.
@@ -30,9 +32,9 @@ const statusLabels = {
   },
   es: {
     pending: 'Pendiente de revisión',
-    approved: 'Aprobado',
-    rejected: 'Rechazado',
-    withdrawn: 'Retirado',
+    approved: 'Aprobada',
+    rejected: 'Rechazada',
+    withdrawn: 'Retirada',
   },
 } as const
 
@@ -81,18 +83,16 @@ function renderList({
   messages = [message()],
   accountSuspended = false,
   onDelete = vi.fn<(publicId: string, expectedVersion: number) => void>(),
-  onEdit = vi.fn<(publicId: string, expectedVersion: number) => void>(),
 } = {}) {
   render(
     <MyMessageList
       messages={messages}
       accountSuspended={accountSuspended}
       onDelete={onDelete}
-      onEdit={onEdit}
     />,
     { locale },
   )
-  return { onDelete, onEdit }
+  return { onDelete }
 }
 
 function entry(name: string | RegExp) {
@@ -108,6 +108,8 @@ describe('MyMessageList presenta estado y motivo', () => {
     renderList({ messages: [message({ status: 'pending', publicVisible: true, point: { latitude: 40.4, longitude: -3.7 } })] })
     expect(screen.getByRole('link', { name: 'View letter' })).toHaveAttribute('href', expect.stringContaining('/messages/msg-1?returnTo='))
     expect(screen.getByRole('link', { name: 'View on map' })).toHaveAttribute('href', '/?letter=msg-1#map')
+    expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
     fireEvent.click(screen.getByRole('button', { name: 'Copy link' }))
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/messages/msg-1`))
     expect(screen.getByRole('status')).toHaveTextContent('Link copied')
@@ -129,6 +131,8 @@ describe('MyMessageList presenta estado y motivo', () => {
   it('explica el fallo del portapapeles sin afirmar que se copió', async () => {
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } })
     renderList({ messages: [message({ publicVisible: true })] })
+    expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
     fireEvent.click(screen.getByRole('button', { name: 'Copy link' }))
     expect(await screen.findByRole('status')).toHaveTextContent('Could not copy the link')
   })
@@ -210,6 +214,8 @@ describe('MyMessageList confirma el borrado antes de eliminar', () => {
     })
 
     const item = entry(/Carta a borrar/)
+    expect(item.queryByRole('button', { name: /delete/i })).toBeNull()
+    fireEvent.click(item.getByRole('button', { name: 'More options' }))
     const deleteButton = item.getByRole('button', { name: /delete/i })
 
     fireEvent.click(deleteButton)
@@ -241,6 +247,7 @@ describe('MyMessageList limita los controles de una cuenta suspendida', () => {
     const item = entry(/Carta con suspensión/)
     expect(item.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
 
+    fireEvent.click(item.getByRole('button', { name: 'Más opciones' }))
     fireEvent.click(item.getByRole('button', { name: /eliminar/i }))
     item.getByRole('button', { name: /confirmar/i })
     fireEvent.click(item.getByRole('button', { name: /confirmar/i }))
@@ -248,13 +255,14 @@ describe('MyMessageList limita los controles de una cuenta suspendida', () => {
     expect(onDelete).toHaveBeenCalledWith('msg-suspendida', 3)
   })
 
-  it('mantiene la edición disponible en una cuenta activa', () => {
+  it('permite abrir la carta sin duplicar el acceso a edición en una cuenta activa', () => {
     renderList({
       messages: [message({ content: 'Carta activa' })],
     })
 
     const item = entry(/Carta activa/)
-    expect(item.getByRole('button', { name: /edit/i })).toBeVisible()
-    expect(item.getByRole('button', { name: /delete/i })).toBeVisible()
+    expect(item.queryByRole('button', { name: /edit/i })).toBeNull()
+    expect(item.getByRole('link', { name: 'View letter' })).toBeVisible()
+    expect(item.queryByRole('button', { name: /delete/i })).toBeNull()
   })
 })
