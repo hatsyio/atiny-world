@@ -38,6 +38,13 @@ const types = { '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/wo
 createServer(async (request, response) => {
   const path = new URL(request.url, 'http://localhost').pathname
   try {
+    // A full fixture catalog exercises the dropdown's scrolling and long labels.
+    if (path === '/api/map/filter-options') {
+      const countries = JSON.parse(await readFile(resolve(root, 'src/i18n/countries/es.json'), 'utf8'))
+      response.setHeader('Content-Type', 'application/json')
+      response.end(JSON.stringify({ locations: [...countries.map(country => ({ country: country.value, city: null })), ...['Barcelona', 'Badalona', 'Madrid'].map(city => ({ country: 'es', city }))] }))
+      return
+    }
     if (path === '/') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(html); return }
     const base = path.startsWith('/_next/') ? root : path.startsWith('/images/') ? resolve(root, 'public') : output
     const relative = path.startsWith('/_next/') ? path.replace('/_next/', '.next/') : path.slice(1)

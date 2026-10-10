@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import type { PublicLetterLocation } from '@/domain/location/public-locations'
+import { AppCityInput } from '@/components/ui/app-city-input'
 import { useFormatter, useLocale, useTranslations } from 'next-intl'
 import { LetterLink } from '@/components/navigation/letter-link'
 import { AutoFilterForm, AutoFilterInput } from '@/components/ui/auto-filter-form'
@@ -15,9 +17,10 @@ function countryFlag(code: string): string {
     : ''
 }
 
-export function LettersArchive({ criteria, countries, page }: {
+export function LettersArchive({ criteria, countries, locations = [], page }: {
   criteria: LetterExploration
   countries: string[]
+  locations?: PublicLetterLocation[]
   page: PublicLetterPage
 }) {
   const t = useTranslations('Pages.letters')
@@ -25,7 +28,7 @@ export function LettersArchive({ criteria, countries, page }: {
   const format = useFormatter()
   const catalog = mapCountries[locale]
   const countryName = (code: string) => catalog.find(country => country.value === code.toLowerCase())?.label ?? code.toUpperCase()
-  const available = new Set([...countries, ...(criteria.country ? [criteria.country] : [])])
+  const available = new Set(countries)
   const options = catalog.filter(country => available.has(country.value))
     .map(({ value, label }) => ({ value, label: `${countryFlag(value)} ${label}` }))
   const pages = [...new Set([1, page.totalPages, ...Array.from({ length: 5 }, (_, index) => page.page + index - 2)])]
@@ -37,8 +40,8 @@ export function LettersArchive({ criteria, countries, page }: {
     </header>
     <AutoFilterForm action="/letters" className="letters-archive__filters" values={{ q: criteria.q ?? '', country: criteria.country ?? '', city: criteria.city ?? '' }} loadingLabel={t('loading')}>
       <label>{t('search')}<AutoFilterInput type="search" name="q" maxLength={200} /></label>
-      <AppSelect label={t('country')} name="country" variant="paper" options={[{ value: '', label: t('allCountries') }, ...options]} />
-      <label>{t('city')}<AutoFilterInput type="text" name="city" maxLength={100} /></label>
+      <AppSelect label={t('country')} placeholder={t('countryUnavailable')} name="country" variant="paper" options={[{ value: '', label: t('allCountries') }, ...options]} />
+      <AppCityInput label={t('city')} locations={locations} />
     </AutoFilterForm>
     {page.items.length === 0 ? <p role="status" className="letters-archive__empty">{t('empty')}</p> :
       <div className="letters-archive__list">{page.items.map(letter => <article className="archive-letter" id={`letter-${letter.publicId}`} key={letter.publicId}>

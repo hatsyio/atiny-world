@@ -4,7 +4,9 @@
 .app-select--admin-users, .app-select-popover--admin-users { --select-accent: #326454; --select-tint: #eff4ef; }
 .app-select.app-select { display: grid; gap: .5rem; min-width: 0; text-align: left; }
 .app-select .app-select-label { font-size: .85rem; font-weight: 600; line-height: 1.6; color: var(--select-text); }
-.app-select .app-select-trigger { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; min-width: 0; min-height: 44px; padding: .65rem .8rem; border: 1px solid var(--select-border); border-radius: 0; background: var(--select-background); color: var(--select-text); text-align: left; font: inherit; font-size: .9rem; font-weight: 400; line-height: 1.5; letter-spacing: normal; white-space: normal; cursor: pointer; }
+.app-select .app-select-trigger, .app-select .app-city-input { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; min-width: 0; min-height: 44px; padding: .65rem .8rem; border: 1px solid var(--select-border); border-radius: 0; background: var(--select-background); color: var(--select-text); text-align: left; font: inherit; font-size: .9rem; font-weight: 400; line-height: 1.5; letter-spacing: normal; white-space: normal; cursor: pointer; }
+.app-select .app-city-input { display: block; width: 100%; min-width: 0; cursor: text; }
+.app-select .app-city-input:focus-visible { outline: 3px solid var(--select-accent); outline-offset: 3px; }
 .app-select-trigger svg { flex-shrink: 0; color: var(--select-muted); }
 .app-select-value { min-width: 0; overflow-wrap: anywhere; }
 .app-select-value[data-placeholder] { color: var(--select-muted); }

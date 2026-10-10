@@ -140,7 +140,7 @@ it('keeps group and filter panels mutually exclusive and available in fullscreen
   expect(zoom.compareDocumentPosition(fullscreen) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(fullscreen).toHaveClass('leaflet-bar')
   fireEvent.click(result.getByRole('button', { name: 'Filtros' }))
-  fireEvent.change(result.getByRole('textbox', { name: 'Ciudad' }), { target: { value: 'Madrid' } })
+  fireEvent.change(result.getByRole('combobox', { name: 'Ciudad' }), { target: { value: 'Madrid' } })
   await waitFor(() => expect(onFiltersChange).toHaveBeenCalledWith({ city: 'Madrid', country: '' }))
   fireEvent.click(result.getByRole('button', { name: /Ver 2 mensajes/ }))
   expect(result.container.querySelector('.map-filters')).toBeNull()
@@ -194,7 +194,7 @@ it('reports the saved center and zoom and later moves without rebuilding the map
 })
 
 it('translates controls and an open popup without losing the map, view or filters', async () => {
-  respond()
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json(url === '/api/map/filter-options' ? { locations: [{ country: 'kr', city: '서울' }] } : { ...feature, content: 'visible letter' })))
   const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
   const view = (locale: 'en' | 'es') => <IntlTestProvider locale={locale}><LeafletMap initialView={initialView} features={[feature]} onSelect={() => {}}
     filters={{ city: '서울', country: 'kr' }} onFiltersChange={() => {}} /></IntlTestProvider>
@@ -204,11 +204,12 @@ it('translates controls and an open popup without losing the map, view or filter
   clickMarker(marker)
   await result.findByRole('button', { name: 'Read full message' })
   fireEvent.click(result.getByRole('button', { name: 'Filters (2)' }))
+  await waitFor(() => expect(result.getByRole('button', { name: /Country/ })).toHaveTextContent('South Korea'))
   const setView = vi.spyOn(map, 'setView').mockClear()
   const remove = vi.spyOn(map, 'remove')
   const canvas = result.container.querySelector('.map__canvas')
   result.rerender(view('es'))
-  expect(result.getByRole('textbox', { name: 'Ciudad' })).toHaveValue('서울')
+  expect(result.getByRole('combobox', { name: 'Ciudad' })).toHaveValue('서울')
   expect(result.getByRole('button', { name: /País/ })).toHaveTextContent('Corea del Sur')
   expect(result.getByRole('button', { name: 'Entrar en pantalla completa' })).toHaveAttribute('title', 'Entrar en pantalla completa')
   expect(result.getByRole('button', { name: 'Acercar' })).toBeTruthy()

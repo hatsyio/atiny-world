@@ -31,6 +31,7 @@ for (const width of [1440, 390]) {
       }
       const trigger = page.locator('.app-select-trigger')
       await expect(trigger).toBeVisible()
+      await expect(trigger).toBeEnabled()
       await page.evaluate(() => document.fonts.ready)
       await page.mouse.move(0, 0)
       const surface = variant === 'header' ? page.locator('.account-links') : page.locator('.fixture-panel')
@@ -86,3 +87,33 @@ test('country dropdown stays above the fullscreen map and fits a short viewport'
   await page.getByRole('option', { name: 'Zimbabue', exact: true }).click()
   await expect(page.locator('.app-select-trigger')).toHaveText('Zimbabue')
 })
+
+for (const width of [390, 1440]) {
+  test(`city autocomplete filters and selects cities at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1100 })
+    await page.goto('/?variant=paper')
+    await expect(page.getByRole('button', { name: /País/ })).toBeEnabled()
+    const city = page.getByRole('combobox', { name: 'Ciudad', exact: true })
+    await city.fill('ba')
+    const options = page.getByRole('listbox')
+    await expect(options.getByRole('option')).toHaveText(['Badalona', 'Barcelona'])
+    await page.evaluate(() => document.fonts.ready)
+    await expect(page.locator('.app-select-popover')).toHaveScreenshot(`cities-${width}-open.png`)
+    const field = (await city.boundingBox())!
+    const list = (await options.boundingBox())!
+    expect(list.y).toBeGreaterThan(field.y + field.height)
+    expect(list.width).toBeLessThanOrEqual(field.width)
+    await page.getByRole('option', { name: 'Barcelona', exact: true }).click()
+    await expect(city).toHaveValue('Barcelona')
+    await expect(options).not.toBeVisible()
+    await page.locator('.fixture-panel').evaluate(element => element.requestFullscreen())
+    await city.fill('ba')
+    await expect(options).toBeVisible()
+    expect(await options.evaluate(element => document.fullscreenElement?.contains(element))).toBe(true)
+    await city.press('ArrowDown')
+    await city.press('Enter')
+    await expect(city).toHaveValue('Badalona')
+    await expect(options).not.toBeVisible()
+    await page.evaluate(() => document.exitFullscreen())
+  })
+}

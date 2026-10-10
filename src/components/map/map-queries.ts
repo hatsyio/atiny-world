@@ -1,4 +1,5 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
+import type { PublicLetterLocation } from '@/domain/location/public-locations'
 import type { PublicMapFeature, PublicMessageDetail } from '@/domain/messages/public-message'
 
 export const publicMapQueryKey = ['public-map'] as const
@@ -70,5 +71,13 @@ export function mapMessagesQuery(requestUrl: string) {
       return readPublicJson<{ items: PublicMessageDetail[]; nextCursor: string | null }>(`${url.pathname}${url.search}`, signal)
     },
     getNextPageParam: lastPage => lastPage.nextCursor,
+  })
+}
+
+export function publicLocationOptionsQuery() {
+  return queryOptions({
+    ...publicQueryPolicy,
+    queryKey: [...publicMapQueryKey, 'filter-options'],
+    queryFn: ({ signal }) => readPublicJson<{ locations: PublicLetterLocation[] }>('/api/map/filter-options', signal),
   })
 }

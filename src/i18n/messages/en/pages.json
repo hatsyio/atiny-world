@@ -214,6 +214,7 @@
     "intro": "Read public letters from around the world. Find a place or a few words that speak to you.",
     "search": "Search letter text",
     "country": "Country",
+    "countryUnavailable": "Country no longer available",
     "allCountries": "All countries",
     "city": "City",
     "apply": "Search letters",

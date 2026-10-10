@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { cleanup,  screen, waitFor, within } from '@testing-library/react'
+import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import { render } from '../../../support/intl'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -89,7 +89,7 @@ describe('MapFilters', () => {
   it('exposes accessible city and country filters without an author filter', () => {
     render(<MapFilters value={defaults} onChange={() => {}} />)
 
-    expect(screen.getByRole('textbox', { name: /city/i })).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: /city/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /country/i })).toBeTruthy()
     expect(screen.queryByRole('textbox', { name: /fan|autor|usuario/i })).not.toBeInTheDocument()
     expect(screen.getByRole('group', { name: /filters/i })).toBeTruthy()
@@ -98,6 +98,7 @@ describe('MapFilters', () => {
   it('changes country and clears it without losing the city filter', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ locations: [{ city: 'Madrid', country: 'es' }, { city: 'Seoul', country: 'kr' }] })))
     const { rerender } = render(<MapFilters value={{ city: 'Seoul', country: 'kr' }} onChange={onChange} />)
     await user.click(screen.getByRole('button', { name: /Country/ }))
     // Scope text lookup to the accessible open list instead of computing 250 option names.
@@ -114,6 +115,19 @@ describe('MapFilters', () => {
 })
 
 describe('PublicMapLoader', () => {
+  it.each([0, 1])('keeps the message list available when filtering leaves %i markers', async count => {
+    vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test-key')
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({
+      items: count ? [{ ...baseFeature, content: 'Filtered letter' }] : [], nextCursor: null,
+    })))
+    const props = { onSelect: vi.fn(), groupRequestUrl: '/api/map/messages?country=es' }
+    const view = render(<LeafletMap {...props} features={[baseFeature, { ...baseFeature, publicId: 'second' }]} />)
+    view.rerender(<LeafletMap {...props} features={count ? [baseFeature] : []} />)
+    await userEvent.setup().click(screen.getByRole('button', { name: /view \d+ messages?/i }))
+    if (count) expect(await screen.findByText('Filtered letter')).toBeInTheDocument()
+    else expect(await screen.findByText('No messages in this area.')).toBeInTheDocument()
+  })
+
   it('announces that the client-only Leaflet map is loading', () => {
     render(<PublicMapLoader features={[]} onSelect={() => {}} />)
 
@@ -156,4 +170,67 @@ describe('PublicMessageCard', () => {
     expect(screen.getByRole('status').textContent).toMatch(/not available/i)
     expect(screen.queryByText(/pendiente|rechazado|oculto/i)).toBeNull()
   })
+})
+
+it('only offers countries with public letters and scopes city suggestions to the selected country', async () => {
+  vi.stubGlobal('fetch', vi.fn(async () => Response.json({ locations: [
+    { city: 'Madrid', country: 'es' }, { city: 'Barcelona', country: 'es' }, { city: 'Seoul', country: 'kr' },
+  ] })))
+  const onChange = vi.fn()
+  const { rerender } = render(<MapFilters value={{}} onChange={onChange} />)
+  await waitFor(() => expect(screen.getByRole('button', { name: /Country/ })).toBeEnabled())
+  await userEvent.setup().click(screen.getByRole('button', { name: /Country/ }))
+  const options = within(await screen.findByRole('listbox'))
+  expect(options.queryByText('Albania')).toBeNull()
+  expect(options.getByText('Spain')).toBeVisible()
+  await userEvent.setup().click(options.getByText('Spain'))
+  rerender(<MapFilters value={{ country: 'es' }} onChange={onChange} />)
+  await userEvent.setup().click(screen.getByRole('combobox', { name: 'City' }))
+  expect(within(await screen.findByRole('listbox')).getAllByRole('option').map(option => option.textContent)).toEqual(['Barcelona', 'Madrid'])
+  await userEvent.setup().click(screen.getByRole('option', { name: 'Madrid' }))
+  await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ country: 'es', city: 'Madrid' }))
+})
+
+it('lets an unavailable URL country be cleared without offering it as an option', async () => {
+  vi.stubGlobal('fetch', vi.fn(async () => Response.json({ locations: [{ country: 'es', city: 'Madrid' }] })))
+  const onChange = vi.fn()
+  render(<MapFilters value={{ country: 'al', city: '' }} onChange={onChange} />)
+  const trigger = screen.getByRole('button', { name: /Country/ })
+  await waitFor(() => expect(trigger).toBeEnabled())
+  await userEvent.setup().click(trigger)
+  expect(screen.queryByRole('option', { name: 'Albania' })).toBeNull()
+  await userEvent.setup().click(screen.getByRole('option', { name: 'All' }))
+  expect(onChange).toHaveBeenCalledWith({ country: '', city: '' })
+})
+
+it('does not fall back to the global country catalog when location loading fails and allows retry', async () => {
+  vi.stubGlobal('fetch', vi.fn()
+    .mockResolvedValueOnce(new Response(null, { status: 400 }))
+    .mockResolvedValueOnce(Response.json({ locations: [{ country: 'es', city: 'Madrid' }] })))
+  render(<MapFilters value={{}} onChange={() => {}} />)
+  await userEvent.setup().click(await screen.findByRole('button', { name: 'Try again' }))
+  const trigger = screen.getByRole('button', { name: /Country/ })
+  await waitFor(() => expect(trigger).toBeEnabled())
+  await userEvent.setup().click(trigger)
+  expect(screen.getByRole('option', { name: 'Spain' })).toBeVisible()
+  expect(screen.queryByRole('option', { name: 'Albania' })).toBeNull()
+})
+
+it('shows Barcelona and Badalona below the text field for ba and allows keyboard selection', async () => {
+  vi.stubGlobal('fetch', vi.fn(async () => Response.json({ locations: [
+    { country: 'es', city: 'Barcelona' }, { country: 'es', city: 'Badalona' },
+    { country: 'es', city: 'Madrid' }, { country: 'de', city: 'Bamberg' },
+  ] })))
+  const user = userEvent.setup()
+  const onChange = vi.fn()
+  render(<MapFilters value={{ country: 'es' }} onChange={onChange} />)
+  await waitFor(() => expect(screen.getByRole('button', { name: /Country/ })).toBeEnabled())
+  const city = screen.getByRole('combobox', { name: 'City' })
+  await user.type(city, 'ba')
+  const list = await screen.findByRole('listbox')
+  expect(within(list).getAllByRole('option').map(option => option.textContent)).toEqual(['Badalona', 'Barcelona'])
+  await user.keyboard('{ArrowDown}{Enter}')
+  expect(city).toHaveValue('Badalona')
+  await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ country: 'es', city: 'Badalona' }))
+  expect(screen.queryByRole('listbox')).toBeNull()
 })

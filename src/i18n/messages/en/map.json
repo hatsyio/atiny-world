@@ -4,7 +4,11 @@
     "city": "City",
     "country": "Country",
     "all": "All",
-    "clear": "Clear filters"
+    "clear": "Clear filters",
+    "loadingOptions": "Loading locations…",
+    "optionsUnavailable": "Locations could not be loaded.",
+    "retry": "Try again",
+    "countryUnavailable": "Country no longer available"
   },
   "cluster": {
     "loading": "Loading messages…",

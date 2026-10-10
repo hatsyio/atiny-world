@@ -87,7 +87,8 @@ test('combines country and debounced city, clears filters and updates both queri
   const urls: string[] = []
   page.on('request', request => { if (request.url().includes('/api/map/')) urls.push(request.url()) })
   await page.goto('/map?mapView=40.4,-3.7,8')
-  await page.getByRole('textbox', { name: 'City' }).fill(city)
+  await page.getByRole('combobox', { name: 'City' }).fill(city)
+  await page.getByRole('combobox', { name: 'City', exact: true }).press('Escape')
   await page.getByRole('button', { name: /Country/ }).click()
   await page.getByRole('option', { name: 'Spain', exact: true }).click()
   await expect(page.getByText('20 letters loaded', { exact: true })).toBeVisible()
@@ -99,11 +100,12 @@ test('combines country and debounced city, clears filters and updates both queri
   await page.mouse.move(map!.x + map!.width / 2 + 80, map!.y + map!.height * .7, { steps: 8 })
   await page.mouse.up()
   await expect.poll(() => page.url()).not.toBe(beforePan)
-  await page.getByRole('textbox', { name: 'City' }).fill('')
+  await page.getByRole('combobox', { name: 'City' }).fill('')
+  await page.getByRole('combobox', { name: 'City', exact: true }).press('Escape')
   await page.getByRole('button', { name: /Country/ }).click()
   await page.getByRole('option', { name: 'All', exact: true }).click()
   await expect.poll(() => new URL(page.url()).searchParams.has('mapCity')).toBe(false)
-  await expect(page.getByRole('textbox', { name: 'City' })).toHaveValue('')
+  await expect(page.getByRole('combobox', { name: 'City' })).toHaveValue('')
   expect(new URL(page.url()).searchParams.has('mapCountry')).toBe(false)
   expect(new URL(page.url()).searchParams.has('mapCity')).toBe(false)
 })
@@ -171,9 +173,13 @@ for (const width of [320, 1440]) {
 }
 
 test('deep-links to a public letter and reports a non-public letter without blocking controls', async ({ page }) => {
+  const focusedViewport = page.waitForRequest(request => {
+    const url = new URL(request.url())
+    return url.pathname === '/api/map/features' && Number(url.searchParams.get('zoom')) >= 8
+  })
   await page.goto(`/map?letter=${publicId}`)
   await expect(page.locator('.map-message-letter')).toContainText('Map120 letter 22')
-  await expect.poll(() => Number(new URL(page.url()).searchParams.get('mapView')?.split(',')[2] ?? 0)).toBeGreaterThanOrEqual(8)
+  await focusedViewport
   await page.goto(`/map?letter=${hiddenId}`)
   await expect(page.getByText('This letter is no longer publicly available.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Zoom in' })).toBeEnabled()
@@ -196,7 +202,7 @@ test('recovers marker and panel errors and explains an empty filtered area', asy
     page.locator('.cluster-list-wrap').getByRole('button', { name: 'Try again', exact: true }).click(),
   ])
   await expect(page.getByText('20 letters loaded', { exact: true })).toBeVisible()
-  await page.getByRole('textbox', { name: 'City' }).fill('Map120NoLetters')
+  await page.getByRole('combobox', { name: 'City' }).fill('Map120NoLetters')
   await expect(page.getByText('No messages in this area.')).toBeVisible()
   await expect(page.locator('.map-message-marker')).toHaveCount(0)
 })
@@ -255,18 +261,20 @@ for (const width of [390, 1440]) {
       const filters = page.locator(path === '/map' ? '.map-filters' : '.letters-archive__filters')
       const clear = page.getByRole('button', { name: path === '/map' ? 'Clear filters' : 'Clear search and filters', exact: true })
       await expect(clear).toHaveCount(0)
+      await expect(filters).toBeVisible()
       const before = await filters.boundingBox()
       if (path === '/map') {
         const map = await page.locator('.map__canvas').boundingBox()
-        const city = await page.getByRole('textbox', { name: 'City', exact: true }).boundingBox()
+        const city = await page.getByRole('combobox', { name: 'City', exact: true }).boundingBox()
         const country = await page.getByRole('button', { name: /Country/ }).boundingBox()
         expect(Math.abs(city!.x - map!.x)).toBeLessThanOrEqual(2)
         expect(Math.abs(country!.x + country!.width - map!.x - map!.width)).toBeLessThanOrEqual(2)
       }
-      const cityField = page.getByRole('textbox', { name: 'City', exact: true })
+      const cityField = page.getByRole('combobox', { name: 'City', exact: true })
       await cityField.fill('map120 MÁ-D')
       await expect.poll(() => new URL(page.url()).searchParams.get(path === '/map' ? 'mapCity' : 'city')).toBe('map120 MÁ-D')
       await expect(cityField).toBeFocused()
+      await page.getByRole('combobox', { name: 'City', exact: true }).press('Escape')
       await page.getByRole('button', { name: /Country/ }).click()
       await page.getByRole('option', { name: /Spain/ }).click()
       await expect.poll(() => new URL(page.url()).searchParams.get(path === '/map' ? 'mapCountry' : 'country')).toBe('es')
@@ -290,7 +298,9 @@ for (const width of [390, 1440]) {
         await expect(page.getByRole('searchbox', { name: 'Search letter text' })).toHaveValue('letter 22')
       }
       await cityField.fill('')
+      await cityField.press('Escape')
       if (path === '/letters') await page.getByRole('searchbox', { name: 'Search letter text' }).fill('')
+      await page.getByRole('combobox', { name: 'City', exact: true }).press('Escape')
       await page.getByRole('button', { name: /Country/ }).click()
       await page.getByRole('option', { name: path === '/map' ? 'All' : 'All countries', exact: true }).click()
       await expect(cityField).toHaveValue('')
@@ -300,3 +310,61 @@ for (const width of [390, 1440]) {
     })
   }
 }
+
+for (const width of [390, 1440]) {
+  test(`keeps the homepage message button after filtering to one or zero letters at ${width}px`, async ({ page }) => {
+    const locality = `Map120Button${width}`
+    const [letter] = await sql`insert into app_private.messages (author_id, content, status, location_precision, location_algorithm_version, public_point, locality, country, country_code)
+      values (${authorId}, 'Single filtered homepage letter', 'approved', 'approximate', 1,
+        extensions.st_setsrid(extensions.st_makepoint(-3.7, 40.4), 4326)::extensions.geography, ${locality}, 'España', 'es') returning id`
+    try {
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto('/')
+      await page.getByRole('button', { name: 'Filters', exact: true }).click()
+      const input = page.getByRole('combobox', { name: 'City', exact: true })
+      await input.fill(locality)
+      await input.press('Escape')
+      const single = page.locator('.map__overlay').getByRole('button', { name: 'View 1 message', exact: true })
+      await expect(single).toBeVisible()
+      await single.click()
+      await expect(page.locator('#map-cluster-list')).toContainText('Single filtered homepage letter')
+      await page.getByRole('button', { name: 'Filters (1)', exact: true }).click()
+      await input.fill(`${locality}Missing`)
+      await input.press('Escape')
+      const empty = page.getByRole('button', { name: 'View 0 messages', exact: true })
+      await expect(empty).toBeVisible()
+      await empty.click()
+      await expect(page.locator('#map-cluster-list')).toContainText('No messages in this area.')
+    } finally {
+      await sql`delete from app_private.messages where id = ${letter.id}`
+    }
+  })
+}
+
+test('offers only public database countries and city autocomplete scoped to the country', async ({ page }) => {
+  await sql`insert into app_private.messages (author_id, content, status, moderation_reason_code, location_precision, location_algorithm_version, public_point, locality, country, country_code)
+    values (${authorId}, 'Seoul autocomplete fixture', 'approved', null, 'approximate', 1,
+      extensions.st_setsrid(extensions.st_makepoint(127, 37.5), 4326)::extensions.geography, 'Map120Seoul', 'Korea', 'kr'),
+      (${authorId}, 'Hidden Albania fixture', 'rejected', 'spam', 'approximate', 1,
+      extensions.st_setsrid(extensions.st_makepoint(19.8, 41.3), 4326)::extensions.geography, 'Map120Tirana', 'Albania', 'al')`
+  try {
+    for (const path of ['/map', '/letters']) {
+      await page.goto(path)
+      const input = page.getByRole('combobox', { name: 'City', exact: true })
+      await input.click()
+      await expect(page.getByRole('option', { name: 'Map120Seoul', exact: true })).toBeVisible()
+      await expect(page.getByRole('option', { name: 'Map120Tirana', exact: true })).toHaveCount(0)
+      await page.getByRole('combobox', { name: 'City', exact: true }).press('Escape')
+      await page.getByRole('button', { name: /Country/ }).click()
+      await expect(page.getByRole('option', { name: /Albania/ })).toHaveCount(0)
+      await page.getByRole('option', { name: /South Korea/ }).click()
+      await input.click()
+      await expect(page.getByRole('option')).toHaveCount(1)
+      await page.getByRole('option', { name: 'Map120Seoul', exact: true }).click()
+      await expect(input).toHaveValue('Map120Seoul')
+      await expect.poll(() => new URL(page.url()).searchParams.get(path === '/map' ? 'mapCity' : 'city')).toBe('Map120Seoul')
+    }
+  } finally {
+    await sql`delete from app_private.messages where author_id = ${authorId} and country_code in ('kr', 'al')`
+  }
+})

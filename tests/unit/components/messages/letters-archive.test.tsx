@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 import { afterEach, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { render } from '../../../support/intl'
 import { LettersArchive } from '@/components/messages/letters-archive'
 
@@ -43,4 +44,17 @@ it('keeps a long page range compact and allows jumping to the last page', () => 
   const { container } = render(<LettersArchive criteria={{ page: 5 }} countries={[]} page={{ items: [letter], page: 5, totalPages: 100 }} />)
   expect(screen.getByRole('link', { name: 'Page 100' })).toHaveAttribute('href', '/letters?page=100')
   expect(container.querySelectorAll('.letters-archive__pagination a').length).toBeLessThanOrEqual(9)
+})
+
+it('does not offer a URL country without public data and scopes autocomplete to live country changes', async () => {
+  render(<LettersArchive criteria={{ country: 'al' }} countries={['es', 'kr']} locations={[
+    { city: 'Madrid', country: 'es' }, { city: 'Seoul', country: 'kr' },
+  ]} page={{ items: [], page: 1, totalPages: 0 }} />)
+  fireEvent.click(screen.getByRole('button', { name: /Country/ }))
+  expect(await screen.findByRole('option', { name: '🇪🇸 Spain' })).toBeVisible()
+  expect(screen.queryByRole('option', { name: /Albania/ })).toBeNull()
+  fireEvent.click(screen.getByRole('option', { name: '🇪🇸 Spain' }))
+  await userEvent.setup().click(screen.getByRole('combobox', { name: 'City' }))
+  expect(await screen.findByRole('option', { name: 'Madrid' })).toBeVisible()
+  expect(screen.queryByRole('option', { name: 'Seoul' })).toBeNull()
 })
