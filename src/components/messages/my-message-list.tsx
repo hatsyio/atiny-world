@@ -11,6 +11,8 @@ import { useId, useState, useTransition } from 'react'
 
 import { LetterLink } from '@/components/navigation/letter-link'
 import { ownLetterOrigin } from '@/components/navigation/letter-origin'
+import { LetterShare } from './letter-share'
+import type { PublicAuthor } from '@/domain/messages/public-message'
 import type { OwnMessage } from '@/domain/messages/own-message'
 import { isModerationReasonCode } from '@/i18n/moderation-reasons'
 import { deleteMessageAction } from '@/app/(site)/my-messages/delete-action'
@@ -25,6 +27,7 @@ type Props = {
   cursor?: string
   messages: OwnMessageListItem[]
   accountSuspended?: boolean
+  shareContext?: {origin:string; author:PublicAuthor}
   onDelete?: (publicId: string, expectedVersion: number) => void | Promise<void>
 }
 
@@ -33,6 +36,7 @@ export function MyMessageList({
   cursor,
   messages,
   accountSuspended = false,
+  shareContext,
   onDelete,
 }: Props) {
   const queryClient = useQueryClient()
@@ -93,6 +97,7 @@ export function MyMessageList({
                 <div className="my-message-links">
                   <LetterLink className="my-message-view" publicId={item.publicId} origin={origin}>{t('view')}</LetterLink>
                   {publicVisible ? <Link className="my-message-map" href={`/?letter=${encodeURIComponent(item.publicId)}#map`}>{t('viewMap')}</Link> : null}
+                  {publicVisible && shareContext ? <LetterShare origin={shareContext.origin} message={{publicId:item.publicId, content:item.content, locality:item.locality ?? null, country:item.country ?? '', author:shareContext.author}} /> : null}
                   <button
                     className="my-message-delete"
                     type="button"

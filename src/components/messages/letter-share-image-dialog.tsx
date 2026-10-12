@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button, Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components'
-import type { PublicMessageDetail } from '@/domain/messages/public-message'
+import type { ShareLetter } from '@/domain/messages/letter-share'
 import { prepareLetterShare } from '@/domain/messages/letter-share'
 import { copyShareValue, LetterShareFeedback, wasShareCancelled, type ShareFeedback } from './letter-share-feedback'
 
-export function LetterShareImageDialog({message, origin, onClose}: {message:PublicMessageDetail; origin:string; onClose:() => void}) {
+export function LetterShareImageDialog({message, origin, onClose, initialFormat = 'story'}: {message:ShareLetter; origin:string; onClose:() => void; initialFormat?:'story' | 'square'}) {
   const t = useTranslations('Forms.share')
   const locale = useLocale()
-  const [format, setFormat] = useState<'story' | 'square'>('story')
+  const [format, setFormat] = useState<'story' | 'square'>(initialFormat)
   const [attempt, setAttempt] = useState(0)
   const [resource, setResource] = useState<{key:string; url:string; file:File} | null>(null)
   const [failedKey, setFailedKey] = useState<string | null>(null)

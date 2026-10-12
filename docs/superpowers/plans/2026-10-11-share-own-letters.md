@@ -64,7 +64,7 @@ expect(png.readUInt32BE(20)).toBe(1920)
 ## Task 3: Menú y vista previa
 
 **Files:** componentes nuevos en `src/components/messages/`, catálogos `src/i18n/messages/{es,en}/forms.json`, integración en `letter-detail.tsx`, estilos propios importados en `globals.css`.
-**Interfaces:** `<LetterShare message={PublicMessageDetail} origin={string} />`; elegibilidad explícita `shareOrigin?: string` en el detalle.
+**Interfaces:** `<LetterShare message={ShareLetter} origin={string} />`; elegibilidad explícita `shareOrigin?: string` en el detalle.
 
 - [x] Escribir pruebas de abrir/cerrar, destinos, copia con alternativa, descarga, fallo y reintento, cancelación del sistema y ausencia de APIs.
 
@@ -88,3 +88,13 @@ expect(await screen.findByRole('dialog', {name: 'Share your letter'})).toBeVisib
 - [x] Ejecutar lint, typecheck, suite unitaria y `pnpm test`; informar fallos de infraestructura si la BD de pruebas no está disponible.
 - [x] Inspeccionar PNG y vistas de escritorio/móvil; registrar evidencia y limitaciones de aplicaciones móviles no disponibles.
 - [x] Revisión independiente del diff completo, resolver hallazgos relevantes con regresiones, crear commits y abrir PR contra `main`. Sin merge.
+
+
+## Revisión del 12 de octubre de 2026
+
+- [x] Reutilizar el menú en Mis cartas con autor/origen de la sesión autorizada y visibilidad por fila.
+- [x] Eliminar LinkedIn y el botón de compartir la página general.
+- [x] Separar Instagram story/publicación y usar el formato elegido en el envío o vista previa.
+- [x] Preparar archivos antes del clic nativo; PNG+texto en X/Threads, archivo sin texto en Instagram; conservar compositores web/descarga.
+- [x] Dibujar pergamino con SVG determinista y recursos locales, conservando la geometría verificada.
+- [x] Añadir regresiones del listado, formatos y envío nativo; inspeccionar capturas; actualizar la misma PR.

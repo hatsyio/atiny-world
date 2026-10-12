@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 import satori from 'satori'
+import { letterParchment } from './letter-parchment'
 import type { Locale } from '@/i18n/locale'
 import type { PublicMessageDetail } from '@/domain/messages/public-message'
 import { letterExcerpt } from '@/domain/messages/letter-share'
@@ -75,7 +76,7 @@ export async function prepareLetterShareImage(message: PublicMessageDetail, form
   const textStyle = {display:'flex', fontFamily, lineHeight:1.45, whiteSpace:'pre-wrap', wordBreak:'break-word'} as const
   const element = (
     <div style={{display:'flex', boxSizing:'border-box', width:size.width, height:size.height, backgroundColor:'#102033', padding:`${marginY}px ${marginX}px`, fontFamily, color:'#2b1a12'}}>
-      <div id="letter-paper" style={{display:'flex', position:'relative', boxSizing:'border-box', width:innerWidth, height:innerHeight, backgroundColor:'#eed4a7', backgroundImage:'linear-gradient(125deg, #f6e4c3, #eed4a7 65%, #d9ac70)', border:'2px solid #c79a50', boxShadow:'0 12px 32px #050e1b80'}}>
+      <div id="letter-paper" style={{display:'flex', position:'relative', boxSizing:'border-box', width:innerWidth, height:innerHeight, backgroundColor:'transparent', backgroundImage:letterParchment(innerWidth, innerHeight), border:'2px solid transparent', boxShadow:'0 12px 32px #050e1b80'}}>
         <div id="letter-heading" style={{display:'flex', position:'absolute', left:padding, top:padding, width:textWidth, height:headerHeight, boxSizing:'border-box', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #9f784f'}}>
           <div style={{...textStyle, width:textWidth - 64, fontSize:og ? 20 : 27}}>{location.text}</div>
           <svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="18" fill="none" stroke="#6a3b20" strokeWidth="1"/><path d="M21 3 L25 17 L39 21 L25 25 L21 39 L17 25 L3 21 L17 17 Z" fill="#6a3b20"/></svg>

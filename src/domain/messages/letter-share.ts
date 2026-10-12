@@ -3,7 +3,7 @@ import type { Locale } from '@/i18n/locale'
 import type { PublicMessageDetail } from './public-message'
 
 export type ShareLetter = Pick<PublicMessageDetail, 'publicId' | 'content' | 'locality' | 'country' | 'author'>
-export type SocialDestination = 'threads' | 'x' | 'whatsapp' | 'telegram' | 'facebook' | 'linkedin' | 'pinterest'
+export type SocialDestination = 'threads' | 'x' | 'whatsapp' | 'telegram' | 'facebook' | 'pinterest'
 
 export function letterExcerpt(content: string, max: number, locale: Locale): string {
   const text = content.trim()
@@ -59,7 +59,6 @@ export function prepareLetterShare(message: ShareLetter, locale: Locale, origin:
       whatsapp: intent('https://wa.me/', { text: `${full}\n${url}` }),
       telegram: intent('https://t.me/share/url', { text: full, url }),
       facebook: intent('https://www.facebook.com/sharer/sharer.php', { u: url }),
-      linkedin: intent('https://www.linkedin.com/sharing/share-offsite/', { url }),
       pinterest: intent('https://www.pinterest.com/pin/create/button/', {
         url, description: full, media: new URL(`/api/messages/${encodeURIComponent(message.publicId)}/social-image?locale=${locale}`, base).toString(),
       }),

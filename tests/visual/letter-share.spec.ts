@@ -17,7 +17,7 @@ for (const width of [1440, 390]) {
     await page.keyboard.press('Escape')
     await expect(trigger).toBeFocused()
     await trigger.click()
-    await page.getByRole('button', {name:'Instagram / Crear imagen'}).click()
+    await page.getByRole('button', {name:'Instagram · Story'}).click()
     const dialog = page.getByRole('dialog', {name:'Tu carta, lista para viajar'})
     await expect(dialog).toBeVisible()
     const image = dialog.getByRole('img')
@@ -45,3 +45,18 @@ for (const width of [1440, 390]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
   })
 }
+
+
+test('sharing from the list keeps both Instagram destinations and hides removed options', async ({page}) => {
+  await page.setViewportSize({width:390, height:900})
+  await page.goto('/?variant=share-list')
+  await page.getByRole('button', {name:'Compartir', exact:true}).click()
+  await expect(page.getByRole('dialog', {name:'Comparte tu carta'})).toBeVisible()
+  await expect(page.getByRole('link', {name:'LinkedIn'})).toHaveCount(0)
+  await expect(page.getByRole('button', {name:'Copiar enlace de Atiny Atlas'})).toHaveCount(0)
+  await page.screenshot({path:test.info().outputPath('share-list-mobile.png')})
+  await page.getByRole('button', {name:'Instagram · Publicación'}).click()
+  const image = page.getByRole('img')
+  await expect(image).toBeVisible()
+  await expect.poll(() => image.evaluate((img:HTMLImageElement) => img.naturalHeight)).toBe(1080)
+})

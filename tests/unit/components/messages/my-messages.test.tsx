@@ -250,3 +250,14 @@ describe('MyMessageList limita los controles de una cuenta suspendida', () => {
     expect(item.getByRole('button', { name: 'Delete letter' })).toBeVisible()
   })
 })
+
+it('shares a public own letter directly from the list', () => {
+  render(<MyMessageList messages={[{...message({publicVisible:true}), locality:'Barcelona', country:'España'}]} shareContext={{origin:'https://atinyatlas.com', author:{publicId:'author', displayName:'Josep'}}} />)
+  fireEvent.click(screen.getByRole('button', {name:'Share'}))
+  expect(screen.getByRole('dialog', {name:'Share your letter'})).toBeVisible()
+  expect(screen.getByRole('link', {name:'Threads'})).toHaveAttribute('href', expect.stringContaining('msg-1'))
+})
+it.each([false, true])('does not share an unavailable or suspended own letter (suspended=%s)', accountSuspended => {
+  render(<MyMessageList messages={[message({publicVisible:accountSuspended})]} accountSuspended={accountSuspended} shareContext={{origin:'https://atinyatlas.com', author:{publicId:'author', displayName:'Josep'}}} />)
+  expect(screen.queryByRole('button', {name:'Share'})).toBeNull()
+})

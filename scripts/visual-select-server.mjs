@@ -22,6 +22,7 @@ await build({
     'next/link': resolve(stubs, 'link.tsx'),
     '@clerk/nextjs': resolve(stubs, 'navigation.ts'),
     '@/server/actions/language-preference': resolve(stubs, 'navigation.ts'),
+    '@/app/(site)/my-messages/delete-action': resolve(stubs, 'navigation.ts'),
     'posthog-js': resolve(stubs, 'analytics.ts'),
   },
 })

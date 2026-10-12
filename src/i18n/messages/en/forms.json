@@ -111,9 +111,7 @@
     "button": "Share",
     "title": "Share your letter",
     "intro": "Let your words travel a little further.",
-    "instagram": "Instagram / Create image",
     "copyLetter": "Copy letter link",
-    "copyApp": "Copy Atiny Atlas link",
     "more": "More options",
     "copied": "Link copied",
     "textCopied": "Text copied",
@@ -134,6 +132,11 @@
     "generating": "Creating your postcard…",
     "imageError": "Could not create the image. Check that your letter is still public and try again.",
     "retry": "Try again",
-    "nativeError": "Could not share. Try copying the link or downloading the image."
+    "nativeError": "Could not share. Try copying the link or downloading the image.",
+    "instagramStory": "Instagram story",
+    "instagramPost": "Instagram post",
+    "preparingImages": "Preparing images to share…",
+    "chooseNetwork": "Choose the network and Story or Post in your phone’s share menu.",
+    "imagesUnavailable": "Some images could not be prepared. Share the link or retry from the image preview."
   }
 }

@@ -8,18 +8,17 @@ El contenido compartido conserva la voz del autor: se utiliza un extracto litera
 
 ## Experiencia
 
-En el detalle de una carta propia y públicamente visible aparece «Compartir», junto a las acciones de la carta. En escritorio abre un desplegable; en móvil, un panel inferior. Ambos ofrecen:
+En el listado de Mis cartas y en el detalle de una carta propia y públicamente visible aparece «Compartir», junto a las acciones de la carta. En escritorio abre un desplegable; en móvil, un panel inferior. Ambos ofrecen:
 
 - Threads y X/Twitter.
-- WhatsApp, Telegram, Facebook, LinkedIn y Pinterest.
-- Instagram / Crear imagen.
+- WhatsApp, Telegram, Facebook y Pinterest.
+- Instagram · Story (9:16) e Instagram · Publicación (1:1).
 - Copiar enlace de la carta.
-- Copiar enlace de Atiny Atlas.
 - Más opciones, cuando el dispositivo admite compartir de forma nativa.
 
 Cada destino web usa su mecanismo de compartir documentado y verificado durante la implementación. No se muestran opciones que no tengan un recorrido funcional. «Más opciones» abre los destinos disponibles en el dispositivo; la aplicación no intenta enumerar todas las redes existentes.
 
-El botón solo aparece si la sesión corresponde al autor, la cuenta puede usar la aplicación y la carta cumple la consulta de visibilidad pública existente. El estado de moderación por sí solo no basta. Las cartas pendientes, rechazadas, ocultas o de cuentas suspendidas no ofrecen esta acción. Para compartir el enlace general se utiliza la opción dentro del menú de una carta elegible en esta primera versión.
+El botón solo aparece si la sesión corresponde al autor, la cuenta puede usar la aplicación y la carta cumple la consulta de visibilidad pública existente. El estado de moderación por sí solo no basta. Las cartas pendientes, rechazadas, ocultas o de cuentas suspendidas no ofrecen esta acción. No se ofrece compartir el enlace general de la aplicación.
 
 ## Texto y enlaces
 
@@ -34,18 +33,18 @@ El texto preparado sigue esta estructura, traduciendo únicamente la introducci�
 
 Si no hay localidad se muestra el país. Se prioriza terminar el extracto en una frase; si una primera frase es demasiado larga se corta entre palabras. Solo se añade elipsis cuando se omite contenido. El presupuesto de texto depende del destino e incluye introducción, llamada a leer y enlace; X requiere respetar su cómputo de caracteres y enlaces.
 
-Threads y X abren el compositor con el texto y el enlace preparados. El usuario revisa y publica en la red elegida. Otros destinos pueden admitir solo el enlace o construir su propia vista previa; la interfaz no promete conservar un texto que la plataforma no acepta.
+Sin soporte nativo de archivos, Threads y X abren el compositor con el texto y el enlace preparados. El usuario revisa y publica en la red elegida. Otros destinos pueden admitir solo el enlace o construir su propia vista previa; la interfaz no promete conservar un texto que la plataforma no acepta.
 
 Los enlaces apuntan a `/messages/{publicId}`, sin parámetros de retorno, navegación ni seguimiento. El origen se obtiene de la configuración canónica existente (`metadataBase` / `SITE_URL`). La copia confirma el resultado con «Enlace copiado»; si falla, muestra el enlace seleccionable.
 
 ## Imágenes para Instagram y otros destinos
 
-«Instagram / Crear imagen» abre una vista previa con dos formatos:
+Las dos acciones de Instagram preparan estos formatos:
 
 - Story: PNG de 1080 × 1920.
 - Publicación: PNG de 1080 × 1080.
 
-La composición incluye fondo de papel, tipografía coherente con la aplicación, inicio literal de la carta, firma del autor, localidad y país, fecha y marca discreta de Atiny Atlas. El extracto termina con «Continúa leyendo en Atiny Atlas» si falta contenido. Se reservan márgenes amplios en la story para que la interfaz de la red no tape el texto.
+La composición incluye un pergamino con bordes irregulares, fibras y desgaste suave en los márgenes, tipografía coherente con la aplicación, inicio literal de la carta, firma del autor, localidad y país, fecha y marca discreta de Atiny Atlas. El extracto termina con «Continúa leyendo en Atiny Atlas» si falta contenido. Se reservan márgenes amplios en la story para que la interfaz de la red no tape el texto.
 
 El texto se ajusta mediante medición real del espacio disponible; las cartas largas se recortan entre palabras y no reducen indefinidamente el tamaño de la letra. Se conserva el contenido Unicode y no se exportan caracteres cortados. Las dos dimensiones comparten la misma identidad visual.
 
@@ -67,7 +66,7 @@ La lectura para metadatos y la ruta de imagen pública utiliza exclusivamente `g
 - La ruta de exportación verifica sesión, autoría y visibilidad pública; recibe únicamente identificador, formato e idioma validados. No acepta HTML, contenido arbitrario ni direcciones remotas de imágenes o fuentes. La ruta Open Graph permite lectura pública del contenido ya visible.
 - Los textos de interfaz se añaden a los catálogos existentes en español e inglés. El texto original de la carta conserva su idioma.
 
-No se cambia el esquema de base de datos ni se conectan cuentas sociales. La primera versión no añade un botón a cada fila de «Mis cartas»: se llega al compartir abriendo la carta.
+No se cambia el esquema de base de datos ni se conectan cuentas sociales. El listado reutiliza el control de compartir y recibe del servidor el autor y el origen canónico; las filas no públicas y las cuentas suspendidas no lo muestran.
 
 ## Accesibilidad y errores
 
@@ -89,3 +88,14 @@ La generación muestra progreso, evita solicitudes duplicadas y permite reintent
 ## Fuera de alcance
 
 Compartir cartas ajenas desde la interfaz, publicación automática, conexión de cuentas sociales, contenido reescrito con IA, editor de plantillas, carruseles de la carta completa y métricas nuevas de viralidad.
+
+
+## Ajustes de revisión del 12 de octubre de 2026
+
+El usuario solicita compartir directamente desde el listado, retirar LinkedIn y la opción de compartir el enlace general, dos destinos de Instagram y un aspecto de pergamino gastado.
+
+En navegadores que admiten compartir archivos, abrir el menú prepara los PNG story y publicación. Las acciones esperan a que su archivo esté disponible: el clic llama a `navigator.share` inmediatamente, preservando la activación del usuario. Instagram recibe un archivo en el formato elegido; X y Threads reciben el PNG cuadrado y el texto con enlace, adaptado al presupuesto de X. No se copia texto silenciosamente al portapapeles.
+
+El menú nativo determina las aplicaciones disponibles y permite elegir Instagram y el destino story o publicación; una web no puede seleccionar ese destino por el usuario. En escritorio o sin soporte de archivos, Instagram abre la vista previa en el formato elegido y conserva descarga/copia. X y Threads abren su compositor web con texto y enlace, cuya imagen de vista previa usa el nuevo pergamino: dichos enlaces no adjuntan directamente un PNG.
+
+El fallo de generación permite usar los compositores web y reintentar mediante la vista previa. Cancelar el menú nativo no es un error ni provoca un segundo lanzamiento. Cada apertura prepara una nueva generación; cerrar aborta las solicitudes pendientes. La imagen pública sigue usando solo la lectura pública y la exportación sigue comprobando autoría y visibilidad.

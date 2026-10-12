@@ -111,9 +111,7 @@
     "button": "Compartir",
     "title": "Comparte tu carta",
     "intro": "Deja que tus palabras viajen un poco más.",
-    "instagram": "Instagram / Crear imagen",
     "copyLetter": "Copiar enlace de la carta",
-    "copyApp": "Copiar enlace de Atiny Atlas",
     "more": "Más opciones",
     "copied": "Enlace copiado",
     "textCopied": "Texto copiado",
@@ -134,6 +132,11 @@
     "generating": "Preparando tu postal…",
     "imageError": "No se ha podido crear la imagen. Comprueba que tu carta siga siendo pública e inténtalo de nuevo.",
     "retry": "Reintentar",
-    "nativeError": "No se ha podido compartir. Prueba a copiar el enlace o descargar la imagen."
+    "nativeError": "No se ha podido compartir. Prueba a copiar el enlace o descargar la imagen.",
+    "instagramStory": "Instagram · Story",
+    "instagramPost": "Instagram · Publicación",
+    "preparingImages": "Preparando las imágenes para compartir…",
+    "chooseNetwork": "Con la imagen preparada, elige la red y Story o Publicación en el menú del móvil.",
+    "imagesUnavailable": "No se han podido preparar todas las imágenes. Comparte el enlace o reintenta desde la vista previa."
   }
 }
