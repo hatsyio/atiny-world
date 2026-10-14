@@ -2,7 +2,13 @@ import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
 import { withPostHogConfig } from '@posthog/nextjs-config'
 
-const nextConfig: NextConfig = { agentRules: false }
+const nextConfig: NextConfig = {
+  agentRules: false,
+  outputFileTracingIncludes: {
+    '/api/messages/*/share-image': ['./src/assets/share-fonts/*'],
+    '/api/messages/*/social-image': ['./src/assets/share-fonts/*'],
+  },
+}
 const withIntl = createNextIntlPlugin('./src/i18n/request.ts')(nextConfig)
 
 // Only deployment builds upload maps. Local and CI builds work without secrets.

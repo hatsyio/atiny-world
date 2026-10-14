@@ -7,9 +7,10 @@ import type { PublicMessageDetail } from '@/domain/messages/public-message'
 import type { OwnMessage } from '@/domain/messages/own-message'
 import { LocationPicker } from '@/components/map/location-picker'
 import { EditMessageForm } from './edit-message-form'
+import { LetterShare } from './letter-share'
 import { LetterWorkspace } from './letter-workspace'
 
-export function LetterDetail({ message, ownMessage, canEdit = true }: { message: PublicMessageDetail; ownMessage?: OwnMessage; canEdit?: boolean }) {
+export function LetterDetail({ message, ownMessage, canEdit = true, shareOrigin }: { message: PublicMessageDetail; ownMessage?: OwnMessage; canEdit?: boolean; shareOrigin?: string }) {
   const [editing, setEditing] = useState(false)
   const router = useRouter()
   const t = useTranslations('Forms')
@@ -39,7 +40,7 @@ export function LetterDetail({ message, ownMessage, canEdit = true }: { message:
         </>
       } />
       <div className="letter-workspace__feedback" />
-      {ownMessage && canEdit ? <div className="profile-actions"><button className="profile-submit" type="button" onClick={() => setEditing(true)}>{t('own.edit')}</button></div> : null}
+      {ownMessage && canEdit ? <div className="profile-actions"><button className="profile-submit" type="button" onClick={() => setEditing(true)}>{t('own.edit')}</button>{shareOrigin ? <LetterShare message={message} origin={shareOrigin} /> : null}</div> : null}
     </div>
   )
 }

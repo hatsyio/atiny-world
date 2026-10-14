@@ -1,4 +1,5 @@
 import {getLocale, getTranslations} from 'next-intl/server'
+import { metadataBase } from '@/i18n/metadata-base'
 import { authRoute } from '@/server/auth/auth-destination'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -41,7 +42,7 @@ export default async function MyMessagesPage({
         <p className="auth-script">{t('script')}</p>
         <h1>{t('title')}</h1>
         <p className="profile-intro">{t('intro')}</p>
-        <MyMessageList cursor={cursor} messages={page.items} accountSuspended={gate.kind === 'suspended'} />
+        <MyMessageList cursor={cursor} messages={page.items} accountSuspended={gate.kind === 'suspended'} shareContext={gate.kind === 'allowed' ? {origin:metadataBase().origin, author:{publicId:gate.profile.publicId, displayName:gate.profile.displayName}} : undefined} />
         {page.nextCursor ? <Link className="profile-cancel" href={`/my-messages?cursor=${encodeURIComponent(page.nextCursor)}`}>{t('next')}</Link> : null}
       </div>
     </main>

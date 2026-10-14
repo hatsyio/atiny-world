@@ -9,7 +9,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 const state = vi.hoisted(() => ({ kind: 'allowed' }))
 vi.mock('@clerk/nextjs', () => ({ SignIn: () => null, SignUp: () => null }))
 vi.mock('@/server/auth/account-gate', () => ({
-  resolveAccountGate: async () => ({ kind: state.kind }),
+  resolveAccountGate: async () => ({ kind: state.kind, profile:{profileId:'profile', publicId:'author', displayName:'Josep', role:'fan'} }),
   writeLetterRedirect: () => null,
 }))
 vi.mock('@/server/auth/authorize', () => ({ authorizeSession: async () => ({ ok: false, error: { code: 'NOT_FOUND' } }) }))

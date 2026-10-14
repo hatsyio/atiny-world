@@ -1,3 +1,6 @@
+import { MyMessageList } from '@/components/messages/my-message-list'
+import { LetterShare } from '@/components/messages/letter-share'
+import { shareLetter } from './share-letter'
 import { MapQueryProvider } from '@/components/map/map-query-provider'
 import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -19,7 +22,11 @@ function Fixture() {
   const [filters, setFilters] = useState<MapFilterValues>({ city: '', country: '' })
   return <NextIntlClientProvider locale="es" messages={{ Settings, Navigation, Map, Forms }} timeZone="UTC">
     <MapQueryProvider><LanguagePreferenceProvider preference="auto">
-      {variant === 'location' ? <main className="letter-workspace">
+      {variant === 'share-list' ? <main className="auth-page"><div className="auth-panel my-messages-panel"><h1>Mis cartas</h1><MyMessageList messages={[{...shareLetter, version:1, status:'approved', publicVisible:true, moderationReasonCode:null, moderationNote:null}]} shareContext={{origin:'https://atinyatlas.com', author:shareLetter.author}} /></div></main> : variant === 'share' ? <main className="message-page"><div className="message-content letter-panel">
+        <h1>Una carta de ATINY</h1>
+        <article className="letter-reading"><p className="letter-reading__content">{shareLetter.content}</p><footer><p>Josep</p><time>11 de octubre de 2026</time></footer></article>
+        <div className="profile-actions"><LetterShare message={shareLetter} origin="https://atinyatlas.com" /></div>
+      </div></main> : variant === 'location' ? <main className="letter-workspace">
         <section className="letter-workspace__paper"><textarea defaultValue="Dear ATEEZ…" /></section>
         <section className="letter-workspace__properties"><LocationPicker onChange={() => {}} /></section>
       </main> : variant === 'header' ? <SiteHeader /> : <main className="fixture-panel">

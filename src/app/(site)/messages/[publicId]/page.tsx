@@ -1,5 +1,8 @@
 import {getLocale, getTranslations} from 'next-intl/server'
 import Link from 'next/link'
+import type { Metadata } from 'next'
+import { metadataBase } from '@/i18n/metadata-base'
+import { letterExcerpt } from '@/domain/messages/letter-share'
 
 import { letterDestination } from '@/components/navigation/letter-origin'
 
@@ -37,15 +40,26 @@ export default async function PublicMessagePage({ params, searchParams }: { para
       <div className="message-content letter-panel">
         <p className="auth-script">{t('script')}</p>
         <h1>{t('title')}</h1>
-        {message ? <LetterDetail message={message} ownMessage={ownMessage} canEdit={authorization.ok} /> : <PublicMessageCard message={null} />}
+        {message ? <LetterDetail message={message} ownMessage={ownMessage} canEdit={authorization.ok} shareOrigin={authorization.ok && ownMessage && publicMessage?.author.publicId === authorization.data.publicId ? metadataBase().origin : undefined} /> : <PublicMessageCard message={null} />}
         {publicMessage ? <Link className="letter-map-link" href={`/map?letter=${encodeURIComponent(publicMessage.publicId)}#map`}>{t('showMap')}</Link> : null}
       </div>
     </main>
   )
 }
 
-export async function generateMetadata({params}: {params: Promise<{publicId: string}>}) {
+export async function generateMetadata({params}: {params: Promise<{publicId: string}>}): Promise<Metadata> {
   const {publicId} = await params
   const t = await getTranslations('Pages.publicLetter')
-  return {title: t('title'), alternates: {canonical: `/messages/${encodeURIComponent(publicId)}`}}
+  const canonical = `/messages/${encodeURIComponent(publicId)}`
+  const message = await getVisibleMessage(getDb(), publicId)
+  if (!message) return {title: t('title'), alternates: {canonical}}
+  const locale = await getLocale()
+  const title = `${t('title')} — ${message.author.displayName}`
+  const description = letterExcerpt(message.content, 180, locale)
+  const image = new URL(`/api/messages/${encodeURIComponent(publicId)}/social-image?locale=${locale}`, metadataBase()).toString()
+  return {
+    title, description, alternates: {canonical},
+    openGraph: {title, description, url:new URL(canonical, metadataBase()).toString(), type:'article', siteName:'Atiny Atlas', images:[{url:image, width:1200, height:630, alt:title}]},
+    twitter: {card:'summary_large_image', title, description, images:[image]},
+  }
 }
