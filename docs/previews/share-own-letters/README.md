@@ -2,7 +2,7 @@
 
 Ruta de producto: **Mis cartas → Compartir** (también disponible en el detalle). El control aparece únicamente para el autor de una carta que siga visible públicamente.
 
-- Threads y X envían imagen y texto por el menú nativo en dispositivos compatibles; en otros navegadores abren su compositor con extracto/enlace e imagen de vista previa. El usuario revisa y publica en la plataforma.
+- Threads y X abren siempre su compositor específico con extracto/enlace e imagen de vista previa, tanto en móvil como en ordenador. El usuario revisa y publica en la plataforma.
 - WhatsApp, Telegram, Facebook, Pinterest reciben sus parámetros de compartir.
 - El menú copia el enlace de la carta; si el portapapeles falla, ofrece texto seleccionable.
 - Instagram ofrece Story y Publicación. En móviles compatibles, las imágenes se preparan al abrir el menú y el clic las envía al menú nativo. En otros navegadores, se abre la postal con el formato elegido para descargarla y copiar texto/enlace.
@@ -28,4 +28,4 @@ Probar los compositores externos con cuentas reales y compartir archivos en iOS/
 
 La postal utiliza pergamino con borde irregular, textura de fibras y desgaste en los márgenes. El navegador no puede elegir por el usuario la aplicación nativa ni forzar el editor de Stories o el feed de Instagram; el formato preparado se entrega al menú del móvil.
 
-En ordenador, X y Threads abren siempre su compositor en otra pestaña. Las dos opciones de Instagram abren su web y dejan preparado el PNG en la vista previa, con descarga y un enlace para volver a Instagram. Tener un menú nativo de compartir en el ordenador no sustituye estos enlaces por red.
+En ordenador, X y Threads abren siempre su compositor en otra pestaña. Las dos opciones de Instagram mantienen únicamente la pantalla de descarga del formato elegido; no abren Instagram ni el selector del sistema. El envío nativo del PNG a Instagram se conserva en móvil.

@@ -6,7 +6,7 @@ import { Button, Dialog, DialogTrigger, Heading, Popover } from 'react-aria-comp
 import type { ShareLetter } from '@/domain/messages/letter-share'
 import { prepareLetterShare, type SocialDestination } from '@/domain/messages/letter-share'
 import { copyShareValue, LetterShareFeedback, wasShareCancelled, type ShareFeedback } from './letter-share-feedback'
-import { isMobileShareDevice, supportsMobileFileSharing } from './letter-share-device'
+import { supportsMobileFileSharing } from './letter-share-device'
 import { useLetterShareFiles, type LetterImageFormat } from './use-letter-share-files'
 import { LetterShareImageDialog } from './letter-share-image-dialog'
 
@@ -31,7 +31,6 @@ export function LetterShare({message, origin}: {message:ShareLetter; origin:stri
   const [feedback, setFeedback] = useState<ShareFeedback>(null)
   const trigger = useRef<HTMLButtonElement>(null)
   const canShare = useSyncExternalStore(subscribe, nativeSupported, serverSupported)
-  const mobileDevice = useSyncExternalStore(subscribe, isMobileShareDevice, serverSupported)
   const canShareFiles = useSyncExternalStore(subscribe, supportsMobileFileSharing, serverSupported)
   const {files, loading} = useLetterShareFiles(message.publicId, locale, open && canShareFiles, generation)
   const share = prepareLetterShare(message, locale, origin)
@@ -41,11 +40,10 @@ export function LetterShare({message, origin}: {message:ShareLetter; origin:stri
     try { await navigator.share({title:t('title'), text:share.text}) }
     catch (error) { if (!wasShareCancelled(error)) setFeedback({kind:'error', message:t('nativeError')}) }
   }
-  async function sendImage(format:LetterImageFormat, destination?:'x' | 'threads') {
+  async function sendImage(format:LetterImageFormat) {
     const file = files[format]
     if (!file) {setOpen(false); setImageFormat(format); return}
-    const text = destination === 'x' ? `${new URL(share.destinations.x).searchParams.get('text')}\n${share.url}` : share.text
-    const data = destination ? {files:[file], text} : {files:[file]}
+    const data = {files:[file]}
     if (!navigator.canShare?.(data)) {setOpen(false); setImageFormat(format); return}
     setSending(true)
     setFeedback(null)
@@ -73,15 +71,11 @@ export function LetterShare({message, origin}: {message:ShareLetter; origin:stri
           <header className="letter-share-menu-header"><Heading slot="title">{t('title')}</Heading><Button className="letter-share-close" aria-label={t('close')} onPress={() => setOpen(false)}>×</Button></header>
           <p className="letter-share-menu-intro">{t('intro')}</p>
           <div className="letter-share-socials">
-            {socials.map(social => canShareFiles && (social.id === 'x' || social.id === 'threads') && (files.square || loading)
-              ? <Button key={social.id} isDisabled={(!files.square && loading) || sending} onPress={() => {void sendImage('square', social.id as 'x' | 'threads')}}><span className="letter-share-social-mark" aria-hidden="true">{social.mark}</span><span>{social.label}</span></Button>
-              : <a key={social.id} href={share.destinations[social.id]} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}><span className="letter-share-social-mark" aria-hidden="true">{social.mark}</span><span>{social.label}</span></a>)}
+            {socials.map(social => <a key={social.id} href={share.destinations[social.id]} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}><span className="letter-share-social-mark" aria-hidden="true">{social.mark}</span><span>{social.label}</span></a>)}
             {(['story', 'square'] as const).map(format => {
               const label = t(format === 'story' ? 'instagramStory' : 'instagramPost')
               const content = <><span className="letter-share-social-mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx={format === 'story' ? 5 : 2}/><circle cx="12" cy="12" r="4"/></svg></span><span>{label}</span></>
-              return mobileDevice
-                ? <Button key={format} isDisabled={(!files[format] && loading) || sending} onPress={() => instagram(format)}>{content}</Button>
-                : <a key={format} href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" onClick={() => {setOpen(false); setImageFormat(format)}}>{content}</a>
+              return <Button key={format} isDisabled={(!files[format] && loading) || sending} onPress={() => instagram(format)}>{content}</Button>
             })}
           </div>
           <div className="letter-share-menu-actions">

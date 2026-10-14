@@ -95,6 +95,8 @@ expect(await screen.findByRole('dialog', {name: 'Share your letter'})).toBeVisib
 - [x] Reutilizar el menú en Mis cartas con autor/origen de la sesión autorizada y visibilidad por fila.
 - [x] Eliminar LinkedIn y el botón de compartir la página general.
 - [x] Separar Instagram story/publicación y usar el formato elegido en el envío o vista previa.
-- [x] Preparar archivos antes del clic nativo; PNG+texto en X/Threads, archivo sin texto en Instagram; conservar compositores web/descarga.
+- [x] Preparar archivos antes del clic nativo para Instagram; X/Threads abren siempre sus compositores con texto/enlace; conservar descarga.
 - [x] Dibujar pergamino con SVG determinista y recursos locales, conservando la geometría verificada.
 - [x] Añadir regresiones del listado, formatos y envío nativo; inspeccionar capturas; actualizar la misma PR.
+
+- [x] Tras la prueba real de Android, retirar el selector genérico de X/Threads y conservarlo para Instagram móvil. Instagram en escritorio queda únicamente en la pantalla de descarga del formato elegido, sin pestañas ni selector nativo.

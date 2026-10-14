@@ -47,7 +47,7 @@ export function LetterShareImageDialog({message, origin, onClose, initialFormat 
   }, [message.publicId, format, locale, attempt])
 
   let canShareFile = false
-  try { canShareFile = Boolean(ready && typeof navigator.share === 'function' && navigator.canShare?.({files:[ready.file]})) } catch { /* Keep download available. */ }
+  try { canShareFile = Boolean(mobileDevice && ready && typeof navigator.share === 'function' && navigator.canShare?.({files:[ready.file]})) } catch { /* Keep download available. */ }
   async function shareImage() {
     if (!ready || sharing) return
     setSharing(true)
@@ -76,7 +76,7 @@ export function LetterShareImageDialog({message, origin, onClose, initialFormat 
             </div>
             <p className="letter-share-image-hint">{t(mobileDevice ? 'instagramHint' : 'instagramDesktopHint')}</p>
             {ready ? <a className="letter-share-primary" href={ready.url} download={ready.file.name}>{t('download')}</a> : <Button className="letter-share-primary" isDisabled>{t('download')}</Button>}
-            <a className="letter-share-secondary" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">{t('openInstagram')}</a>
+            {mobileDevice ? <a className="letter-share-secondary" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">{t('openInstagram')}</a> : null}
             {canShareFile ? <Button className="letter-share-secondary" isDisabled={sharing} onPress={() => {void shareImage()}}>{t('shareImage')}</Button> : null}
             <label className="letter-share-caption">{t('preparedText')}<textarea readOnly value={share.text} onFocus={event => event.currentTarget.select()} /></label>
             <div className="letter-share-copy-actions">

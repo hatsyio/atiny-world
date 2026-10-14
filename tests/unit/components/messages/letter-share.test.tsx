@@ -93,7 +93,7 @@ it('opens the Instagram post action with a square image', async () => {
   expect(fetch).toHaveBeenCalledWith(expect.stringContaining('format=square&locale=en'), expect.anything())
 })
 
-it.each([['Instagram story','story'], ['Instagram post','square'], ['X / Twitter','square'], ['Threads','square']] as const)('hands %s directly to the native menu with its prepared image', async (label, format) => {
+it.each([['Instagram story','story'], ['Instagram post','square']] as const)('hands %s directly to the native menu with its prepared image', async (label, format) => {
   const native = vi.fn().mockResolvedValue(undefined)
   Object.defineProperty(navigator, 'share', {configurable:true, value:native})
   Object.defineProperty(navigator, 'canShare', {configurable:true, value:() => true})
@@ -102,8 +102,7 @@ it.each([['Instagram story','story'], ['Instagram post','square'], ['X / Twitter
   await waitFor(() => expect(action).toBeEnabled())
   fireEvent.click(action)
   await waitFor(() => expect(native).toHaveBeenCalledWith(expect.objectContaining({files:[expect.objectContaining({name:expect.stringContaining(`${format}.png`)})]})))
-  if (label === 'Threads' || label === 'X / Twitter') expect(native.mock.calls[0][0].text).toContain('Read my full letter')
-  else expect(native.mock.calls[0][0].text).toBeUndefined()
+  expect(native.mock.calls[0][0].text).toBeUndefined()
 })
 
 it('falls back to text links and explains a failed native image preparation', async () => {
@@ -125,21 +124,40 @@ it.each(['Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0)', 'Mozilla/5.0 (Windows N
   expect(screen.getByRole('link', {name:'X / Twitter'})).toHaveAttribute('href', expect.stringContaining('intent/tweet'))
   expect(screen.getByRole('link', {name:'Threads'})).toHaveAttribute('href', expect.stringContaining('intent/post'))
   for (const name of ['Instagram story', 'Instagram post']) {
-    const link = screen.getByRole('link', {name})
-    expect(link).toHaveAttribute('href', 'https://www.instagram.com/')
-    expect(link).toHaveAttribute('target', '_blank')
+    expect(screen.getByRole('button', {name})).toBeEnabled()
+    expect(screen.queryByRole('link', {name})).toBeNull()
   }
   expect(fetch).not.toHaveBeenCalled()
 })
 
-it('keeps native PNG sharing on Android tablets whose mobile hint is false', async () => {
-  vi.mocked(Object.getOwnPropertyDescriptor(navigator, 'userAgent')!.get!).mockReturnValue('Mozilla/5.0 (Linux; Android 14; Tablet)')
-  Object.defineProperty(navigator, 'userAgentData', {configurable:true, value:{mobile:false, platform:'Android'}})
+it.each([
+  ['Android phone', 'Mozilla/5.0 (Linux; Android 14; Mobile)', true],
+  ['Android tablet', 'Mozilla/5.0 (Linux; Android 14; Tablet)', false],
+  ['iPhone', 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', true],
+] as const)('opens targeted X and Threads composers on %s instead of the system share sheet', async (_device, userAgent, mobile) => {
+  vi.mocked(Object.getOwnPropertyDescriptor(navigator, 'userAgent')!.get!).mockReturnValue(userAgent)
+  Object.defineProperty(navigator, 'userAgentData', {configurable:true, value:{mobile, platform:_device === 'iPhone' ? 'iOS' : 'Android'}})
   Object.defineProperty(navigator, 'share', {configurable:true, value:vi.fn().mockResolvedValue(undefined)})
   Object.defineProperty(navigator, 'canShare', {configurable:true, value:() => true})
   await open()
-  const action = screen.getByRole('button', {name:'Threads'})
-  await waitFor(() => expect(action).toBeEnabled())
-  fireEvent.click(action)
-  await waitFor(() => expect(navigator.share).toHaveBeenCalledWith(expect.objectContaining({files:[expect.any(File)]})))
+  for (const [name, path] of [['X / Twitter','intent/tweet'], ['Threads','intent/post']] as const) {
+    const link = screen.getByRole('link', {name})
+    expect(link).toHaveAttribute('href', expect.stringContaining(path))
+    expect(link).toHaveAttribute('target', '_blank')
+    const url = new URL(link.getAttribute('href')!)
+    expect(url.searchParams.get('text')).toContain('Read my full letter')
+    expect(url.searchParams.get('url')).toContain(message.publicId)
+  }
+  expect(navigator.share).not.toHaveBeenCalled()
+})
+
+it.each([['Instagram story','story'], ['Instagram post','square']] as const)('keeps desktop %s on the image download screen without an Instagram link', async (label, format) => {
+  vi.mocked(Object.getOwnPropertyDescriptor(navigator, 'userAgent')!.get!).mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0)')
+  Object.defineProperty(navigator, 'share', {configurable:true, value:vi.fn()})
+  Object.defineProperty(navigator, 'canShare', {configurable:true, value:() => true})
+  await open()
+  fireEvent.click(screen.getByRole('button', {name:label}))
+  expect(await screen.findByRole('link', {name:'Download image'})).toHaveAttribute('download', expect.stringContaining(`${format}.png`))
+  expect(screen.queryByRole('link', {name:'Open Instagram'})).toBeNull()
+  expect(screen.queryByRole('button', {name:'Share image'})).toBeNull()
 })

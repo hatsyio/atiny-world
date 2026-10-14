@@ -33,7 +33,7 @@ El texto preparado sigue esta estructura, traduciendo únicamente la introducci�
 
 Si no hay localidad se muestra el país. Se prioriza terminar el extracto en una frase; si una primera frase es demasiado larga se corta entre palabras. Solo se añade elipsis cuando se omite contenido. El presupuesto de texto depende del destino e incluye introducción, llamada a leer y enlace; X requiere respetar su cómputo de caracteres y enlaces.
 
-Sin soporte nativo de archivos, Threads y X abren el compositor con el texto y el enlace preparados. El usuario revisa y publica en la red elegida. Otros destinos pueden admitir solo el enlace o construir su propia vista previa; la interfaz no promete conservar un texto que la plataforma no acepta.
+Threads y X abren siempre el compositor con el texto y el enlace preparados. El usuario revisa y publica en la red elegida. Otros destinos pueden admitir solo el enlace o construir su propia vista previa; la interfaz no promete conservar un texto que la plataforma no acepta.
 
 Los enlaces apuntan a `/messages/{publicId}`, sin parámetros de retorno, navegación ni seguimiento. El origen se obtiene de la configuración canónica existente (`metadataBase` / `SITE_URL`). La copia confirma el resultado con «Enlace copiado»; si falla, muestra el enlace seleccionable.
 
@@ -48,7 +48,7 @@ La composición incluye un pergamino con bordes irregulares, fibras y desgaste s
 
 El texto se ajusta mediante medición real del espacio disponible; las cartas largas se recortan entre palabras y no reducen indefinidamente el tamaño de la letra. Se conserva el contenido Unicode y no se exportan caracteres cortados. Las dos dimensiones comparten la misma identidad visual.
 
-La vista previa permite descargar la imagen, copiar el texto preparado y copiar el enlace de la carta. En dispositivos compatibles también permite compartir el archivo con el menú nativo. Instagram puede aparecer como destino, pero no se garantiza abrir directamente su editor de stories ni rellenar su pie de foto. Se indica que el enlace de una story se añade con la herramienta de enlaces de Instagram: el texto incluido en un PNG no es clicable.
+La vista previa permite descargar la imagen, copiar el texto preparado y copiar el enlace de la carta. En móviles y tablets compatibles también permite compartir el archivo con el menú nativo. Instagram puede aparecer como destino, pero no se garantiza abrir directamente su editor de stories ni rellenar su pie de foto. Se indica que el enlace de una story se añade con la herramienta de enlaces de Instagram: el texto incluido en un PNG no es clicable.
 
 ## Vista previa al pegar el enlace
 
@@ -94,17 +94,19 @@ Compartir cartas ajenas desde la interfaz, publicación automática, conexión d
 
 El usuario solicita compartir directamente desde el listado, retirar LinkedIn y la opción de compartir el enlace general, dos destinos de Instagram y un aspecto de pergamino gastado.
 
-En navegadores que admiten compartir archivos, abrir el menú prepara los PNG story y publicación. Las acciones esperan a que su archivo esté disponible: el clic llama a `navigator.share` inmediatamente, preservando la activación del usuario. Instagram recibe un archivo en el formato elegido; X y Threads reciben el PNG cuadrado y el texto con enlace, adaptado al presupuesto de X. No se copia texto silenciosamente al portapapeles.
+En móviles y tablets que admiten compartir archivos, abrir el menú prepara los PNG story y publicación. Las acciones de Instagram esperan a que su archivo esté disponible: el clic llama a `navigator.share` inmediatamente, preservando la activación del usuario. Instagram recibe un archivo en el formato elegido. X y Threads utilizan sus enlaces específicos con texto y enlace; el botón de una red concreta no abre el selector general. No se copia texto silenciosamente al portapapeles.
 
-El menú nativo determina las aplicaciones disponibles y permite elegir Instagram y el destino story o publicación; una web no puede seleccionar ese destino por el usuario. En escritorio o sin soporte de archivos, Instagram abre la vista previa en el formato elegido y conserva descarga/copia. X y Threads abren su compositor web con texto y enlace, cuya imagen de vista previa usa el nuevo pergamino: dichos enlaces no adjuntan directamente un PNG.
+El menú nativo determina las aplicaciones disponibles y permite elegir Instagram y el destino story o publicación; una web no puede seleccionar ese destino por el usuario. En escritorio o sin soporte de archivos, Instagram abre la vista previa en el formato elegido y conserva descarga/copia. En escritorio no se abre Instagram ni se ofrecen botones para lanzar su web o el selector nativo desde esa vista previa. X y Threads abren siempre su compositor con texto y enlace, cuya imagen de vista previa usa el nuevo pergamino: dichos enlaces no adjuntan directamente un PNG.
 
 El fallo de generación permite usar los compositores web y reintentar mediante la vista previa. Cancelar el menú nativo no es un error ni provoca un segundo lanzamiento. Cada apertura prepara una nueva generación; cerrar aborta las solicitudes pendientes. La imagen pública sigue usando solo la lectura pública y la exportación sigue comprobando autoría y visibilidad.
 
 
 ## Corrección de escritorio del 14 de octubre de 2026
 
-La existencia de `navigator.share` no decide el destino: algunos ordenadores también ofrecen esa API. Las acciones de X/Threads usan siempre enlaces a sus compositores en escritorio. Las dos acciones de Instagram abren su web en otra pestaña y conservan la vista previa del PNG con el formato elegido, descarga y enlace «Abrir Instagram». Se indica que la imagen se añade manualmente al publicar.
+La existencia de `navigator.share` no decide el destino: algunos ordenadores también ofrecen esa API. Las acciones de X/Threads usan siempre enlaces a sus compositores, en móvil y escritorio. Las dos acciones de Instagram en escritorio abren únicamente la vista previa del PNG con el formato elegido, descarga y copia. No se abre su web automáticamente ni se ofrece un botón «Abrir Instagram» en escritorio.
 
-El envío automático al menú nativo queda para móviles y tablets compatibles; se distingue el dispositivo antes de comprobar soporte de archivos. Los client hints con `mobile: false` no excluyen tablets Android. «Más opciones» y el envío explícito de una imagen desde la vista previa pueden seguir usando el menú del sistema en un ordenador.
+El envío automático al menú nativo queda para móviles y tablets compatibles; se distingue el dispositivo antes de comprobar soporte de archivos. Los client hints con `mobile: false` no excluyen tablets Android. «Más opciones» puede seguir usando el menú del sistema en un ordenador. Compartir una imagen desde la vista previa se mantiene solo en dispositivos móviles compatibles.
 
 Pruebas de regresión verifican Mac/Windows con API nativa disponible, tablets Android, y aperturas reales de pestañas para las redes sin publicar contenido externo.
+
+La captura real de Android aportada por el usuario confirma que el selector nativo no dirige el contenido a X ni a Threads. Se retira esa ruta para dichos botones y se mantienen los compositores específicos. Las pruebas verifican esta separación incluso con soporte nativo de archivos y conservan la descarga de Instagram sin pestañas en escritorio.
