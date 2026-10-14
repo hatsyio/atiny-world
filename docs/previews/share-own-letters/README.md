@@ -27,3 +27,5 @@ Se ha revisado el diff de forma independiente y corregido el cómputo de enlaces
 Probar los compositores externos con cuentas reales y compartir archivos en iOS/Android con Instagram instalado. El entorno local permite verificar los parámetros, las APIs del navegador y el recorrido de descarga, pero no la recepción por aplicaciones móviles físicas. Instagram no recibe una publicación automática: el enlace de una story se añade con su sticker de enlace.
 
 La postal utiliza pergamino con borde irregular, textura de fibras y desgaste en los márgenes. El navegador no puede elegir por el usuario la aplicación nativa ni forzar el editor de Stories o el feed de Instagram; el formato preparado se entrega al menú del móvil.
+
+En ordenador, X y Threads abren siempre su compositor en otra pestaña. Las dos opciones de Instagram abren su web y dejan preparado el PNG en la vista previa, con descarga y un enlace para volver a Instagram. Tener un menú nativo de compartir en el ordenador no sustituye estos enlaces por red.

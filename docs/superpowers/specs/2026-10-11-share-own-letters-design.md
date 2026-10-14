@@ -99,3 +99,12 @@ En navegadores que admiten compartir archivos, abrir el menú prepara los PNG st
 El menú nativo determina las aplicaciones disponibles y permite elegir Instagram y el destino story o publicación; una web no puede seleccionar ese destino por el usuario. En escritorio o sin soporte de archivos, Instagram abre la vista previa en el formato elegido y conserva descarga/copia. X y Threads abren su compositor web con texto y enlace, cuya imagen de vista previa usa el nuevo pergamino: dichos enlaces no adjuntan directamente un PNG.
 
 El fallo de generación permite usar los compositores web y reintentar mediante la vista previa. Cancelar el menú nativo no es un error ni provoca un segundo lanzamiento. Cada apertura prepara una nueva generación; cerrar aborta las solicitudes pendientes. La imagen pública sigue usando solo la lectura pública y la exportación sigue comprobando autoría y visibilidad.
+
+
+## Corrección de escritorio del 14 de octubre de 2026
+
+La existencia de `navigator.share` no decide el destino: algunos ordenadores también ofrecen esa API. Las acciones de X/Threads usan siempre enlaces a sus compositores en escritorio. Las dos acciones de Instagram abren su web en otra pestaña y conservan la vista previa del PNG con el formato elegido, descarga y enlace «Abrir Instagram». Se indica que la imagen se añade manualmente al publicar.
+
+El envío automático al menú nativo queda para móviles y tablets compatibles; se distingue el dispositivo antes de comprobar soporte de archivos. Los client hints con `mobile: false` no excluyen tablets Android. «Más opciones» y el envío explícito de una imagen desde la vista previa pueden seguir usando el menú del sistema en un ordenador.
+
+Pruebas de regresión verifican Mac/Windows con API nativa disponible, tablets Android, y aperturas reales de pestañas para las redes sin publicar contenido externo.

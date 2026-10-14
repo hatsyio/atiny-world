@@ -137,6 +137,8 @@
     "instagramPost": "Instagram · Publicación",
     "preparingImages": "Preparando las imágenes para compartir…",
     "chooseNetwork": "Con la imagen preparada, elige la red y Story o Publicación en el menú del móvil.",
-    "imagesUnavailable": "No se han podido preparar todas las imágenes. Comparte el enlace o reintenta desde la vista previa."
+    "imagesUnavailable": "No se han podido preparar todas las imágenes. Comparte el enlace o reintenta desde la vista previa.",
+    "openInstagram": "Abrir Instagram",
+    "instagramDesktopHint": "Instagram se abre en otra pestaña. Descarga la imagen y añádela a tu publicación. Para una story, utiliza la app de Instagram en el móvil."
   }
 }

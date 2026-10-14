@@ -9,8 +9,10 @@ const message = {
 }
 const clipboard = vi.fn()
 beforeEach(() => {
+  vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)')
   vi.stubGlobal('fetch', vi.fn(async () => new Response(new Blob(['png'], {type:'image/png'}))))
   Object.defineProperty(navigator, 'clipboard', {configurable:true, value:{writeText:clipboard.mockResolvedValue(undefined)}})
+  Object.defineProperty(navigator, 'userAgentData', {configurable:true, value:undefined})
   Object.defineProperty(navigator, 'share', {configurable:true, value:undefined})
   Object.defineProperty(navigator, 'canShare', {configurable:true, value:undefined})
   vi.stubGlobal('URL', Object.assign(URL, {createObjectURL:vi.fn(() => 'blob:test-letter'), revokeObjectURL:vi.fn()}))
@@ -112,4 +114,32 @@ it('falls back to text links and explains a failed native image preparation', as
   expect(await screen.findByText('Some images could not be prepared. Share the link or retry from the image preview.')).toBeVisible()
   expect(screen.getByRole('link', {name:'X / Twitter'})).toHaveAttribute('href', expect.stringContaining('intent/tweet'))
   expect(screen.getByRole('button', {name:'Instagram story'})).toBeEnabled()
+})
+
+
+it.each(['Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0)', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'])('keeps desktop composers even when native file sharing exists: %s', async userAgent => {
+  vi.mocked(Object.getOwnPropertyDescriptor(navigator, 'userAgent')!.get!).mockReturnValue(userAgent)
+  Object.defineProperty(navigator, 'share', {configurable:true, value:vi.fn()})
+  Object.defineProperty(navigator, 'canShare', {configurable:true, value:() => true})
+  await open()
+  expect(screen.getByRole('link', {name:'X / Twitter'})).toHaveAttribute('href', expect.stringContaining('intent/tweet'))
+  expect(screen.getByRole('link', {name:'Threads'})).toHaveAttribute('href', expect.stringContaining('intent/post'))
+  for (const name of ['Instagram story', 'Instagram post']) {
+    const link = screen.getByRole('link', {name})
+    expect(link).toHaveAttribute('href', 'https://www.instagram.com/')
+    expect(link).toHaveAttribute('target', '_blank')
+  }
+  expect(fetch).not.toHaveBeenCalled()
+})
+
+it('keeps native PNG sharing on Android tablets whose mobile hint is false', async () => {
+  vi.mocked(Object.getOwnPropertyDescriptor(navigator, 'userAgent')!.get!).mockReturnValue('Mozilla/5.0 (Linux; Android 14; Tablet)')
+  Object.defineProperty(navigator, 'userAgentData', {configurable:true, value:{mobile:false, platform:'Android'}})
+  Object.defineProperty(navigator, 'share', {configurable:true, value:vi.fn().mockResolvedValue(undefined)})
+  Object.defineProperty(navigator, 'canShare', {configurable:true, value:() => true})
+  await open()
+  const action = screen.getByRole('button', {name:'Threads'})
+  await waitFor(() => expect(action).toBeEnabled())
+  fireEvent.click(action)
+  await waitFor(() => expect(navigator.share).toHaveBeenCalledWith(expect.objectContaining({files:[expect.any(File)]})))
 })

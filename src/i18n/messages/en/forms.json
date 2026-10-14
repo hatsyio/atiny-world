@@ -137,6 +137,8 @@
     "instagramPost": "Instagram post",
     "preparingImages": "Preparing images to share…",
     "chooseNetwork": "Choose the network and Story or Post in your phone’s share menu.",
-    "imagesUnavailable": "Some images could not be prepared. Share the link or retry from the image preview."
+    "imagesUnavailable": "Some images could not be prepared. Share the link or retry from the image preview.",
+    "openInstagram": "Open Instagram",
+    "instagramDesktopHint": "Instagram opens in another tab. Download the image and add it to your post. For a story, use the Instagram app on your phone."
   }
 }

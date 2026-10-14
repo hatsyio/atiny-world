@@ -1,16 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button, Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components'
 import type { ShareLetter } from '@/domain/messages/letter-share'
 import { prepareLetterShare } from '@/domain/messages/letter-share'
+import { isMobileShareDevice } from './letter-share-device'
 import { copyShareValue, LetterShareFeedback, wasShareCancelled, type ShareFeedback } from './letter-share-feedback'
+
+const subscribe = () => () => {}
+const serverMobile = () => false
 
 export function LetterShareImageDialog({message, origin, onClose, initialFormat = 'story'}: {message:ShareLetter; origin:string; onClose:() => void; initialFormat?:'story' | 'square'}) {
   const t = useTranslations('Forms.share')
   const locale = useLocale()
+  const mobileDevice = useSyncExternalStore(subscribe, isMobileShareDevice, serverMobile)
   const [format, setFormat] = useState<'story' | 'square'>(initialFormat)
   const [attempt, setAttempt] = useState(0)
   const [resource, setResource] = useState<{key:string; url:string; file:File} | null>(null)
@@ -69,8 +74,9 @@ export function LetterShareImageDialog({message, origin, onClose, initialFormat 
               <Button aria-pressed={format === 'story'} onPress={() => setFormat('story')}>{t('story')}</Button>
               <Button aria-pressed={format === 'square'} onPress={() => setFormat('square')}>{t('square')}</Button>
             </div>
-            <p className="letter-share-image-hint">{t('instagramHint')}</p>
+            <p className="letter-share-image-hint">{t(mobileDevice ? 'instagramHint' : 'instagramDesktopHint')}</p>
             {ready ? <a className="letter-share-primary" href={ready.url} download={ready.file.name}>{t('download')}</a> : <Button className="letter-share-primary" isDisabled>{t('download')}</Button>}
+            <a className="letter-share-secondary" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">{t('openInstagram')}</a>
             {canShareFile ? <Button className="letter-share-secondary" isDisabled={sharing} onPress={() => {void shareImage()}}>{t('shareImage')}</Button> : null}
             <label className="letter-share-caption">{t('preparedText')}<textarea readOnly value={share.text} onFocus={event => event.currentTarget.select()} /></label>
             <div className="letter-share-copy-actions">
