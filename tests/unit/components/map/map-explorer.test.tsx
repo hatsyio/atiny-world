@@ -165,3 +165,23 @@ it('restores a clean map when external navigation returns to a previously observ
   expect(screen.getByRole('combobox', { name: 'City' })).toHaveValue('')
   expect(screen.getByLabelText('Initial view')).toHaveTextContent('"zoom":2')
 })
+
+it('keeps matching pins while a city filter loads and removes nonmatching pins immediately', async () => {
+  let resolveCity!: (response: Response) => void
+  vi.stubGlobal('fetch', vi.fn((url: string) => {
+    if (url.startsWith('/api/map/features')) {
+      if (url.includes('city=M%C3%81-D')) return new Promise<Response>(done => { resolveCity = done })
+      return Promise.resolve(Response.json({ features: [message, { ...message, publicId: 'barcelona', locality: 'Barcelona' }] }))
+    }
+    return Promise.resolve(Response.json(url === '/api/map/filter-options' ? { locations: [{ country: 'es', city: 'Madrid' }] } : { items: [], nextCursor: null }))
+  }))
+  render(<MapExplorer />)
+  fireEvent.click(screen.getByRole('button', { name: 'Move map' }))
+  await waitFor(() => expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-1,barcelona'))
+  fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'MÁ-D' } })
+  await waitFor(() => expect(resolveCity).toBeTypeOf('function'))
+  expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-1')
+  expect(screen.getByLabelText('Markers')).not.toHaveTextContent('barcelona')
+  await act(async () => resolveCity(Response.json({ features: [] })))
+  await waitFor(() => expect(screen.getByLabelText('Markers')).toBeEmptyDOMElement())
+})

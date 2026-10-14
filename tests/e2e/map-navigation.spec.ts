@@ -105,3 +105,35 @@ test('frames metropolitan France and does not offer a country without letters', 
   await expect(page.getByRole('button', { name: /Navigation129 Antibes/ })).toBeVisible()
   await page.screenshot({ path: 'test-results-map/issue129-france.png', fullPage: true })
 })
+
+for (const width of [320, 1440]) {
+  test(`keeps the same pin mounted while a city filter loads at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 })
+    await page.route('**/basemaps.cartocdn.com/**', route => route.abort())
+    await page.goto('/map?mapView=40.4,-3.7,8')
+    const pin = page.locator('.map-message-marker')
+    await expect(pin).toHaveCount(1)
+    const element = await pin.elementHandle()
+    let requested = false
+    let release!: () => void
+    const pending = new Promise<void>(done => { release = done })
+    await page.route('**/api/map/features?**', async route => {
+      if (new URL(route.request().url()).searchParams.get('city') === 'Madrid') {
+        requested = true
+        await pending
+      }
+      await route.continue()
+    })
+    try {
+      await page.getByRole('combobox', { name: 'City', exact: true }).fill('Madrid')
+      await expect.poll(() => requested).toBe(true)
+      expect(await element!.evaluate(node => node.isConnected)).toBe(true)
+      await expect(pin).toHaveCount(1)
+      const response = page.waitForResponse(response => response.url().includes('/api/map/features?') && new URL(response.url()).searchParams.get('city') === 'Madrid')
+      release()
+      await response
+      await expect(page.getByRole('combobox', { name: 'City', exact: true })).toHaveValue('Madrid')
+      expect(await element!.evaluate(node => node.isConnected)).toBe(true)
+    } finally { release() }
+  })
+}
