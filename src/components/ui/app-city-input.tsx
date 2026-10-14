@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useSyncExternalStore } from 'react'
+import { useId, useMemo, useSyncExternalStore } from 'react'
 import { useLocale } from 'next-intl'
 import { ComboBox, I18nProvider, Input, Label, ListBox, ListBoxItem, Popover } from 'react-aria-components'
 import { matchesCity } from '@/domain/location/city-search'
@@ -13,24 +13,25 @@ const subscribeToFullscreen = (notify: () => void) => {
 }
 const readFullscreen = () => document.fullscreenElement instanceof HTMLElement ? document.fullscreenElement : undefined
 
-export function AppCityInput({ label, locations, country = '', value = '', onChange }: {
+export function AppCityInput({ label, locations, country = '', value = '', onChange, onSelect }: {
   label: string
   locations: PublicLetterLocation[]
   country?: string
   value?: string
   onChange?: (city: string) => void
+  onSelect?: (city: string) => void
 }) {
   const locale = useLocale()
   const filters = useAutoFilterField()
   const owner = useId()
   const selectedCountry = filters?.values.country ?? country
   const city = filters?.values.city ?? value
-  const cities = [...new Set(locations
+  const cities = useMemo(() => [...new Set(locations
     .filter(location => !selectedCountry || location.country === selectedCountry)
     .map(location => location.city)
     .filter((name): name is string => Boolean(name)))].sort()
     .filter(name => matchesCity(name, city))
-    .map(name => ({ id: name, label: name }))
+    .map(name => ({ id: name, label: name })), [locations, selectedCountry, city])
   const change = (next: string) => {
     if (filters) filters.change('city', next, true)
     else onChange?.(next)
@@ -42,7 +43,7 @@ export function AppCityInput({ label, locations, country = '', value = '', onCha
   return <I18nProvider locale={locale}>
     <ComboBox className="app-select app-select--paper" data-overlay-owner={owner}
       name="city" inputValue={city} value={cities.some(option => option.id === city) ? city : null} items={cities} allowsCustomValue
-      onInputChange={change} onChange={key => { if (key !== null) change(String(key)) }} menuTrigger="focus">
+      onInputChange={change} onChange={key => { if (key !== null) { change(String(key)); onSelect?.(String(key)) } }} menuTrigger="focus">
       <Label className="app-select-label">{label}</Label>
       <Input className="app-city-input" autoComplete="off" maxLength={100} />
       <Popover className="app-select-popover app-select-popover--paper" data-overlay-owner={owner}

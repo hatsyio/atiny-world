@@ -8,7 +8,11 @@
     "loadingOptions": "Loading locations…",
     "optionsUnavailable": "Locations could not be loaded.",
     "retry": "Try again",
-    "countryUnavailable": "Country no longer available"
+    "countryUnavailable": "Country no longer available",
+    "findCity": "Find city",
+    "locating": "Finding locations…",
+    "locationUnavailable": "The location could not be resolved. Your map view is unchanged.",
+    "locationNotFound": "No exact city found. Enter its complete name and select a country."
   },
   "cluster": {
     "loading": "Loading messages…",
@@ -25,7 +29,8 @@
   "controller": {
     "explore": "Explore messages",
     "unavailable": "The map messages could not be loaded.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "locationUnavailable": "The location could not be resolved. Your map view is unchanged."
   },
   "leaflet": {
     "label": "Message map",
@@ -62,6 +67,7 @@
     "truncated": "Some markers are not shown. Zoom in to explore a smaller area.",
     "letterUnavailable": "This letter is no longer publicly available.",
     "mapUnavailable": "The interactive map is unavailable.",
-    "letterError": "The selected letter could not be loaded. Try again."
+    "letterError": "The selected letter could not be loaded. Try again.",
+    "locationUnavailable": "The location could not be resolved. Your map view is unchanged."
   }
 }

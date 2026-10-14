@@ -3,20 +3,21 @@
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { useLeafletContext } from '@react-leaflet/core'
 import leaflet from 'leaflet'
-import { MapContainer, Marker, Popup, TileLayer, ZoomControl, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, Marker, Popup, TileLayer, ZoomControl, useMap } from 'react-leaflet'
 import type { PublicMapFeature } from '@/domain/messages/public-message'
 import type { LeafletMapProps } from './leaflet-map'
 import { CARTO_ATTRIBUTION, cartoTileUrl, configureMarkerIcons, createMessageIcon } from './basemap'
 import { publicMessageQuery } from './map-queries'
 import { MarkerCluster } from './marker-cluster'
+import { navigateToMessage, navigateToLocation, prefersReducedMotion } from './map-navigation'
 
-type Props = Pick<LeafletMapProps, 'features' | 'onSelect' | 'initialView' | 'onViewChange' | 'onViewportChange' | 'selectedPublicId' | 'focusSelection' | 'onPreview' | 'selectionVersion'> & {
+type Props = Pick<LeafletMapProps, 'features' | 'onSelect' | 'initialView' | 'onViewChange' | 'onViewportChange' | 'selectedPublicId' | 'focusSelection' | 'onPreview' | 'selectionVersion' | 'geographicTarget' | 'navigationVersion'> & {
   apiKey: string
   isFullscreen: boolean
   onToggleFullscreen: () => void
@@ -33,7 +34,11 @@ function MessageContent({ publicId, onSelect, popup, focusOnLoad }: { publicId: 
   useLayoutEffect(() => {
     // The query updates inside the portal, so React Leaflet cannot detect its new size.
     // Recalculate before paint so auto-pan uses the loaded letter's height.
-    popup.current?.update()
+    if (popup.current) { popup.current.update(); return }
+    // An already cached letter can mount inside the portal before Popup sets
+    // its ref. Recalculate once after that commit, including the loaded size.
+    const timer = window.setTimeout(() => popup.current?.update(), 0)
+    return () => window.clearTimeout(timer)
   }, [popup, result.data?.content, result.isError, t])
   if (result.isError || !result.data) return <p className="map-message-popup">{t(result.isError ? 'messageUnavailable' : 'loadingMessage')}</p>
   return <div className="map-message-letter">
@@ -58,7 +63,7 @@ function PublicMarker({ feature, onSelect, selected, centered, focusSelection = 
   }, [map])
   // Reserve the content margins, close control, tip and auto-pan padding.
   const maxWidth = Math.max(80, Math.min(340, mapSize.x - 80))
-  const maxHeight = Math.max(32, mapSize.y - 120)
+  const maxHeight = Math.max(32, selected && focusSelection ? mapSize.y / 2 - 90 : mapSize.y - 120)
   useLayoutEffect(() => {
     const current = popup.current
     if (!current) return
@@ -89,33 +94,44 @@ function PublicMarker({ feature, onSelect, selected, centered, focusSelection = 
     if (!selected || centered.current === `${feature.publicId}:${selectionVersion}`) return
     // Located letters live outside the cluster, so later marker batches cannot
     // absorb their marker or close the reading popup.
+    let cancel: (() => void) | undefined
     const timer = window.setTimeout(() => {
       const current = marker.current
       if (!current) return
       centered.current = `${feature.publicId}:${selectionVersion}`
-      if (focusSelection) map.setView(position, Math.max(8, map.getZoom()))
-      current.openPopup()
+      if (focusSelection) cancel = navigateToMessage(map, position, () => current.openPopup(), prefersReducedMotion())
+      else current.openPopup()
     }, 0)
-    return () => { window.clearTimeout(timer) }
+    return () => { window.clearTimeout(timer); if (map.getContainer().isConnected) cancel?.() }
   }, [selected, feature.publicId, position, map, centered, focusSelection, selectionVersion])
 
+  // React Leaflet updates popup layout when the children element changes.
+  // Keep it stable during viewport refreshes so it cannot restart auto-pan.
+  const content = useMemo(() => open ? <MessageContent publicId={feature.publicId} onSelect={onSelect} popup={popup} focusOnLoad={selected && focusSelection} /> : null,
+    [open, feature.publicId, onSelect, selected, focusSelection])
   return <Marker ref={marker} position={position} icon={icon} title={title}
     eventHandlers={{ popupopen: () => { setOpen(true); if (!selected) onPreview?.(feature.publicId) }, popupclose: () => setOpen(false) }}>
-    <Popup ref={popup} autoPan className="map-letter-popup" autoClose closeOnClick minWidth={Math.min(180, maxWidth)} maxWidth={maxWidth} maxHeight={maxHeight} autoPanPadding={[16, 16]}
+    <Popup ref={popup} autoPan={!selected || !focusSelection} className="map-letter-popup" autoClose closeOnClick minWidth={Math.min(180, maxWidth)} maxWidth={maxWidth} maxHeight={maxHeight} autoPanPadding={[16, 16]}
       eventHandlers={{ add: labelCloseButton }}>
-      {open ? <MessageContent publicId={feature.publicId} onSelect={onSelect} popup={popup} focusOnLoad={selected && focusSelection} /> : null}
+      {content}
     </Popup>
   </Marker>
 }
 
 function MapBehavior({ onViewChange, onViewportChange, isFullscreen }: Pick<Props, 'onViewChange' | 'onViewportChange' | 'isFullscreen'>) {
   const t = useTranslations('Map.leaflet')
-  const map = useMapEvents({ moveend: () => {
+  const map = useMap()
+  const reportViewport = useEffectEvent(() => {
     const center = map.getCenter()
     onViewChange?.({ latitude: center.lat, longitude: center.lng, zoom: map.getZoom() })
     const bounds = map.getBounds()
     onViewportChange?.({ west: bounds.getWest(), south: bounds.getSouth(), east: bounds.getEast(), north: bounds.getNorth() })
-  } })
+  })
+  useEffect(() => {
+    const moveend = () => reportViewport()
+    map.on('moveend', moveend)
+    return () => { map.off('moveend', moveend) }
+  }, [map])
   useEffect(() => { map.fire('moveend') }, [map])
   useEffect(() => {
     if (typeof ResizeObserver === 'undefined') return
@@ -156,7 +172,17 @@ function FullscreenControl({ isFullscreen, onToggleFullscreen }: Pick<Props, 'is
     aria-pressed={isFullscreen} onClick={onToggleFullscreen}>⛶</button>, container)
 }
 
-export function ReactLeafletPublicMap({ features, onSelect, initialView, apiKey, selectedPublicId, focusSelection, onPreview, selectionVersion, ...behavior }: Props) {
+function GeographicNavigation({ geographicTarget, navigationVersion }: Pick<Props, 'geographicTarget' | 'navigationVersion'>) {
+  const map = useMap()
+  useEffect(() => {
+    if (navigationVersion !== undefined || geographicTarget) map.stop()
+    if (geographicTarget) navigateToLocation(map, geographicTarget, prefersReducedMotion())
+    return () => { if (map.getContainer().isConnected) map.stop() }
+  }, [map, geographicTarget, navigationVersion])
+  return null
+}
+
+export function ReactLeafletPublicMap({ geographicTarget, navigationVersion, features, onSelect, initialView, apiKey, selectedPublicId, focusSelection, onPreview, selectionVersion, ...behavior }: Props) {
   const t = useTranslations('Map.leaflet')
   const centered = useRef<string | null>(null)
   configureMarkerIcons(leaflet)
@@ -164,12 +190,13 @@ export function ReactLeafletPublicMap({ features, onSelect, initialView, apiKey,
   const located = features.find(feature => feature.publicId === selectedPublicId)
   return <MapContainer className="map__canvas" center={[view.latitude, view.longitude]} zoom={view.zoom} maxZoom={19}
     zoomControl={false} maxBounds={[[-85.05112878, -Infinity], [85.05112878, Infinity]]} maxBoundsViscosity={1}>
-    <TileLayer url={cartoTileUrl(apiKey)} attribution={CARTO_ATTRIBUTION} maxZoom={19} />
+    <TileLayer url={cartoTileUrl(apiKey)} attribution={`${CARTO_ATTRIBUTION} | <a href="https://www.geoapify.com/">Powered by Geoapify</a> | © OpenStreetMap contributors`} maxZoom={19} />
     <ZoomControl position="topleft" zoomInTitle={t('zoomIn')} zoomOutTitle={t('zoomOut')} />
     <FullscreenControl {...behavior} />
     <MarkerCluster>{features.filter(feature => feature.publicId !== selectedPublicId).map(feature => <PublicMarker key={feature.publicId} feature={feature} onSelect={onSelect}
       selected={false} centered={centered} onPreview={onPreview} />)}</MarkerCluster>
     {located ? <PublicMarker key={located.publicId} feature={located} onSelect={onSelect} selected centered={centered} focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={onPreview} /> : null}
+    <GeographicNavigation geographicTarget={geographicTarget} navigationVersion={navigationVersion} />
     <MapBehavior {...behavior} />
   </MapContainer>
 }

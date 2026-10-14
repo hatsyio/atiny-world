@@ -62,7 +62,7 @@ revalidation and no inactive cache follow the existing public query policy. A
 failed public-detail revalidation removes the selected marker; a 404 explains
 that it is unavailable, while request failures offer retry.
 
-No publishing rules, providers, schemas or location precision rules change.
+Publishing and location precision rules remain unchanged. Geographic framing and its shared metadata table are described in [Map navigation](map-navigation.md).
 
 ## Validation
 

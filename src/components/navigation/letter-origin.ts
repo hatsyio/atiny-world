@@ -20,14 +20,16 @@ export function readMapView(params: Search): MapView | undefined {
 
 export function readMapFilters(params: Search) {
   return {
+    ...(params.get('mapLocation') ? { locationId: params.get('mapLocation')!.slice(0, 1500) } : {}),
     city: [...(params.get('mapCity') ?? '')].slice(0, 100).join(''),
     country: /^[a-z]{2}$/.test(params.get('mapCountry') ?? '') ? params.get('mapCountry')! : '',
   }
 }
 
-export function mapOrigin(view: MapView, filters: { city?: string; country?: string }, path: '/' | '/map' = '/'): string {
+export function mapOrigin(view: MapView, filters: { city?: string; country?: string; locationId?: string }, path: '/' | '/map' = '/'): string {
   const longitude = ((view.longitude + 180) % 360 + 360) % 360 - 180
   const params = new URLSearchParams({ mapView: `${view.latitude},${longitude},${view.zoom}` })
+  if (filters.locationId) params.set('mapLocation', filters.locationId)
   if (filters.city) params.set('mapCity', filters.city)
   if (filters.country) params.set('mapCountry', filters.country)
   return `${path}?${params}#map`
@@ -54,7 +56,7 @@ export function letterDestination(lang: Locale, returnTo?: string | string[]) {
   let allowed: string[]
   if ((url.pathname === '/' || url.pathname === '/map') && url.hash === '#map') {
     destination = 'map'
-    allowed = ['mapView', 'mapCity', 'mapCountry', ...(url.pathname === '/map' ? ['letter'] : [])]
+    allowed = ['mapView', 'mapCity', 'mapCountry', 'mapLocation', ...(url.pathname === '/map' ? ['letter'] : [])]
     if (url.searchParams.has('letter') && !/^[a-zA-Z0-9-]{1,100}$/.test(url.searchParams.get('letter')!)) return fallback
     if (url.searchParams.has('mapView') && !readMapView(url.searchParams)) return fallback
   } else if (url.pathname === '/letters' && /^(?:#letter-[a-zA-Z0-9-]+)?$/.test(url.hash)) {

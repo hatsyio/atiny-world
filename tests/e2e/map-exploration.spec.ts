@@ -162,11 +162,12 @@ for (const width of [320, 1440]) {
         return map && popup ? Math.min(popup.x - map.x, popup.y - map.y,
           map.x + map.width - popup.x - popup.width, map.y + map.height - popup.y - popup.height) : -Infinity
       }
-      await expect.poll(fits).toBeGreaterThanOrEqual(-1)
-      await page.screenshot({ path: test.info().outputPath('popup.png') })
+      try { await expect.poll(fits).toBeGreaterThanOrEqual(-1) }
+      finally { await page.screenshot({ path: test.info().outputPath('popup.png') }) }
       if (fullscreen) {
         await page.getByRole('button', { name: 'Exit fullscreen' }).click()
-        await expect.poll(fits).toBeGreaterThanOrEqual(-1)
+        try { await expect.poll(fits).toBeGreaterThanOrEqual(-1) }
+        finally { await page.screenshot({ path: test.info().outputPath('resized-popup.png') }) }
       }
     })
   }
@@ -341,7 +342,7 @@ for (const width of [390, 1440]) {
   })
 }
 
-test('offers only public database countries and city autocomplete scoped to the country', async ({ page }) => {
+test('offers geographic map countries and keeps letter city autocomplete scoped to the country', async ({ page }) => {
   await sql`insert into app_private.messages (author_id, content, status, moderation_reason_code, location_precision, location_algorithm_version, public_point, locality, country, country_code)
     values (${authorId}, 'Seoul autocomplete fixture', 'approved', null, 'approximate', 1,
       extensions.st_setsrid(extensions.st_makepoint(127, 37.5), 4326)::extensions.geography, 'Map120Seoul', 'Korea', 'kr'),
@@ -356,7 +357,8 @@ test('offers only public database countries and city autocomplete scoped to the 
       await expect(page.getByRole('option', { name: 'Map120Tirana', exact: true })).toHaveCount(0)
       await page.getByRole('combobox', { name: 'City', exact: true }).press('Escape')
       await page.getByRole('button', { name: /Country/ }).click()
-      await expect(page.getByRole('option', { name: /Albania/ })).toHaveCount(0)
+      if (path === '/map') await expect(page.getByRole('option', { name: /Albania/ })).toBeVisible()
+      else await expect(page.getByRole('option', { name: /Albania/ })).toHaveCount(0)
       await page.getByRole('option', { name: /South Korea/ }).click()
       await input.click()
       await expect(page.getByRole('option')).toHaveCount(1)
