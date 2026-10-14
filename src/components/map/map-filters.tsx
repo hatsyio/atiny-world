@@ -81,7 +81,7 @@ export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
       if (controller.signal.aborted) return
       if (data.locations.length === 1) {
         setResolution(null)
-        onChange({ city: name, country, locationId: data.locations[0].id })
+        onChange({ ...value, city: name, locationId: data.locations[0].id })
       } else setResolution({ context, locations: data.locations, pending: false, failed: false })
     } catch {
       if (!controller.signal.aborted) setResolution({ context, locations: [], pending: false, failed: true })
@@ -114,7 +114,7 @@ export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
         {currentResolution.locations.map(location => <button key={location.id} type="button" onClick={() => {
           request.current?.abort()
           setResolution(null)
-          onChange({ city, country: location.countryCode, locationId: location.id })
+          onChange({ ...value, city, locationId: location.id })
         }}>{location.name} · {location.country} ({location.point.latitude.toFixed(3)}, {location.point.longitude.toFixed(3)})</button>)}
         {currentResolution.locations.length ? <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Powered by Geoapify</a> : null}
       </div> : null}

@@ -137,3 +137,27 @@ for (const width of [320, 1440]) {
     } finally { release() }
   })
 }
+
+test('selects and restores a city without selecting its country filter', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.route('**/basemaps.cartocdn.com/**', route => route.abort())
+  await page.goto('/map?mapView=20,0,2')
+  const input = page.getByRole('combobox', { name: 'City', exact: true })
+  await input.fill('Madrid')
+  await page.getByRole('option', { name: 'Madrid', exact: true }).click()
+  await expect.poll(() => new URL(page.url()).searchParams.get('mapLocation')).toBe(cityId)
+  await expect.poll(() => Number(new URL(page.url()).searchParams.get('mapView')!.split(',')[2])).toBeGreaterThan(8)
+  await expect(page.getByRole('button', { name: /Country/ })).toHaveText('All')
+  expect(new URL(page.url()).searchParams.has('mapCountry')).toBe(false)
+  await page.reload()
+  await expect(input).toHaveValue('Madrid')
+  await expect(page.getByRole('button', { name: /Country/ })).toHaveText('All')
+  await page.getByRole('button', { name: 'Enter fullscreen', exact: true }).click()
+  await page.getByRole('button', { name: 'Filters (1)', exact: true }).click()
+  await expect(page.locator('.map--fullscreen').getByRole('button', { name: /Country/ })).toHaveText('All')
+  await page.getByRole('button', { name: 'Exit fullscreen', exact: true }).click()
+  await page.getByRole('button', { name: /Country/ }).click()
+  await page.getByRole('option', { name: 'Spain', exact: true }).click()
+  await expect(input).toHaveValue('Madrid')
+  await expect.poll(() => new URL(page.url()).searchParams.get('mapCountry')).toBe('es')
+})

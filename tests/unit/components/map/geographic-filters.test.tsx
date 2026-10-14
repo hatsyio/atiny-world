@@ -59,13 +59,16 @@ it('filters while typing without querying geography and ignores an obsolete sele
 })
 it('keeps same-named catalog localities in different countries distinct', async () => {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json({ locations: url === '/api/map/filter-options' ? [{ city: 'Madrid', country: 'es' }, { city: 'Madrid', country: 'us' }] : [madrid] })))
-  render(<MapFilters value={{}} onChange={() => {}} />)
+  const onChange = vi.fn()
+  render(<MapFilters value={{}} onChange={onChange} />)
   const user = userEvent.setup()
   await user.click(screen.getByRole('combobox', { name: 'City' }))
   expect(await screen.findByRole('option', { name: 'Madrid · Spain' })).toBeVisible()
   expect(screen.getByRole('option', { name: 'Madrid · United States' })).toBeVisible()
   await user.click(screen.getByRole('option', { name: 'Madrid · Spain' }))
   await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).endsWith('city=Madrid&country=es'))).toBe(true))
+  await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ city: 'Madrid', locationId: madrid.id }))
+  expect(screen.getByRole('button', { name: /Country/ })).toHaveTextContent('All')
 })
 it('does not override a later locality applied by another filter instance', async () => {
   let resolve!: (response: Response) => void
@@ -95,4 +98,15 @@ it('cancels a pending locality when another instance selects its country', async
   page.rerender(<MapFilters value={{ country: 'es', city: 'Madrid' }} onChange={onChange} />)
   await act(async () => resolve(Response.json({ locations: [madrid] })))
   expect(onChange.mock.calls.some(([value]) => value.locationId === madrid.id)).toBe(false)
+})
+
+it('keeps the country filter empty when choosing a disambiguated city candidate', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json({ locations: url === '/api/map/filter-options' ? catalog : [madrid, { ...madrid, id: 'city:madrid-2', point: { latitude: 41, longitude: -4 } }] })))
+  const onChange = vi.fn()
+  render(<MapFilters value={{ country: '' }} onChange={onChange} />)
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('combobox', { name: 'City' }))
+  await user.click(await screen.findByRole('option', { name: 'Madrid' }))
+  await user.click(await screen.findByRole('button', { name: 'Madrid · Spain (40.400, -3.700)' }))
+  expect(onChange).toHaveBeenLastCalledWith({ country: '', city: 'Madrid', locationId: madrid.id })
 })
