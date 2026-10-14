@@ -109,15 +109,16 @@ it('reacts to browser navigation without remounting on its own URL updates', asy
   expect(screen.getByRole('combobox', { name: 'City' })).toHaveValue('Seoul')
 })
 
-it('keeps typing local and explicitly resolves a city without published messages', async () => {
+it('keeps typing local and automatically frames a catalog locality without viewport messages', async () => {
   const location = { id: 'city:geoapify:madrid', kind: 'city', name: 'Madrid', country: 'Spain', countryCode: 'es', point: { latitude: 40.4, longitude: -3.7 }, bounds: { west: -4, south: 40, east: -3, north: 41 }, provider: 'Geoapify', attribution: 'Geoapify', obtainedAt: '2026-10-14T00:00:00Z', providerId: 'madrid' }
-  vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(url.startsWith('/api/map/locations') ? { locations: [location] } : url === '/api/map/filter-options' ? { locations: [] } : { features: [], items: [], nextCursor: null }))))
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(url.startsWith('/api/map/locations') ? { locations: [location] } : url === '/api/map/filter-options' ? { locations: [{ country: 'es', city: 'Madrid' }] } : { features: [], items: [], nextCursor: null }))))
   render(<MapExplorer />)
   fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'Madrid' } })
   await waitFor(() => expect(new URLSearchParams(window.location.search).get('mapCity')).toBe('Madrid'))
   expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).startsWith('/api/map/locations'))).toBe(false)
-  fireEvent.click(screen.getByRole('button', { name: 'Find city' }))
-  fireEvent.click(await screen.findByRole('button', { name: /Madrid · Spain/ }))
+  const user = (await import('@testing-library/user-event')).default.setup()
+  await user.click(screen.getByRole('combobox', { name: 'City' }))
+  await user.click(await screen.findByRole('option', { name: 'Madrid' }))
   await waitFor(() => expect(new URLSearchParams(window.location.search).get('mapLocation')).toBe(location.id))
   await waitFor(() => expect(screen.getByLabelText('Geographic target')).toHaveTextContent(location.id))
 })
@@ -125,7 +126,7 @@ it('keeps typing local and explicitly resolves a city without published messages
 it('frames a selected country even when the city field contains an unresolved fragment', async () => {
   const user = (await import('@testing-library/user-event')).default.setup()
   const location = { id: 'country:es', kind: 'country', name: 'Spain', country: 'Spain', countryCode: 'es', point: { latitude: 40, longitude: -3 }, bounds: { west: -18, south: 27, east: 4, north: 44 }, provider: 'Geoapify', attribution: 'Geoapify', obtainedAt: '2026-10-14T00:00:00Z', providerId: 'es' }
-  vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json(url.startsWith('/api/map/locations') ? { locations: [location] } : { locations: [], features: [], items: [], nextCursor: null })))
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json(url.startsWith('/api/map/locations') ? { locations: [location] } : { locations: [{ country: 'es', city: 'Madrid' }], features: [], items: [], nextCursor: null })))
   render(<MapExplorer />)
   fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'Mad' } })
   await waitFor(() => expect(new URLSearchParams(window.location.search).get('mapCity')).toBe('Mad'))

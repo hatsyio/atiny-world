@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useEffectEvent, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { mapCountries } from '@/i18n/countries'
 import { useQuery } from '@tanstack/react-query'
@@ -49,25 +49,40 @@ export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
     return () => window.clearTimeout(timer)
   }, [city, value.city, debounceMs])
   // Catalog order and names are identical in Node and browsers with different ICU data.
-  const countries = mapCountries[locale]
+  const availableCountries = new Set(locations.map(location => location.country))
+  const countries = mapCountries[locale].filter(country => availableCountries.has(country.value))
   const t = useTranslations('Map.filters')
   const request = useRef<AbortController | null>(null)
+  const pendingSelection = useRef<{ name: string; initialCountry?: string; initialId?: string } | null>(null)
+  // Toolbar and fullscreen filters share a value. A selection in either one
+  // invalidates requests from the other, while our own text debounce is allowed.
+  useLayoutEffect(() => {
+    const pending = pendingSelection.current
+    if (pending && (value.city !== pending.name ||
+      value.country !== pending.initialCountry ||
+      value.locationId !== undefined && value.locationId !== pending.initialId)) request.current?.abort()
+  }, [value.city, value.country, value.locationId])
   const [resolution, setResolution] = useState<{ context: string; locations: GeographicLocation[]; pending: boolean; failed: boolean } | null>(null)
   const context = JSON.stringify([city, value.country])
   useEffect(() => () => request.current?.abort(), [])
-  const searchCity = async (name: string) => {
+  const searchCity = async (name: string, country: string) => {
     request.current?.abort()
     const controller = new AbortController()
     request.current = controller
+    pendingSelection.current = { name, initialCountry: value.country, initialId: value.locationId }
     const context = JSON.stringify([name, value.country])
     setResolution({ context, locations: [], pending: true, failed: false })
     try {
       const params = new URLSearchParams({ city: normalizeTextFilter(name) })
-      if (value.country) params.set('country', value.country)
+      params.set('country', country)
       const response = await fetch(`/api/map/locations?${params}`, { signal: controller.signal })
       if (!response.ok) throw new Error('Location unavailable')
       const data = await response.json() as { locations: GeographicLocation[] }
-      if (!controller.signal.aborted) setResolution({ context, locations: data.locations, pending: false, failed: false })
+      if (controller.signal.aborted) return
+      if (data.locations.length === 1) {
+        setResolution(null)
+        onChange({ city: name, country, locationId: data.locations[0].id })
+      } else setResolution({ context, locations: data.locations, pending: false, failed: false })
     } catch {
       if (!controller.signal.aborted) setResolution({ context, locations: [], pending: false, failed: true })
     }
@@ -75,17 +90,15 @@ export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
   const currentResolution = resolution?.context === context ? resolution : null
   return (
     <div className="map-filters" role="group" aria-label={t('filters')} aria-busy={optionsQuery.isPending}>
-      <div className="map-filters__city">
       <AppCityInput label={t('city')} value={city} locations={locations} country={value.country}
-        onSelect={name => { void searchCity(name) }} onChange={next => {
+        onSelect={(name, country) => { void searchCity(name, country) }} onChange={next => {
           request.current?.abort()
           setResolution(null)
           setCity(next)
           if (!debounceMs) onChange({ ...value, city: normalizeTextFilter(next), ...(value.locationId ? { locationId: undefined } : {}) })
         }} />
-      <button type="button" disabled={!normalizeTextFilter(city) || currentResolution?.pending} onClick={() => void searchCity(city)}>{t('findCity')}</button>
-      </div>
       <AppSelect
+        disabled={optionsQuery.isPending || optionsQuery.isError}
         label={t('country')}
         name="country"
         variant="paper"
@@ -101,9 +114,7 @@ export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
         {currentResolution.locations.map(location => <button key={location.id} type="button" onClick={() => {
           request.current?.abort()
           setResolution(null)
-          setCity(location.name)
-          setAppliedCity(location.name)
-          onChange({ city: location.name, country: value.country || location.countryCode, locationId: location.id })
+          onChange({ city, country: location.countryCode, locationId: location.id })
         }}>{location.name} · {location.country} ({location.point.latitude.toFixed(3)}, {location.point.longitude.toFixed(3)})</button>)}
         {currentResolution.locations.length ? <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Powered by Geoapify</a> : null}
       </div> : null}

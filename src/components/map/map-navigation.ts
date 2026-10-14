@@ -22,11 +22,16 @@ export function navigateToMessage(map: NavigationMap, point: [number, number], o
   return () => { const pending = active; active = false; map.off('moveend', finish); if (pending) map.stop() }
 }
 
-export function navigateToLocation(map: NavigationMap, location: Pick<GeographicLocation, 'point' | 'bounds'>, reducedMotion: boolean): void {
+export function navigateToLocation(map: NavigationMap, location: Pick<GeographicLocation, 'point' | 'bounds'> & Partial<Pick<GeographicLocation, 'kind' | 'countryCode'>>, reducedMotion: boolean): void {
   map.stop()
   map.closePopup()
-  if (location.bounds) {
-    const { west, south, east, north } = location.bounds
+  // France's provider bounds span overseas territories across the globe.
+  // The filter presents metropolitan France, including Corsica; persistence
+  // keeps the provider's full bounds for future territory-specific navigation.
+  const viewport = location.kind === 'country' && location.countryCode === 'fr'
+    ? { west: -5.5, south: 41, east: 10, north: 51.5 } : location.bounds
+  if (viewport) {
+    const { west, south, east, north } = viewport
     const bounds: [[number, number], [number, number]] = [[Math.max(-85.05112878, south), west], [Math.min(85.05112878, north), east]]
     const options = { padding: [32, 32] as [number, number], maxZoom: 13, ...(reducedMotion ? { animate: false } : { duration: 1.1 }) }
     if (reducedMotion) map.fitBounds(bounds, options)

@@ -34,3 +34,9 @@ it('opens a message without animation when reduced motion is requested', () => {
   expect(map.flyTo).not.toHaveBeenCalled()
   expect(open).toHaveBeenCalledTimes(1)
 })
+
+it('frames metropolitan France including Corsica instead of its worldwide overseas bounds', () => {
+  const map = fakeMap()
+  navigateToLocation(map, { kind: 'country', countryCode: 'fr', point: { latitude: 46.6, longitude: 1.9 }, bounds: { west: -178.4, south: -50.3, east: 172.4, north: 51.4 } }, false)
+  expect(map.flyToBounds).toHaveBeenCalledWith([[41, -5.5], [51.5, 10]], expect.objectContaining({ padding: [32, 32] }))
+})

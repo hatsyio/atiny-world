@@ -62,8 +62,8 @@ function PublicMarker({ feature, onSelect, selected, centered, focusSelection = 
     return () => { map.off('resize', resize) }
   }, [map])
   // Reserve the content margins, close control, tip and auto-pan padding.
-  const maxWidth = Math.max(80, Math.min(340, mapSize.x - 80))
-  const maxHeight = Math.max(32, selected && focusSelection ? mapSize.y / 2 - 90 : mapSize.y - 120)
+  const maxWidth = Math.max(80, Math.min(340, mapSize.x - 110))
+  const maxHeight = Math.max(32, selected && focusSelection ? mapSize.y / 2 - 128 : mapSize.y - 160)
   useLayoutEffect(() => {
     const current = popup.current
     if (!current) return
@@ -111,7 +111,7 @@ function PublicMarker({ feature, onSelect, selected, centered, focusSelection = 
     [open, feature.publicId, onSelect, selected, focusSelection])
   return <Marker ref={marker} position={position} icon={icon} title={title}
     eventHandlers={{ popupopen: () => { setOpen(true); if (!selected) onPreview?.(feature.publicId) }, popupclose: () => setOpen(false) }}>
-    <Popup ref={popup} autoPan={!selected || !focusSelection} className="map-letter-popup" autoClose closeOnClick minWidth={Math.min(180, maxWidth)} maxWidth={maxWidth} maxHeight={maxHeight} autoPanPadding={[16, 16]}
+    <Popup ref={popup} autoPan={!selected || !focusSelection} className="map-letter-popup" autoClose closeOnClick minWidth={Math.min(180, maxWidth)} maxWidth={maxWidth} maxHeight={maxHeight} autoPanPadding={[32, 32]}
       eventHandlers={{ add: labelCloseButton }}>
       {content}
     </Popup>

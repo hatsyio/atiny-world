@@ -9,10 +9,9 @@
     "optionsUnavailable": "Locations could not be loaded.",
     "retry": "Try again",
     "countryUnavailable": "Country no longer available",
-    "findCity": "Find city",
     "locating": "Finding locations…",
     "locationUnavailable": "The location could not be resolved. Your map view is unchanged.",
-    "locationNotFound": "No exact city found. Enter its complete name and select a country."
+    "locationNotFound": "No geographic data found for this city. Your map view is unchanged."
   },
   "cluster": {
     "loading": "Loading messages…",

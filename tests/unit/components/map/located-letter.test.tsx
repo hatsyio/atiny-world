@@ -34,5 +34,7 @@ it('keeps the located letter open when nearby markers arrive and cluster', async
   // The selected point remains independently reachable when the cluster refreshes.
   let selected: leaflet.Marker | undefined
   map.eachLayer(layer => { if (layer instanceof leaflet.Marker && layer.getPopup()?.isOpen()) selected = layer })
+  expect(selected?.getPopup()?.options.autoPanPadding).toEqual([32, 32])
+  expect(selected?.getPopup()?.options.maxHeight).toBeLessThanOrEqual(map.getSize().y / 2 - 128)
   expect(selected?.getLatLng()).toEqual(leaflet.latLng(feature.point.latitude, feature.point.longitude))
 })

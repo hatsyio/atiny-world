@@ -9,10 +9,9 @@
     "optionsUnavailable": "No se han podido cargar las ubicaciones.",
     "retry": "Reintentar",
     "countryUnavailable": "País ya no disponible",
-    "findCity": "Buscar localidad",
     "locating": "Buscando ubicaciones…",
     "locationUnavailable": "No se pudo resolver la ubicación. Se conserva la vista del mapa.",
-    "locationNotFound": "No hay una localidad exacta. Escribe su nombre completo y selecciona un país."
+    "locationNotFound": "No se han encontrado datos geográficos de esta localidad. Se conserva la vista del mapa."
   },
   "cluster": {
     "loading": "Cargando mensajes…",

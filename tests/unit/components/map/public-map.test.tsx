@@ -172,7 +172,7 @@ describe('PublicMessageCard', () => {
   })
 })
 
-it('offers countries without public letters and scopes city suggestions to the selected country', async () => {
+it('only offers countries with public letters and scopes city suggestions to the selected country', async () => {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => url.startsWith('/api/map/locations') ? Response.json({ locations: [] }) : Response.json({ locations: [
     { city: 'Madrid', country: 'es' }, { city: 'Barcelona', country: 'es' }, { city: 'Seoul', country: 'kr' },
   ] })))
@@ -181,7 +181,7 @@ it('offers countries without public letters and scopes city suggestions to the s
   await waitFor(() => expect(screen.getByRole('button', { name: /Country/ })).toBeEnabled())
   await userEvent.setup().click(screen.getByRole('button', { name: /Country/ }))
   const options = within(await screen.findByRole('listbox'))
-  expect(options.getByText('Albania')).toBeVisible()
+  expect(options.queryByText('Albania')).toBeNull()
   expect(options.getByText('Spain')).toBeVisible()
   await userEvent.setup().click(options.getByText('Spain'))
   rerender(<MapFilters value={{ country: 'es' }} onChange={onChange} />)
@@ -191,19 +191,19 @@ it('offers countries without public letters and scopes city suggestions to the s
   await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ country: 'es', city: 'Madrid' }))
 })
 
-it('retains a URL country without published letters and allows clearing it', async () => {
+it('allows clearing a URL country which has no published letters', async () => {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => url.startsWith('/api/map/locations') ? Response.json({ locations: [] }) : Response.json({ locations: [{ country: 'es', city: 'Madrid' }] })))
   const onChange = vi.fn()
   render(<MapFilters value={{ country: 'al', city: '' }} onChange={onChange} />)
   const trigger = screen.getByRole('button', { name: /Country/ })
   await waitFor(() => expect(trigger).toBeEnabled())
   await userEvent.setup().click(trigger)
-  expect(screen.getByRole('option', { name: 'Albania' })).toBeVisible()
+  expect(screen.queryByRole('option', { name: 'Albania' })).toBeNull()
   await userEvent.setup().click(screen.getByRole('option', { name: 'All' }))
   expect(onChange).toHaveBeenCalledWith({ country: '', city: '' })
 })
 
-it('keeps geographic country selection available when letter suggestions fail and allows retry', async () => {
+it('does not offer unrelated countries when the database catalog fails and allows retry', async () => {
   vi.stubGlobal('fetch', vi.fn()
     .mockResolvedValueOnce(new Response(null, { status: 400 }))
     .mockResolvedValueOnce(Response.json({ locations: [{ country: 'es', city: 'Madrid' }] })))
@@ -213,7 +213,7 @@ it('keeps geographic country selection available when letter suggestions fail an
   await waitFor(() => expect(trigger).toBeEnabled())
   await userEvent.setup().click(trigger)
   expect(screen.getByRole('option', { name: 'Spain' })).toBeVisible()
-  expect(screen.getByRole('option', { name: 'Albania' })).toBeVisible()
+  expect(screen.queryByRole('option', { name: 'Albania' })).toBeNull()
 })
 
 it('shows Barcelona and Badalona below the text field for ba and allows keyboard selection', async () => {

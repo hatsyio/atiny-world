@@ -50,6 +50,9 @@ for (const width of [320, 390, 1440]) {
     await expect(page.locator('.map-message-marker--selected')).toBeVisible()
     await expect(page.locator('.map-message-letter')).toContainText('ATINY120')
     await expect(page.locator('.map-message-letter')).toContainText(city)
+    const popup = await page.locator('.map-letter-popup').boundingBox()
+    const canvas = await map.boundingBox()
+    expect(popup!.y - canvas!.y).toBeGreaterThanOrEqual(31)
     // Selecting either letter at the shared point must target that precise letter.
     if (width < 760) await page.getByRole('button', { name: 'Show letters' }).click()
     await page.getByRole('button', { name: /Map120 letter 21/ }).click()
@@ -342,7 +345,7 @@ for (const width of [390, 1440]) {
   })
 }
 
-test('offers geographic map countries and keeps letter city autocomplete scoped to the country', async ({ page }) => {
+test('offers only database countries and city autocomplete scoped to the country', async ({ page }) => {
   await sql`insert into app_private.messages (author_id, content, status, moderation_reason_code, location_precision, location_algorithm_version, public_point, locality, country, country_code)
     values (${authorId}, 'Seoul autocomplete fixture', 'approved', null, 'approximate', 1,
       extensions.st_setsrid(extensions.st_makepoint(127, 37.5), 4326)::extensions.geography, 'Map120Seoul', 'Korea', 'kr'),
@@ -357,8 +360,7 @@ test('offers geographic map countries and keeps letter city autocomplete scoped 
       await expect(page.getByRole('option', { name: 'Map120Tirana', exact: true })).toHaveCount(0)
       await page.getByRole('combobox', { name: 'City', exact: true }).press('Escape')
       await page.getByRole('button', { name: /Country/ }).click()
-      if (path === '/map') await expect(page.getByRole('option', { name: /Albania/ })).toBeVisible()
-      else await expect(page.getByRole('option', { name: /Albania/ })).toHaveCount(0)
+      await expect(page.getByRole('option', { name: /Albania/ })).toHaveCount(0)
       await page.getByRole('option', { name: /South Korea/ }).click()
       await input.click()
       await expect(page.getByRole('option')).toHaveCount(1)
