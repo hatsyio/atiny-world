@@ -10,12 +10,14 @@ test.beforeAll(async () => {
   for (const [id, kind, name, west, south, east, north] of [
     ['country:es', 'country', 'Spain', -18, 27, 4.5, 44],
     [cityId, 'city', 'Madrid', -3.9, 40.3, -3.5, 40.6],
+    ['city:geoapify:000-issue129-browser-madrid-homonym', 'city', 'Madrid', -7.2, 41.8, -6.8, 42],
     ['country:fr', 'country', 'France', -178.4, -50.3, 172.4, 51.4],
   ] as const) {
     const code = id === 'country:fr' ? 'fr' : 'es'
+    const homonym = id === 'city:geoapify:000-issue129-browser-madrid-homonym'
     const inserted = await sql`insert into app_private.geographic_locations
       (identity, kind, name, normalized_name, country, country_code, latitude, longitude, west, south, east, north, provider_id, provider, attribution, obtained_at)
-      values (${id}, ${kind}, ${name}, ${name.toLowerCase()}, ${code === 'fr' ? 'France' : 'Spain'}, ${code}, 40.4, -3.7, ${west}, ${south}, ${east}, ${north}, ${id}, 'Geoapify', 'Powered by Geoapify | © OpenStreetMap contributors', now())
+      values (${id}, ${kind}, ${name}, ${name.toLowerCase()}, ${code === 'fr' ? 'France' : 'Spain'}, ${code}, ${homonym ? 41.9 : 40.4}, ${homonym ? -7 : -3.7}, ${west}, ${south}, ${east}, ${north}, ${id}, 'Geoapify', 'Powered by Geoapify | © OpenStreetMap contributors', now())
       on conflict do nothing returning identity`
     if (inserted.length) added.push(id)
   }
@@ -56,6 +58,8 @@ for (const width of [320, 1440]) {
     await page.getByRole('option', { name: 'Madrid', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Find city' })).toHaveCount(0)
     await expect.poll(() => new URL(page.url()).searchParams.get('mapLocation')).toBe(cityId)
+    await expect(page.locator('.map-location-results button')).toHaveCount(0)
+    await expect(page.getByRole('listbox')).toHaveCount(0)
     await expect.poll(() => Number(new URL(page.url()).searchParams.get('mapView')!.split(',')[2])).toBeGreaterThan(8)
     if (width < 760) await page.getByRole('button', { name: 'Show letters', exact: true }).click()
     await expect(page.getByRole('button', { name: /Navigation129 Madrid/ })).toBeVisible()

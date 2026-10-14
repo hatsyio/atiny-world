@@ -100,13 +100,14 @@ it('cancels a pending locality when another instance selects its country', async
   expect(onChange.mock.calls.some(([value]) => value.locationId === madrid.id)).toBe(false)
 })
 
-it('keeps the country filter empty when choosing a disambiguated city candidate', async () => {
+it('applies the preferred city immediately without a second selection or country change', async () => {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json({ locations: url === '/api/map/filter-options' ? catalog : [madrid, { ...madrid, id: 'city:madrid-2', point: { latitude: 41, longitude: -4 } }] })))
   const onChange = vi.fn()
   render(<MapFilters value={{ country: '' }} onChange={onChange} />)
   const user = userEvent.setup()
   await user.click(screen.getByRole('combobox', { name: 'City' }))
   await user.click(await screen.findByRole('option', { name: 'Madrid' }))
-  await user.click(await screen.findByRole('button', { name: 'Madrid · Spain (40.400, -3.700)' }))
-  expect(onChange).toHaveBeenLastCalledWith({ country: '', city: 'Madrid', locationId: madrid.id })
+  await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ country: '', city: 'Madrid', locationId: madrid.id }))
+  expect(screen.queryByRole('button', { name: /Madrid · Spain/ })).not.toBeInTheDocument()
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 })

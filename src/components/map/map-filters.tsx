@@ -79,7 +79,7 @@ export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
       if (!response.ok) throw new Error('Location unavailable')
       const data = await response.json() as { locations: GeographicLocation[] }
       if (controller.signal.aborted) return
-      if (data.locations.length === 1) {
+      if (data.locations.length) {
         setResolution(null)
         onChange({ ...value, city: name, locationId: data.locations[0].id })
       } else setResolution({ context, locations: data.locations, pending: false, failed: false })
@@ -111,12 +111,6 @@ export function MapFilters({ value, onChange, debounceMs = 350 }: Props) {
         {currentResolution.pending ? <p role="status">{t('locating')}</p> : null}
         {currentResolution.failed ? <p role="status">{t('locationUnavailable')}</p> : null}
         {!currentResolution.pending && !currentResolution.failed && !currentResolution.locations.length ? <p role="status">{t('locationNotFound')}</p> : null}
-        {currentResolution.locations.map(location => <button key={location.id} type="button" onClick={() => {
-          request.current?.abort()
-          setResolution(null)
-          onChange({ ...value, city, locationId: location.id })
-        }}>{location.name} · {location.country} ({location.point.latitude.toFixed(3)}, {location.point.longitude.toFixed(3)})</button>)}
-        {currentResolution.locations.length ? <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Powered by Geoapify</a> : null}
       </div> : null}
       {optionsQuery.isError ? <div role="status"><p>{t('optionsUnavailable')}</p><button type="button" onClick={() => void optionsQuery.refetch()}>{t('retry')}</button></div> : null}
     </div>
