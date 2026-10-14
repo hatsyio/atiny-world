@@ -1,3 +1,4 @@
+import { createFixedWindowRateLimiter, getClientKey, type RateLimiter } from '@/server/http/rate-limit'
 import type { PublicPoint } from '@/domain/location/public-point'
 import { z } from 'zod'
 
@@ -15,9 +16,6 @@ import { signLocationSelection, type LocationSelection } from '@/server/location
 
 const DEFAULT_LIMIT = 5
 const PROVIDER_RETRY_AFTER_SECONDS = 60
-const LOCAL_RATE_LIMIT = 30
-const LOCAL_RATE_LIMIT_WINDOW_MS = 60_000
-const MAX_RATE_LIMIT_CLIENTS = 10_000
 const GEOAPIFY_ATTRIBUTION = {
   label: 'Geoapify',
   url: 'https://www.geoapify.com/',
@@ -46,48 +44,6 @@ type LocationSuggestionsDependencies = {
   signSelection?: (selection: LocationSelection) => string | Promise<string>
   clientKey?: (request: Request) => string
   rateLimiter?: RateLimiter
-}
-
-type RateLimitResult = { allowed: boolean; retryAfterSeconds: number }
-type RateLimiter = (clientKey: string) => RateLimitResult
-
-type RateLimitEntry = { windowStart: number; requests: number }
-
-function createFixedWindowRateLimiter(
-  limit = LOCAL_RATE_LIMIT,
-  windowMs = LOCAL_RATE_LIMIT_WINDOW_MS,
-  maxClients = MAX_RATE_LIMIT_CLIENTS,
-  now: () => number = Date.now,
-): RateLimiter {
-  const entries = new Map<string, RateLimitEntry>()
-
-  return (clientKey) => {
-    const currentTime = now()
-    const windowStart = Math.floor(currentTime / windowMs) * windowMs
-    const retryAfterSeconds = Math.max(1, Math.ceil((windowStart + windowMs - currentTime) / 1_000))
-    const previous = entries.get(clientKey)
-
-    if (previous?.windowStart === windowStart) {
-      previous.requests += 1
-      entries.delete(clientKey)
-      entries.set(clientKey, previous)
-      return { allowed: previous.requests <= limit, retryAfterSeconds }
-    }
-
-    if (!previous && entries.size >= maxClients) {
-      const oldestClient = entries.keys().next().value
-      if (oldestClient !== undefined) entries.delete(oldestClient)
-    }
-
-    entries.set(clientKey, { windowStart, requests: 1 })
-    return { allowed: true, retryAfterSeconds }
-  }
-}
-
-function getClientKey(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  const client = forwarded || request.headers.get('x-real-ip') || 'anonymous'
-  return client.slice(0, 200)
 }
 
 function rateLimitedProblem(messageKey: string, retryAfterSeconds: number): Response {

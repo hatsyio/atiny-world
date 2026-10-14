@@ -98,7 +98,7 @@ describe('MapFilters', () => {
   it('changes country and clears it without losing the city filter', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ locations: [{ city: 'Madrid', country: 'es' }, { city: 'Seoul', country: 'kr' }] })))
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.startsWith('/api/map/locations') ? Response.json({ locations: [] }) : Response.json({ locations: [{ city: 'Madrid', country: 'es' }, { city: 'Seoul', country: 'kr' }] })))
     const { rerender } = render(<MapFilters value={{ city: 'Seoul', country: 'kr' }} onChange={onChange} />)
     await user.click(screen.getByRole('button', { name: /Country/ }))
     // Scope text lookup to the accessible open list instead of computing 250 option names.
@@ -173,7 +173,7 @@ describe('PublicMessageCard', () => {
 })
 
 it('only offers countries with public letters and scopes city suggestions to the selected country', async () => {
-  vi.stubGlobal('fetch', vi.fn(async () => Response.json({ locations: [
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => url.startsWith('/api/map/locations') ? Response.json({ locations: [] }) : Response.json({ locations: [
     { city: 'Madrid', country: 'es' }, { city: 'Barcelona', country: 'es' }, { city: 'Seoul', country: 'kr' },
   ] })))
   const onChange = vi.fn()
@@ -191,8 +191,8 @@ it('only offers countries with public letters and scopes city suggestions to the
   await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({ country: 'es', city: 'Madrid' }))
 })
 
-it('lets an unavailable URL country be cleared without offering it as an option', async () => {
-  vi.stubGlobal('fetch', vi.fn(async () => Response.json({ locations: [{ country: 'es', city: 'Madrid' }] })))
+it('allows clearing a URL country which has no published letters', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => url.startsWith('/api/map/locations') ? Response.json({ locations: [] }) : Response.json({ locations: [{ country: 'es', city: 'Madrid' }] })))
   const onChange = vi.fn()
   render(<MapFilters value={{ country: 'al', city: '' }} onChange={onChange} />)
   const trigger = screen.getByRole('button', { name: /Country/ })
@@ -203,7 +203,7 @@ it('lets an unavailable URL country be cleared without offering it as an option'
   expect(onChange).toHaveBeenCalledWith({ country: '', city: '' })
 })
 
-it('does not fall back to the global country catalog when location loading fails and allows retry', async () => {
+it('does not offer unrelated countries when the database catalog fails and allows retry', async () => {
   vi.stubGlobal('fetch', vi.fn()
     .mockResolvedValueOnce(new Response(null, { status: 400 }))
     .mockResolvedValueOnce(Response.json({ locations: [{ country: 'es', city: 'Madrid' }] })))
@@ -217,7 +217,7 @@ it('does not fall back to the global country catalog when location loading fails
 })
 
 it('shows Barcelona and Badalona below the text field for ba and allows keyboard selection', async () => {
-  vi.stubGlobal('fetch', vi.fn(async () => Response.json({ locations: [
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => url.startsWith('/api/map/locations') ? Response.json({ locations: [] }) : Response.json({ locations: [
     { country: 'es', city: 'Barcelona' }, { country: 'es', city: 'Badalona' },
     { country: 'es', city: 'Madrid' }, { country: 'de', city: 'Bamberg' },
   ] })))

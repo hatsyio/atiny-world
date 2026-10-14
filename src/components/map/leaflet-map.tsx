@@ -4,12 +4,15 @@ import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import type { MapBounds, PublicMapFeature } from '@/domain/messages/public-message'
+import type { GeographicLocation } from '@/domain/location/geographic-location'
 import type { MapView } from '@/components/navigation/letter-origin'
 import { MapErrorBoundary } from './map-error-boundary'
 import { MapFilters, type MapFilterValues } from './map-filters'
 import { MessageClusterList } from './message-cluster-list'
 
 export interface LeafletMapProps {
+  geographicTarget?: GeographicLocation
+  navigationVersion?: number
   initialView?: MapView
   onViewChange?: (view: MapView) => void
   features: PublicMapFeature[]
@@ -31,7 +34,7 @@ const ClientMap = dynamic(() => import('./public-map-react-leaflet').then(module
   ssr: false, loading: () => <div className="map__canvas" />,
 })
 
-export function LeafletMap({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId, focusSelection, onPreview, hideGroupList, selectionVersion }: LeafletMapProps) {
+export function LeafletMap({ geographicTarget, navigationVersion, initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId, focusSelection, onPreview, hideGroupList, selectionVersion }: LeafletMapProps) {
   const t = useTranslations('Map.leaflet')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isClusterListOpen, setIsClusterListOpen] = useState(false)
@@ -59,11 +62,11 @@ export function LeafletMap({ initialView, onViewChange, features, onSelect, onVi
   return (
     <section aria-label={t('label')} className={isFullscreen ? 'map map--fullscreen' : 'map'}>
       <MapErrorBoundary fallback={<><div className="map__canvas" /><p role="status">{t('unavailable')}</p></>}>
-        <ClientMap initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect}
+        <ClientMap geographicTarget={geographicTarget} navigationVersion={navigationVersion} initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect}
           onViewportChange={onViewportChange} selectedPublicId={selectedPublicId} focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={onPreview} apiKey={cartoApiKey}
           isFullscreen={isFullscreen} onToggleFullscreen={() => setIsFullscreen(current => !current)} />
       </MapErrorBoundary>
-      {filters && onFiltersChange ? (
+      {filters && onFiltersChange && (!hideGroupList || isFullscreen) ? (
         <div className="map__filters">
           <button
             className="map__filters-toggle"

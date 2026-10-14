@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 
 import type { MapBounds, PublicMapFeature } from '@/domain/messages/public-message'
+import type { GeographicLocation } from '@/domain/location/geographic-location'
 import type { MapView } from '@/components/navigation/letter-origin'
 import type { MapFilterValues } from './map-filters'
 
@@ -22,6 +23,8 @@ const LeafletMap = dynamic(
 )
 
 interface Props {
+  geographicTarget?: GeographicLocation
+  navigationVersion?: number
   initialView?: MapView
   onViewChange?: (view: MapView) => void
   features: PublicMapFeature[]
@@ -37,6 +40,6 @@ interface Props {
   selectedPublicId?: string
 }
 
-export function PublicMapLoader({ initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId, focusSelection, onPreview, hideGroupList, selectionVersion }: Props) {
-  return <LeafletMap initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect} onViewportChange={onViewportChange} filters={filters} onFiltersChange={onFiltersChange} groupRequestUrl={groupRequestUrl} selectedPublicId={selectedPublicId} focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={onPreview} hideGroupList={hideGroupList} />
+export function PublicMapLoader({ geographicTarget, navigationVersion, initialView, onViewChange, features, onSelect, onViewportChange, filters, onFiltersChange, groupRequestUrl, selectedPublicId, focusSelection, onPreview, hideGroupList, selectionVersion }: Props) {
+  return <LeafletMap geographicTarget={geographicTarget} navigationVersion={navigationVersion} initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect} onViewportChange={onViewportChange} filters={filters} onFiltersChange={onFiltersChange} groupRequestUrl={groupRequestUrl} selectedPublicId={selectedPublicId} focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={onPreview} hideGroupList={hideGroupList} />
 }

@@ -89,6 +89,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .live-map-frame { max-width: 1200px; margin: 0 auto; }
 .live-map-frame > section { background: transparent; }
 .map-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: .75rem 1rem; padding: .8rem 0; font-family: var(--font-interface), sans-serif; }
+.map-location-results { grid-column: 1 / -1; display: grid; gap: .5rem; min-width: 0; }
+.map-location-results > button { overflow-wrap: anywhere; }
+.map-location-results > a { font-size: .75rem; }
 .map-filters__field { display: grid; gap: .5rem; min-width: 0; }
 .map-filters label { font-size: .85rem; font-weight: 600; line-height: 1.6; color: #291910; }
 .map-filters input, .map-filters .app-select-trigger { height: 2.75rem; min-height: 2.75rem; }

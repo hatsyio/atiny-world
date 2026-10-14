@@ -11,6 +11,7 @@ import type { MapBounds } from '@/domain/messages/public-message'
 import { matchesCity } from '@/domain/location/city-search'
 import { buildFeatureRequest, buildMessageRequest } from './public-map-controller'
 import { isMissingPublicMessage, mapFeaturesQuery, publicMessageQuery } from './map-queries'
+import { useGeographicTarget } from './use-geographic-target'
 import { MapFilters, type MapFilterValues } from './map-filters'
 import { MessageClusterList } from './message-cluster-list'
 import { PublicMapLoader } from './public-map-loader'
@@ -21,20 +22,23 @@ const DEFAULT_VIEW: MapView = { latitude: 20, longitude: 0, zoom: 2 }
 export function MapExplorer() {
   const params = useSearchParams()
   const search = params.toString()
-  const [sync, setSync] = useState({ observed: search, context: search, written: search })
+  const [sync, setSync] = useState({ observed: search, context: search, revision: 0, written: [] as string[] })
   if (search !== sync.observed) {
-    setSync({ ...sync, observed: search, context: search === sync.written ? sync.context : search })
+    const pending = sync.written.indexOf(search)
+    setSync({ ...sync, observed: search, revision: pending >= 0 ? sync.revision : sync.revision + 1, context: pending >= 0 ? sync.context : search, written: pending >= 0 ? sync.written.slice(pending + 1) : [] })
   }
   useEffect(() => {
     const restore = () => {
       const search = window.location.search.slice(1)
-      setSync({ observed: search, context: search, written: search })
+      setSync(current => ({ observed: search, context: search, revision: current.revision + 1, written: [] }))
     }
     window.addEventListener('popstate', restore)
     return () => window.removeEventListener('popstate', restore)
   }, [])
-  const onWrite = useCallback((search: string) => { setSync(current => ({ ...current, written: search })) }, [])
-  return <Exploration key={sync.context} search={sync.context} onWrite={onWrite} />
+  const onWrite = useCallback((search: string) => {
+    setSync(current => current.observed === search || current.written.at(-1) === search ? current : { ...current, written: [...current.written.slice(-19), search] })
+  }, [setSync])
+  return <Exploration key={`${sync.revision}:${sync.context}`} search={sync.context} onWrite={onWrite} />
 }
 
 function Exploration({ search, onWrite }: { search: string; onWrite: (search: string) => void }) {
@@ -51,6 +55,8 @@ function Exploration({ search, onWrite }: { search: string; onWrite: (search: st
   const [selectedId, setSelectedId] = useState(initialSelection)
   const [selectionVersion, setSelectionVersion] = useState(0)
   const [focusSelection, setFocusSelection] = useState(!readMapView(params))
+  const [geographicIntent, setGeographicIntent] = useState(!readMapView(params) && Boolean(filters.locationId || filters.country && !filters.city))
+  const geographic = useGeographicTarget(filters, !selectedId && geographicIntent)
   const [panelOpen, setPanelOpen] = useState(false)
   const view = useRef(initialView)
   const [zoom, setZoom] = useState(initialView.zoom)
@@ -79,6 +85,8 @@ function Exploration({ search, onWrite }: { search: string; onWrite: (search: st
     rememberLetterOrigin(href)
   }, [onWrite])
   const changeFilters = (next: MapFilterValues) => {
+    setGeographicIntent(Boolean(next.locationId || next.country && (next.country !== filters.country || !next.city)))
+    setSelectionVersion(version => version + 1)
     setFilters(next)
     setSelectedId(undefined)
     // Passing undefined would use the callback's default selected ID.
@@ -92,6 +100,12 @@ function Exploration({ search, onWrite }: { search: string; onWrite: (search: st
     write(origin(filters, id))
   }
 
+  const selectMessage = useCallback((id: string) => {
+    const href = origin(filters, id)
+    write(href)
+    router.push(letterHref(id, href))
+  }, [origin, filters, write, router])
+
   return <section className="map-explorer" aria-label={t('title')}>
     <div className="map-explorer__toolbar">
       <MapFilters value={filters} onChange={changeFilters} debounceMs={350} />
@@ -99,15 +113,16 @@ function Exploration({ search, onWrite }: { search: string; onWrite: (search: st
     <div className="map-explorer__workspace">
       <div className="map-explorer__map">
         <div className="map-feedback" aria-live="polite">
+          {geographic.unavailable ? <p role="status">{t('locationUnavailable')}</p> : null}
           {query.isError ? <div role="status"><p>{t('error')}</p><button onClick={() => void query.refetch()}>{t('retry')}</button></div> : null}
           {query.data?.truncated ? <p role="status">{t('truncated')}</p> : null}
           {linked && !initialSelection ? <p role="status">{t('letterUnavailable')}</p> : null}
           {selection.isError ? <div role="status"><p>{t(isMissingPublicMessage(selection.error) ? 'letterUnavailable' : 'letterError')}</p><button onClick={() => void selection.refetch()}>{t('retry')}</button></div> : null}
         </div>
-        <PublicMapLoader hideGroupList initialView={initialView} features={features} selectedPublicId={matches ? selectedId : undefined}
+        <PublicMapLoader filters={filters} onFiltersChange={changeFilters} geographicTarget={geographic.target} navigationVersion={selectionVersion} hideGroupList initialView={initialView} features={features} selectedPublicId={matches ? selectedId : undefined}
           focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={id => preview(id, false)}
           onViewChange={next => { view.current = next; setZoom(next.zoom); write(origin()) }} onViewportChange={setBounds}
-          onSelect={id => { const href = origin(filters, id); write(href); router.push(letterHref(id, href)) }} />
+          onSelect={selectMessage} />
       </div>
       <aside className={`map-explorer__panel${panelOpen ? ' map-explorer__panel--open' : ''}`} aria-label={t('areaLetters')}>
         <h2>{t('areaLetters')}</h2>

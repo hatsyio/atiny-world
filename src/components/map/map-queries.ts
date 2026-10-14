@@ -1,4 +1,5 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
+import { matchesCity } from '@/domain/location/city-search'
 import type { PublicLetterLocation } from '@/domain/location/public-locations'
 import type { PublicMapFeature, PublicMessageDetail } from '@/domain/messages/public-message'
 
@@ -45,9 +46,13 @@ export function mapFeaturesQuery(requestUrl: string) {
       if (typeof previousUrl !== 'string') return undefined
       const previous = new URL(previousUrl, 'https://atiny.invalid').searchParams
       const next = new URL(requestUrl, 'https://atiny.invalid').searchParams
-      // Keep mounted markers during pans/zoom; changing filters must clear them.
-      return ['city', 'country'].every(name => (previous.get(name) ?? '') === (next.get(name) ?? ''))
-        ? previousData : undefined
+      // Keep matching markers mounted while the new viewport/filter loads.
+      // Discard nonmatching pins immediately; the response remains authoritative.
+      if (!previousData || ['city', 'country'].every(name => (previous.get(name) ?? '') === (next.get(name) ?? ''))) return previousData
+      const city = next.get('city') ?? ''
+      const country = next.get('country') ?? ''
+      return { ...previousData, features: previousData.features.filter(feature =>
+        matchesCity(feature.locality, city) && (!country || feature.countryCode === country)) }
     },
   })
 }

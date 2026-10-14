@@ -50,6 +50,9 @@ for (const width of [320, 390, 1440]) {
     await expect(page.locator('.map-message-marker--selected')).toBeVisible()
     await expect(page.locator('.map-message-letter')).toContainText('ATINY120')
     await expect(page.locator('.map-message-letter')).toContainText(city)
+    const popup = await page.locator('.map-letter-popup').boundingBox()
+    const canvas = await map.boundingBox()
+    expect(popup!.y - canvas!.y).toBeGreaterThanOrEqual(31)
     // Selecting either letter at the shared point must target that precise letter.
     if (width < 760) await page.getByRole('button', { name: 'Show letters' }).click()
     await page.getByRole('button', { name: /Map120 letter 21/ }).click()
@@ -162,11 +165,12 @@ for (const width of [320, 1440]) {
         return map && popup ? Math.min(popup.x - map.x, popup.y - map.y,
           map.x + map.width - popup.x - popup.width, map.y + map.height - popup.y - popup.height) : -Infinity
       }
-      await expect.poll(fits).toBeGreaterThanOrEqual(-1)
-      await page.screenshot({ path: test.info().outputPath('popup.png') })
+      try { await expect.poll(fits).toBeGreaterThanOrEqual(-1) }
+      finally { await page.screenshot({ path: test.info().outputPath('popup.png') }) }
       if (fullscreen) {
         await page.getByRole('button', { name: 'Exit fullscreen' }).click()
-        await expect.poll(fits).toBeGreaterThanOrEqual(-1)
+        try { await expect.poll(fits).toBeGreaterThanOrEqual(-1) }
+        finally { await page.screenshot({ path: test.info().outputPath('resized-popup.png') }) }
       }
     })
   }
@@ -341,7 +345,7 @@ for (const width of [390, 1440]) {
   })
 }
 
-test('offers only public database countries and city autocomplete scoped to the country', async ({ page }) => {
+test('offers only database countries and city autocomplete scoped to the country', async ({ page }) => {
   await sql`insert into app_private.messages (author_id, content, status, moderation_reason_code, location_precision, location_algorithm_version, public_point, locality, country, country_code)
     values (${authorId}, 'Seoul autocomplete fixture', 'approved', null, 'approximate', 1,
       extensions.st_setsrid(extensions.st_makepoint(127, 37.5), 4326)::extensions.geography, 'Map120Seoul', 'Korea', 'kr'),

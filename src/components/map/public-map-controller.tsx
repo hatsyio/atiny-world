@@ -14,6 +14,7 @@ import type { MapBounds, PublicMapFeature } from '@/domain/messages/public-messa
 import { matchesCity } from '@/domain/location/city-search'
 
 import type { MapFilterValues } from './map-filters'
+import { useGeographicTarget } from './use-geographic-target'
 import { PublicMapLoader } from './public-map-loader'
 
 const WORLD_BOUNDS: MapBounds = {
@@ -108,6 +109,9 @@ function MapExploration({ selectedPublicId, selectedMessage, initialView, initia
   const [bounds, setBounds] = useState<MapBounds>(WORLD_BOUNDS)
   const [filters, setFilters] = useState<MapFilterValues>(initialFilters)
   const [previewId, setPreviewId] = useState(selectedPublicId)
+  const [navigationVersion, setNavigationVersion] = useState(0)
+  const [geographicIntent, setGeographicIntent] = useState(false)
+  const geographic = useGeographicTarget(filters, !previewId && geographicIntent)
   const hasBasemap = Boolean(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY)
   const query = useQuery({
     ...mapFeaturesQuery(buildFeatureRequest(bounds, filters)),
@@ -133,6 +137,7 @@ function MapExploration({ selectedPublicId, selectedMessage, initialView, initia
   return (
     <section aria-label={t('explore')}>
       <div className="map-feedback" aria-live="polite" aria-atomic="true">
+        {geographic.unavailable ? <p role="status">{t('locationUnavailable')}</p> : null}
         {query.isError ? (
           <div role="status">
             <p>{t('unavailable')}</p>
@@ -142,14 +147,14 @@ function MapExploration({ selectedPublicId, selectedMessage, initialView, initia
           </div>
         ) : null}
       </div>
-      <PublicMapLoader
+      <PublicMapLoader geographicTarget={geographic.target} navigationVersion={navigationVersion}
         initialView={initialView}
         onViewChange={(nextView) => { view.current = nextView }}
         features={features}
         onSelect={selectMessage}
         onViewportChange={setBounds}
         filters={filters}
-        onFiltersChange={setFilters}
+        onFiltersChange={next => { setGeographicIntent(Boolean(next.locationId || next.country && (next.country !== filters.country || !next.city))); setFilters(next); setPreviewId(undefined); setNavigationVersion(version => version + 1) }}
         groupRequestUrl={buildMessageRequest(bounds, filters)}
         selectedPublicId={previewId}
         focusSelection={previewId === selectedPublicId}

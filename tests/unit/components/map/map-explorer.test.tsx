@@ -5,9 +5,10 @@ import { render } from '../../../support/intl'
 import { MapExplorer } from '@/components/map/map-explorer'
 import type { LeafletMapProps } from '@/components/map/leaflet-map'
 
-const navigation = vi.hoisted(() => ({ push: vi.fn() }))
-vi.mock('next/navigation', () => ({ useRouter: () => navigation, useSearchParams: () => new URLSearchParams(window.location.search) }))
+const navigation = vi.hoisted(() => ({ push: vi.fn(), search: null as string | null }))
+vi.mock('next/navigation', () => ({ useRouter: () => navigation, useSearchParams: () => new URLSearchParams(navigation.search ?? window.location.search) }))
 vi.mock('@/components/map/public-map-loader', () => ({ PublicMapLoader: (props: LeafletMapProps) => <div>
+  <span aria-label="Geographic target">{props.geographicTarget?.id}</span>
   <span aria-label="Initial view">{JSON.stringify(props.initialView)}</span>
   <span aria-label="Selected marker">{props.selectedPublicId}</span>
   <span aria-label="Markers">{props.features.map(feature => feature.publicId).join(',')}</span>
@@ -21,7 +22,7 @@ beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_CARTO_BASEMAP_KEY', 'test')
   vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(url === '/api/map/filter-options' ? { locations: [{ country: 'es', city: 'Madrid' }] } : url.startsWith('/api/messages/') ? message : url.startsWith('/api/map/features') ? { features: [] } : { items: [message], nextCursor: null }))))
 })
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); navigation.push.mockReset() })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); navigation.push.mockReset(); navigation.search = null })
 
 it('keeps markers without a loading overlay while the next viewport loads, then replaces them', async () => {
   let resolveViewport!: (response: Response) => void
@@ -106,4 +107,81 @@ it('reacts to browser navigation without remounting on its own URL updates', asy
   act(() => { window.history.replaceState(null, '', '/map?mapView=10,20,5&mapCity=Seoul'); window.dispatchEvent(new PopStateEvent('popstate')) })
   expect(screen.getByLabelText('Initial view')).toHaveTextContent('"zoom":5')
   expect(screen.getByRole('combobox', { name: 'City' })).toHaveValue('Seoul')
+})
+
+it('keeps typing local and automatically frames a catalog locality without viewport messages', async () => {
+  const location = { id: 'city:geoapify:madrid', kind: 'city', name: 'Madrid', country: 'Spain', countryCode: 'es', point: { latitude: 40.4, longitude: -3.7 }, bounds: { west: -4, south: 40, east: -3, north: 41 }, provider: 'Geoapify', attribution: 'Geoapify', obtainedAt: '2026-10-14T00:00:00Z', providerId: 'madrid' }
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(url.startsWith('/api/map/locations') ? { locations: [location] } : url === '/api/map/filter-options' ? { locations: [{ country: 'es', city: 'Madrid' }] } : { features: [], items: [], nextCursor: null }))))
+  render(<MapExplorer />)
+  fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'Madrid' } })
+  await waitFor(() => expect(new URLSearchParams(window.location.search).get('mapCity')).toBe('Madrid'))
+  expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).startsWith('/api/map/locations'))).toBe(false)
+  const user = (await import('@testing-library/user-event')).default.setup()
+  await user.click(screen.getByRole('combobox', { name: 'City' }))
+  await user.click(await screen.findByRole('option', { name: 'Madrid' }))
+  await waitFor(() => expect(new URLSearchParams(window.location.search).get('mapLocation')).toBe(location.id))
+  await waitFor(() => expect(screen.getByLabelText('Geographic target')).toHaveTextContent(location.id))
+})
+
+it('frames a selected country even when the city field contains an unresolved fragment', async () => {
+  const user = (await import('@testing-library/user-event')).default.setup()
+  const location = { id: 'country:es', kind: 'country', name: 'Spain', country: 'Spain', countryCode: 'es', point: { latitude: 40, longitude: -3 }, bounds: { west: -18, south: 27, east: 4, north: 44 }, provider: 'Geoapify', attribution: 'Geoapify', obtainedAt: '2026-10-14T00:00:00Z', providerId: 'es' }
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json(url.startsWith('/api/map/locations') ? { locations: [location] } : { locations: [{ country: 'es', city: 'Madrid' }], features: [], items: [], nextCursor: null })))
+  render(<MapExplorer />)
+  fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'Mad' } })
+  await waitFor(() => expect(new URLSearchParams(window.location.search).get('mapCity')).toBe('Mad'))
+  await user.click(screen.getByRole('button', { name: /Country/ }))
+  await user.click(await screen.findByRole('option', { name: 'Spain' }))
+  await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url) === '/api/map/locations?country=es')).toBe(true))
+  await waitFor(() => expect(screen.getByLabelText('Geographic target')).toHaveTextContent('country:es'))
+  fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'Madr' } })
+  await waitFor(() => expect(screen.getByLabelText('Geographic target')).toBeEmptyDOMElement())
+})
+
+it('preserves exploration when navigation observes an intermediate pending URL write', async () => {
+  navigation.search = ''
+  const page = render(<MapExplorer />)
+  fireEvent.click(screen.getByRole('button', { name: 'Move map' }))
+  const earlier = window.location.search
+  fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'Madrid' } })
+  await waitFor(() => expect(new URLSearchParams(window.location.search).get('mapCity')).toBe('Madrid'))
+  const latest = window.location.search
+  navigation.search = earlier
+  page.rerender(<MapExplorer />)
+  expect(screen.getByRole('combobox', { name: 'City' })).toHaveValue('Madrid')
+  expect(screen.getByLabelText('Initial view')).toHaveTextContent('"zoom":2')
+  navigation.search = latest
+  page.rerender(<MapExplorer />)
+  expect(screen.getByRole('combobox', { name: 'City' })).toHaveValue('Madrid')
+})
+
+it('restores a clean map when external navigation returns to a previously observed URL', async () => {
+  const page = render(<MapExplorer />)
+  fireEvent.click(screen.getByRole('button', { name: 'Move map' }))
+  fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'Madrid' } })
+  await waitFor(() => expect(new URLSearchParams(window.location.search).get('mapCity')).toBe('Madrid'))
+  window.history.replaceState(null, '', '/map')
+  page.rerender(<MapExplorer />)
+  expect(screen.getByRole('combobox', { name: 'City' })).toHaveValue('')
+  expect(screen.getByLabelText('Initial view')).toHaveTextContent('"zoom":2')
+})
+
+it('keeps matching pins while a city filter loads and removes nonmatching pins immediately', async () => {
+  let resolveCity!: (response: Response) => void
+  vi.stubGlobal('fetch', vi.fn((url: string) => {
+    if (url.startsWith('/api/map/features')) {
+      if (url.includes('city=M%C3%81-D')) return new Promise<Response>(done => { resolveCity = done })
+      return Promise.resolve(Response.json({ features: [message, { ...message, publicId: 'barcelona', locality: 'Barcelona' }] }))
+    }
+    return Promise.resolve(Response.json(url === '/api/map/filter-options' ? { locations: [{ country: 'es', city: 'Madrid' }] } : { items: [], nextCursor: null }))
+  }))
+  render(<MapExplorer />)
+  fireEvent.click(screen.getByRole('button', { name: 'Move map' }))
+  await waitFor(() => expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-1,barcelona'))
+  fireEvent.change(screen.getByRole('combobox', { name: 'City' }), { target: { value: 'MÁ-D' } })
+  await waitFor(() => expect(resolveCity).toBeTypeOf('function'))
+  expect(screen.getByLabelText('Markers')).toHaveTextContent('letter-1')
+  expect(screen.getByLabelText('Markers')).not.toHaveTextContent('barcelona')
+  await act(async () => resolveCity(Response.json({ features: [] })))
+  await waitFor(() => expect(screen.getByLabelText('Markers')).toBeEmptyDOMElement())
 })

@@ -8,7 +8,10 @@
     "loadingOptions": "Cargando ubicaciones…",
     "optionsUnavailable": "No se han podido cargar las ubicaciones.",
     "retry": "Reintentar",
-    "countryUnavailable": "País ya no disponible"
+    "countryUnavailable": "País ya no disponible",
+    "locating": "Buscando ubicaciones…",
+    "locationUnavailable": "No se pudo resolver la ubicación. Se conserva la vista del mapa.",
+    "locationNotFound": "No se han encontrado datos geográficos de esta localidad. Se conserva la vista del mapa."
   },
   "cluster": {
     "loading": "Cargando mensajes…",
@@ -25,7 +28,8 @@
   "controller": {
     "explore": "Explorar mensajes",
     "unavailable": "No se pudieron cargar los mensajes del mapa.",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "locationUnavailable": "No se pudo resolver la ubicación. Se conserva la vista del mapa."
   },
   "leaflet": {
     "label": "Mapa de mensajes",
@@ -62,6 +66,7 @@
     "truncated": "Algunos marcadores no se muestran. Acerca el mapa para explorar una zona menor.",
     "letterUnavailable": "Esta carta ya no está disponible públicamente.",
     "mapUnavailable": "El mapa interactivo no está disponible.",
-    "letterError": "No se pudo cargar la carta seleccionada. Reinténtalo."
+    "letterError": "No se pudo cargar la carta seleccionada. Reinténtalo.",
+    "locationUnavailable": "No se pudo resolver la ubicación. Se conserva la vista del mapa."
   }
 }

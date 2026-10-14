@@ -319,3 +319,18 @@ it('cancels the located letter request when the selected letter is withdrawn', a
   await waitFor(() => expect(signals[0].aborted).toBe(true))
   expect(result.container.querySelector('.leaflet-popup')).toBeNull()
 })
+
+it('does not restart popup layout and autopan when only viewport callbacks change', async () => {
+  respond('stable popup content')
+  const factory = vi.spyOn(leaflet.Map.prototype, 'setView')
+  const select = vi.fn()
+  const page = render(<LeafletMap initialView={initialView} features={[feature]} onSelect={select} />)
+  const map = await getMap(factory)
+  const marker = (await getGroup(map)).getLayers()[0] as leaflet.Marker
+  clickMarker(marker)
+  await page.findByText('stable popup content')
+  const update = vi.spyOn(marker.getPopup()!, 'update')
+  page.rerender(<LeafletMap initialView={initialView} features={[{ ...feature }]} onSelect={select} onViewportChange={() => {}} />)
+  expect(update).not.toHaveBeenCalled()
+  expect(marker.isPopupOpen()).toBe(true)
+})
