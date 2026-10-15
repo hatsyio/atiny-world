@@ -1,3 +1,4 @@
+import { invalidatePublicReads } from '@/server/cache'
 import type { Sql } from '@/server/db/sql'
 
 import { errorResult, okResult, parsePublicId, type ActionResult } from '@/domain/contracts'
@@ -59,7 +60,7 @@ export async function updateMessage(
     }
   }
 
-  return sql.begin(async (tx) => {
+  const result = await sql.begin<Awaited<ReturnType<typeof updateMessage>>>(async (tx) => {
     const profiles = await tx<{ id: string; account_state: string; suspended_at: string | null; display_name: string }[]>`
       select id, account_state, suspended_at, display_name
         from app_private.profiles
@@ -118,4 +119,6 @@ export async function updateMessage(
 
     return okResult({ publicId: message.public_id, version: nextVersion, status: 'pending' as const })
   })
+  if (result.ok) await invalidatePublicReads()
+  return result
 }

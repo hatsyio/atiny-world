@@ -1,3 +1,4 @@
+import { cachedPublicRead } from '@/server/cache'
 import type { Fragment, Sql, TransactionSql } from '@/server/db/sql'
 import { parsePublicId } from '@/domain/contracts'
 import type { PublicLetterLocation } from '@/domain/location/public-locations'
@@ -76,25 +77,27 @@ export async function pagePublicLetters(sql: Sql, args: LetterCriteria): Promise
 }
 
 export async function listPublicLetterCountries(sql: Sql): Promise<string[]> {
-  const rows = await sql<Array<{ country_code: string }>>`
-    select distinct m.country_code
-      from app_private.messages m
-      join app_private.profiles p on p.id = m.author_id
-     where ${visibilityCondition(sql)}
-     order by m.country_code
-  `
-  return rows.map(row => row.country_code)
+  return cachedPublicRead('options', ['countries'], isCountries, async () => {
+    const rows = await sql<Array<{ country_code: string }>>`
+      select distinct m.country_code
+        from app_private.messages m
+        join app_private.profiles p on p.id = m.author_id
+       where ${visibilityCondition(sql)}
+       order by m.country_code
+    `
+    return rows.map(row => row.country_code)
+  })
 }
 
 /** Independent of viewport and search criteria; shares the public visibility rule. */
 export async function listPublicLetterLocations(sql: Sql): Promise<PublicLetterLocation[]> {
-  return await sql<PublicLetterLocation[]>`
+  return cachedPublicRead('options', ['locations'], isLocations, async () => await sql<PublicLetterLocation[]>`
     select distinct m.country_code as country, nullif(btrim(m.locality), '') as city
       from app_private.messages m
       join app_private.profiles p on p.id = m.author_id
      where ${visibilityCondition(sql)}
      order by country, city
-  `
+  `)
 }
 
 export interface PublicMessageStats {
@@ -103,14 +106,16 @@ export interface PublicMessageStats {
 }
 
 export async function getPublicMessageStats(sql: Sql): Promise<PublicMessageStats> {
-  const rows = await sql<Array<{ letters: number; countries: number }>>`
-    select count(*)::int as letters, count(distinct m.country_code)::int as countries
-      from app_private.messages m
-      join app_private.profiles p on p.id = m.author_id
-     where ${visibilityCondition(sql)}
-  `
+  return cachedPublicRead('stats', ['totals'], isStats, async () => {
+    const rows = await sql<Array<{ letters: number; countries: number }>>`
+      select count(*)::int as letters, count(distinct m.country_code)::int as countries
+        from app_private.messages m
+        join app_private.profiles p on p.id = m.author_id
+       where ${visibilityCondition(sql)}
+    `
 
-  return rows[0] ?? { letters: 0, countries: 0 }
+    return rows[0] ?? { letters: 0, countries: 0 }
+  })
 }
 
 export async function listLatestPublicMessages(
@@ -308,4 +313,15 @@ export async function getVisibleMessage(
     ...projectPublicFeature(row),
     content: row.content ?? '',
   }
+}
+
+const countryCode = (value: unknown): value is string => typeof value === 'string' && /^[a-z]{2}$/.test(value)
+function isCountries(value: unknown): value is string[] { return Array.isArray(value) && value.every(countryCode) }
+function isLocations(value: unknown): value is PublicLetterLocation[] {
+  return Array.isArray(value) && value.every(item => item && typeof item === 'object' && countryCode(item.country) && (item.city === null || typeof item.city === 'string'))
+}
+function isStats(value: unknown): value is PublicMessageStats {
+  if (!value || typeof value !== 'object') return false
+  const stats = value as PublicMessageStats
+  return Number.isSafeInteger(stats.letters) && stats.letters >= 0 && Number.isSafeInteger(stats.countries) && stats.countries >= 0 && stats.countries <= stats.letters
 }

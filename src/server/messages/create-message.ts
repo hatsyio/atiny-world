@@ -1,3 +1,4 @@
+import { invalidatePublicReads } from '@/server/cache'
 import { randomUUID } from 'node:crypto'
 
 import type { Sql } from '@/server/db/sql'
@@ -32,7 +33,7 @@ export async function createMessage(
   })
   if (!content.ok || !location.ok) return errorResult('VALIDATION_ERROR', { messageKey: 'validation.invalidFields' })
 
-  return sql.begin(async (tx) => {
+  const result = await sql.begin<Awaited<ReturnType<typeof createMessage>>>(async (tx) => {
     const profiles = await tx<{ id: string; account_state: string; suspended_at: string | null; display_name: string }[]>`
       select id, account_state, suspended_at, display_name
         from app_private.profiles
@@ -77,4 +78,6 @@ export async function createMessage(
       }),
     })
   })
+  if (result.ok) await invalidatePublicReads()
+  return result
 }

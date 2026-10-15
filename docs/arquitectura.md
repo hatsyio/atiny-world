@@ -1,6 +1,6 @@
 # Atiny Atlas — Arquitectura de la primera versión
 
-Fecha: 2026-09-13.
+Fecha base: 2026-09-13. Política de BD y entornos actualizada: 2026-10-15.
 Base de producto: [requisitos validados](./requisitos.md).
 Estado: base tecnológica ejecutable, modelo principal de datos, permisos y
 estrategia de entornos y migraciones confirmados por el propietario. Clerk y el
@@ -33,11 +33,12 @@ Se usará el runtime Node.js. No se necesitan microservicios, WebSockets, almace
 
 ## Entornos y migraciones confirmados
 
-- Un único proyecto remoto de Supabase, destinado a producción, dado que el propietario dispone de un solo hueco gratuito.
+- Un único proyecto remoto de Supabase con la BD productiva compartida por Preview y Production, para evitar el coste de otro proyecto.
 - Desarrollo habitual y pruebas destructivas con Supabase local y datos de prueba.
-- Previews de Vercel conectadas a la base remota con credenciales propias de solo lectura por defecto. Esta restricción debe imponerse en los permisos de base de datos, no solo ocultando controles en la interfaz.
+- Preview y Production tienen lectura y escritura sobre las mismas tablas y configuración, por decisión del propietario del 15 de octubre de 2026. Las credenciales de aplicación permanecen limitadas, sin privilegios administrativos.
 - La capacidad de lectura no implica acceso a todas las tablas: las previews no deben recibir acceso indiscriminado a solicitudes de revisión privadas u otros datos sensibles. Los permisos y la visibilidad de aplicación siguen aplicándose.
-- Habilitar escrituras únicamente para previews concretas, revisadas y autorizadas caso por caso, reconociendo que sus operaciones afectan a producción. No reutilizar indiscriminadamente credenciales de escritura en todas las ramas.
+- Las escrituras de Preview afectan a los datos productivos y conservan la autorización, moderación y visibilidad de la aplicación. Clerk mantiene sus instancias Development y Production separadas; no se añade partición de datos por entorno.
+- Solo Production cachea lecturas. Preview y desarrollo conectado a la BD remota notifican invalidaciones después del commit mediante un endpoint autenticado de Production; su configuración se exige antes de activar la caché. Véase [Runtime Cache](runtime-cache.md).
 - Las previews no ejecutan migraciones automáticamente.
 - Migraciones versionadas y probadas localmente. Aplicación remota mediante un paso controlado e independiente de los builds de previews, con credenciales de migración separadas del acceso de la aplicación.
 - Flujo de expansión y contracción: añadir cambios compatibles con la versión actual; aplicarlos a producción; desplegar y validar la preview; publicar el código nuevo; retirar estructuras antiguas en otra migración una vez que ninguna versión activa dependa de ellas y haya pasado el margen de rollback.

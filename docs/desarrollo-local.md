@@ -84,6 +84,11 @@ anularían las de `.env`.
 pnpm docker:up:pro
 ```
 
+Si activas la caché de producción, configura también en las sesiones `pro`
+`PUBLIC_READ_CACHE_INVALIDATION_URL` y `PUBLIC_READ_CACHE_INVALIDATION_SECRET`
+en `.env.pro`, evitando `.env` que también usa el perfil local, para invalidarla después de cada escritura confirmada. El desarrollo contra
+la base local no necesita ese reenvío. Consulta [la guía de caché](runtime-cache.md).
+
 La base remota debe estar activa y migrada antes de usar ese perfil; ambas
 condiciones se verificaron el 25 de septiembre de 2026. Los usuarios
 de Clerk de desarrollo pueden crear datos en la base remota cuando esta permita
@@ -197,8 +202,11 @@ despliegues.
 Clerk Hobby está provisionado mediante Vercel Marketplace y conectado a
 development, preview y production. Supabase continúa siendo el proyecto remoto
 existente, sin crear un recurso duplicado en Marketplace. La cuenta de aplicación
-remota ya está creada; la credencial de solo lectura para previews sigue
-pendiente. No se reutiliza la contraseña administrativa para la aplicación.
+remota ya está creada. Por decisión del propietario del 15 de octubre de 2026,
+Preview y Production comparten esa BD productiva con lectura y escritura,
+manteniendo los permisos de usuario de la aplicación. Las identidades de Clerk
+siguen separadas por instancia. No se reutiliza la contraseña administrativa
+para la aplicación.
 
 ## Migraciones y previews
 
@@ -206,10 +214,14 @@ Crear cada migración con `supabase migration new nombre`, revisarla y probarla
 localmente. La aplicación en producción requiere un paso separado y controlado;
 nunca ejecutar migraciones desde un build de preview.
 
-El esquema local crea `atiny_preview_reader` y le concede lectura de la vista
-`preview_api.public_messages`. Su credencial y su uso efectivo en previews
-remotas deben provisionarse y verificarse por separado. No utilizar credenciales
-de administrador para previews.
+El esquema conserva `atiny_preview_reader` y la vista
+`preview_api.public_messages` como capacidad de lectura restringida. No son una
+BD ni una copia de los datos, y no forman parte del acceso elegido para las
+previews con escritura. No es necesario provisionar esa credencial para este
+flujo. Las previews usan una cuenta de aplicación con permisos limitados, nunca
+credenciales administrativas. Solo Production cachea lecturas; las previews
+notifican invalidaciones tras sus escrituras mediante el endpoint autenticado
+descrito en [la guía de caché](runtime-cache.md).
 
 Los cambios de esquema seguirán expand/contract: primero cambios compatibles,
 después la funcionalidad y, cuando dejen de existir versiones dependientes,

@@ -1,3 +1,4 @@
+import { invalidatePublicReads } from '@/server/cache'
 import type { Sql } from '@/server/db/sql'
 import { errorResult, okResult, parsePublicId, isProfileRole, type ActionResult, type ProfileRole } from '@/domain/contracts'
 
@@ -109,7 +110,7 @@ export async function setSuspension(sql: Sql, input: SetSuspensionInput): Promis
     return errorResult('VALIDATION_ERROR', { messageKey: 'admin.suspension.invalid' })
   }
   const { suspended, reasonCode, note } = validated.data
-  return sql.begin(async tx => {
+  const result = await sql.begin<Awaited<ReturnType<typeof setSuspension>>>(async tx => {
     // Match role changes and message operations: lock profiles in ID order first.
     const rows = await tx<(AccountRow & { clerk_user_id: string })[]>`
       select id, public_id, clerk_user_id, display_name, role, role_version, suspension_version, account_state, suspended_at
@@ -149,4 +150,6 @@ export async function setSuspension(sql: Sql, input: SetSuspensionInput): Promis
     `
     return okResult({ publicId: target.public_id, suspended, suspensionVersion })
   })
+  if (result.ok) await invalidatePublicReads()
+  return result
 }
