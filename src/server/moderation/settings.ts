@@ -1,3 +1,4 @@
+import { invalidatePublicReads } from '@/server/cache'
 import type { Sql, TransactionSql } from '@/server/db/sql'
 import { errorResult, okResult, type ActionResult } from '@/domain/contracts'
 import { canModerate } from '@/domain/moderation/policies'
@@ -95,7 +96,7 @@ export async function getAdminSettings(sql: Sql, clerkUserId: string): Promise<A
 
 export async function updateSettings(sql: Sql, input: UpdateSettingsInput): Promise<ActionResult<UpdateSettingsSuccess>> {
   if (!valid(input)) return errorResult('VALIDATION_ERROR', { messageKey: 'admin.settings.invalid' })
-  return sql.begin(async tx => {
+  const result = await sql.begin<Awaited<ReturnType<typeof updateSettings>>>(async tx => {
     const actor = await authorize(tx, input.clerkUserId)
     if (!actor) return denied()
     const settings = (await tx<SettingsRow[]>`
@@ -148,4 +149,6 @@ export async function updateSettings(sql: Sql, input: UpdateSettingsInput): Prom
       appearingPendingMessages,
     })
   })
+  if (result.ok) await invalidatePublicReads()
+  return result
 }

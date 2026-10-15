@@ -1,3 +1,4 @@
+import { invalidatePublicReads } from '@/server/cache'
 import type { Sql } from '@/server/db/sql'
 import { okResult, parsePublicId, type MessageStatus } from '@/domain/contracts'
 import { availableModerationDecisions, canModerate, validateModerationDecision } from '@/domain/moderation/policies'
@@ -18,7 +19,7 @@ export async function moderateMessage(sql: Sql, input: ModerateMessageInput): Pr
     return { ok: false, error: { code: 'VALIDATION_ERROR' } }
   }
   const { decision, reasonCode, note } = validated.data
-  return sql.begin(async tx => {
+  const result = await sql.begin<Awaited<ReturnType<typeof moderateMessage>>>(async tx => {
     // All profile locks precede message locks, matching author edits/deletions.
     // SHARE blocks role revocation/suspension until commit without serializing unrelated decisions.
     const profiles = await tx<ModerationProfile[]>`
@@ -63,4 +64,6 @@ export async function moderateMessage(sql: Sql, input: ModerateMessageInput): Pr
     `
     return okResult({ publicId: publicId.value, status, version })
   })
+  if (result.ok) await invalidatePublicReads()
+  return result
 }

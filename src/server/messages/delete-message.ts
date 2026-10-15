@@ -1,3 +1,4 @@
+import { invalidatePublicReads } from '@/server/cache'
 import type { Sql } from '@/server/db/sql'
 
 import { errorResult, okResult, parsePublicId, type ActionResult } from '@/domain/contracts'
@@ -19,7 +20,7 @@ export async function deleteMessage(
   const publicId = parsePublicId(input.publicId)
   if (!publicId.ok) return errorResult('VALIDATION_ERROR', { messageKey: 'validation.invalidFields' })
 
-  return sql.begin(async (tx) => {
+  const result = await sql.begin<Awaited<ReturnType<typeof deleteMessage>>>(async (tx) => {
     const profiles = await tx<{ id: string; account_state: string; display_name: string }[]>`
       select id, account_state, display_name
         from app_private.profiles
@@ -47,4 +48,6 @@ export async function deleteMessage(
 
     return okResult({ deleted: true as const })
   })
+  if (result.ok) await invalidatePublicReads()
+  return result
 }

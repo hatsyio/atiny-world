@@ -48,6 +48,12 @@ documenta el bloqueo de Postgres.js en 6543 y la misma batería completada con
 `pg`, incluyendo concurrencia, rollback y reconexión tras inactividad.
 
 Referencia: [conexiones de Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres).
+
+La caché compartida de lecturas públicas queda desactivada por defecto. Consulta
+[Runtime Cache: alcance, invalidación y revisión de costes](docs/runtime-cache.md)
+antes de habilitarla en Vercel; la revisión del consumo incluido y el aislamiento
+de las bases de Preview/Production siguen pendientes.
+
 | GitHub / GitHub Actions | Repositorio, PR y validación de CI | Repositorio `hatsyio/atiny-world`. Actions ejecuta los controles; Vercel realiza los despliegues. |
 | CARTO / OpenStreetMap | Mapa base y datos cartográficos | Teselas de CARTO y atribución a CARTO/OpenStreetMap. La clave de CARTO es pública y se configura con `NEXT_PUBLIC_CARTO_BASEMAP_KEY`. |
 | Geoapify | Autocompletado y búsqueda inversa de ubicaciones | Consultas desde el servidor; `GEOAPIFY_API_KEY` se mantiene privada. |
