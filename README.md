@@ -52,8 +52,10 @@ Referencia: [conexiones de Supabase](https://supabase.com/docs/guides/database/c
 La caché compartida de lecturas públicas queda desactivada por defecto. Consulta
 [Runtime Cache: alcance, invalidación y revisión de costes](docs/runtime-cache.md)
 antes de habilitarla en Vercel; siguen pendientes la revisión del consumo incluido
-y la política de invalidación entre entornos. Por decisión de coste, Preview y
-Production conservarán una única base de datos productiva compartida.
+y la configuración de invalidación entre entornos. Por decisión de coste, Preview
+y Production conservarán una única BD productiva con lectura y escritura en
+ambos entornos. Solo Production utiliza caché; las escrituras desde Preview o
+desarrollo conectado a la BD remota notifican la invalidación a Production.
 
 | GitHub / GitHub Actions | Repositorio, PR y validación de CI | Repositorio `hatsyio/atiny-world`. Actions ejecuta los controles; Vercel realiza los despliegues. |
 | CARTO / OpenStreetMap | Mapa base y datos cartográficos | Teselas de CARTO y atribución a CARTO/OpenStreetMap. La clave de CARTO es pública y se configura con `NEXT_PUBLIC_CARTO_BASEMAP_KEY`. |
@@ -117,7 +119,7 @@ cambio y comprobar el acceso y los despliegues antes de retirar compatibilidad.
 - [ ] Revisar variables, webhooks, claves de CI y archivos locales que aún puedan referirse a la instancia Clerk eliminada. No retirar claves de otros servicios ni secretos activos.
 - [ ] Definir conservación y eliminación de los CSV descargados y las copias temporales de migración. Contienen datos personales y contraseñas cifradas; no subirlos a Git. Conservar el respaldo privado y los mapas de IDs mientras sea necesario para recuperar o auditar la migración.
 - [ ] Revisar el perfil sin correspondencia con las cuentas exportadas que se conservó en la base. Verificar autoría y referencias antes de decidir una actuación; no borrarlo automáticamente.
-- [ ] Provisionar y comprobar la credencial de solo lectura de Preview, pendiente en la documentación de desarrollo, antes de dar por aislados los datos de producción.
+- [ ] Configurar y verificar la invalidación de caché desde todos los entornos con escritura sobre la BD productiva compartida. Preview mantiene lectura y escritura por decisión del propietario.
 
 El respaldo privado de la migración está en
 `~/.local/share/atiny-world/clerk-migration-20261007`. Su carpeta conserva el
@@ -158,7 +160,11 @@ El origen de canonical usa `SITE_URL` si se configura un dominio propio,
 
 ## Desarrollo y publicación
 
-Desarrollo con Supabase local y un único proyecto remoto para producción. Las previews usarán acceso de solo lectura por defecto; cualquier escritura requerirá autorización específica. Las migraciones se probarán localmente y se aplicarán mediante un flujo compatible con las versiones activas.
+Desarrollo habitual con Supabase local y un único proyecto remoto compartido por
+Preview y Production. Ambos entornos remotos tienen lectura y escritura sobre
+los mismos datos, con los permisos de usuario de la aplicación. Las migraciones
+se prueban localmente y se aplican mediante un proceso separado y compatible
+con las versiones activas.
 
 Las credenciales y la configuración local no se incluyen en el repositorio.
 Consulta [Entorno local](docs/desarrollo-local.md) para instalar dependencias,

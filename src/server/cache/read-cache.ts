@@ -1,7 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { createLogger } from '@/server/observability/logger'
 
-export type CacheGroup = 'geography' | 'options' | 'stats'
+export const CACHE_GROUPS = ['geography', 'options', 'stats'] as const
+export type CacheGroup = typeof CACHE_GROUPS[number]
 export interface CacheProvider {
   get(key: string): Promise<unknown>
   set(key: string, value: unknown, ttl: number, tags: string[]): Promise<void>
@@ -10,8 +11,12 @@ export interface CacheProvider {
 export interface ReadCacheConfig { namespace: string; ttl: Record<CacheGroup, number> }
 const logger = createLogger('public-read-cache')
 
+export function isProductionCacheEnvironment(env: Record<string, string | undefined> = process.env): boolean {
+  return env.VERCEL === '1' && env.VERCEL_ENV === 'production'
+}
+
 export function cacheConfig(env: Record<string, string | undefined>): ReadCacheConfig | null {
-  if (env.PUBLIC_READ_CACHE_ENABLED !== 'true' || env.VERCEL !== '1' || !env.VERCEL_PROJECT_ID || !env.VERCEL_ENV) return null
+  if (env.PUBLIC_READ_CACHE_ENABLED !== 'true' || !isProductionCacheEnvironment(env) || !env.VERCEL_PROJECT_ID) return null
   const ttl = (name: string, fallback: number) => {
     const raw = env[name]
     const value = raw && /^\d+$/.test(raw) ? Number(raw) : NaN
@@ -64,14 +69,19 @@ export function createReadCache(provider: CacheProvider, config: ReadCacheConfig
       }
       return result
     },
-    async invalidate(groups: CacheGroup[]): Promise<void> {
+    async invalidate(groups: CacheGroup[]): Promise<boolean> {
+      let successful = true
       for (const group of groups) {
         try {
           await provider.set(generationKey(group), randomUUID(), Math.max(...Object.values(config.ttl)), [])
           await provider.invalidate([tag(group)])
           logger.info('cache_invalidation', { group, outcome: 'success' })
-        } catch { logger.warn('cache_error', { group, outcome: 'invalidation_error' }) }
+        } catch {
+          successful = false
+          logger.warn('cache_error', { group, outcome: 'invalidation_error' })
+        }
       }
+      return successful
     },
   }
 }

@@ -39,7 +39,7 @@ describe('shared optional read cache', () => {
   it.each(['get', 'set', 'invalidate'] as const)('keeps DB results available on provider %s failure', async method => {
     const cache = createReadCache(provider, config)
     vi.spyOn(provider, method).mockRejectedValue(new Error('private provider payload'))
-    await expect(cache.invalidate(['stats'])).resolves.toBeUndefined()
+    await expect(cache.invalidate(['stats'])).resolves.toBeTypeOf('boolean')
     await expect(cache.read('stats', ['totals'], valid, async () => 3)).resolves.toBe(3)
   })
   it('does not cache failed SQL or malformed entries', async () => {
@@ -69,8 +69,10 @@ describe('shared optional read cache', () => {
     expect(await cache.read('stats', ['totals'], valid, async () => 2)).toBe(2)
   })
   it('requires explicit opt-in, Vercel and complete isolation identity; validates TTL', () => {
-    const env = { PUBLIC_READ_CACHE_ENABLED: 'true', VERCEL: '1', VERCEL_PROJECT_ID: 'prj', VERCEL_ENV: 'preview' }
+    const env = { PUBLIC_READ_CACHE_ENABLED: 'true', VERCEL: '1', VERCEL_PROJECT_ID: 'prj', VERCEL_ENV: 'production' }
     expect(cacheConfig({})).toBeNull()
+    expect(cacheConfig({ ...env, VERCEL_ENV: 'preview' })).toBeNull()
+    expect(cacheConfig({ ...env, VERCEL_ENV: 'development' })).toBeNull()
     expect(cacheConfig({ ...env, VERCEL: '0' })).toBeNull()
     expect(cacheConfig({ ...env, VERCEL_PROJECT_ID: '' })).toBeNull()
     expect(cacheConfig({ ...env, PUBLIC_READ_CACHE_STATS_TTL_SECONDS: '-2' })?.ttl.stats).toBe(60)

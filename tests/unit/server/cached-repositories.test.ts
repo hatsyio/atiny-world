@@ -19,7 +19,7 @@ function database(rows: unknown[]) {
 beforeEach(() => {
   shared.clear()
   vi.stubEnv('PUBLIC_READ_CACHE_ENABLED', 'true'); vi.stubEnv('VERCEL', '1')
-  vi.stubEnv('VERCEL_PROJECT_ID', 'test'); vi.stubEnv('VERCEL_ENV', 'preview')
+  vi.stubEnv('VERCEL_PROJECT_ID', 'test'); vi.stubEnv('VERCEL_ENV', 'production')
 })
 afterEach(() => vi.unstubAllEnvs())
 it('reuses only the three selected public SQL reads and invalidates options and stats', async () => {
@@ -80,4 +80,12 @@ it('falls back to persisted SQL rather than provider search on corrupt geographi
   for (const [key, value] of shared) if (typeof value === 'object') shared.set(key, { ...value, point: { latitude: 500, longitude: 0 } })
   expect((await repo.byId('country:es'))?.point.latitude).toBe(40)
   expect(query).toHaveBeenCalledTimes(2)
+})
+
+it.each(['preview', 'development', ''])('bypasses read caching in %s even when explicitly enabled', async environment => {
+  vi.stubEnv('VERCEL_ENV', environment)
+  const { sql, query } = database([{ country_code: 'es' }])
+  await listPublicLetterCountries(sql); await listPublicLetterCountries(sql)
+  expect(query).toHaveBeenCalledTimes(2)
+  expect(shared.size).toBe(0)
 })
