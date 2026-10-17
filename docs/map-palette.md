@@ -9,8 +9,8 @@ Edit **`src/config/map-style.config.ts`** and reload the map. The same configura
 ```ts
 export const mapStyle = {
   colors: {
-    land: '#c9c08c',
-    water: '#202827',
+    land: '#d9ac70',
+    water: '#181b21',
     // Other feature colors are listed in the configuration file.
   },
 }
@@ -18,38 +18,38 @@ export const mapStyle = {
 
 | Setting | Default | Use |
 | --- | --- | --- |
-| `land` | `#c9c08c` | Olive parchment continents and country boundary halo |
-| `water` | `#202827` | Charcoal seas, lakes and rivers |
-| `waterShore` | `#36413a` | Water edge/shadow |
-| `vegetation` | `#ada777` | Parks, woodland and natural land cover |
-| `residential` | `#c1b383` | Residential areas |
-| `buildings` | `#afa071` | Buildings and roofs |
-| `buildingOutline` | `#7c7553` | Building outlines |
-| `roads` | `#dbd0a0` | Minor roads and airport surfaces |
-| `majorRoads` | `#bca16d` | Primary/secondary roads, trunks and motorways |
-| `roadOutline` | `#8e845d` | Road casings, including bridges and tunnels |
-| `paths` | `#8a825d` | Paths |
-| `railways` | `#6e7355` | Rail lines; dashes use `roads` |
-| `boundaries` | `#747453` | Country and administrative boundaries |
-| `labels` | `#30372a` | Place, road, building-number and point-of-interest text |
-| `waterLabels` | `#d5d0af` | Water names |
-| `labelHalo` | `#e1d7a8` | Light halo for dark labels on land |
-| `waterLabelHalo` | `#202827` | Dark halo for light water names |
+| `land` | `#d9ac70` | Warm site parchment continents and country boundary halo |
+| `water` | `#181b21` | Site header-dark seas, lakes and rivers |
+| `waterShore` | `#2b2a29` | Water edge/shadow |
+| `vegetation` | `#cb9d66` | Parks, woodland and natural land cover |
+| `residential` | `#d3a66c` | Residential areas |
+| `buildings` | `#c39560` | Buildings and roofs |
+| `buildingOutline` | `#b28454` | Building outlines |
+| `roads` | `#eed4a7` | Minor roads and airport surfaces |
+| `majorRoads` | `#d3a665` | Primary/secondary roads, trunks and motorways |
+| `roadOutline` | `#ad7f50` | Road casings, including bridges and tunnels |
+| `paths` | `#b28454` | Paths |
+| `railways` | `#a7794c` | Rail lines; dashes use `roads` |
+| `boundaries` | `#9c6e44` | Country and administrative boundaries |
+| `labels` | `#2b1a12` | Place, road, building-number and point-of-interest text |
+| `waterLabels` | `#eed4a7` | Water names |
+| `labelHalo` | `#eed4a7` | Light halo for dark labels on land |
+| `waterLabelHalo` | `#181b21` | Dark halo for light water names |
 
 The `water` setting colors the dominant ocean fill, including CARTO's translated overlay; `waterShore` colors its narrow exposed shoreline. The configuration changes paint colors; CARTO's existing placement, geometry, widths, opacity and zoom-dependent visibility remain intact. Changes to those advanced properties belong in the style builder or the pinned style, rather than the color palette.
 
 ## Letters and controls
 
-Edit **`src/components/map/map-theme.css`** for all `--map-*` interface tokens. Parchment markers have an olive-ink border and a pale paper halo. Charcoal clusters have a double border and a numeric count. Selected letters have a double border plus an outer ring; keyboard focus adds a dashed outline. Selection is also exposed as `aria-pressed`.
+Edit **`src/components/map/map-theme.css`** for all `--map-*` interface tokens. Parchment markers have a brown-ink border and a pale paper halo. Site navy clusters have a double border and a numeric count. Selected letters have a double border plus an outer ring; keyboard focus adds a dashed outline. Selection is also exposed as `aria-pressed`.
 
 | Content | Foreground / background | Contrast |
 | --- | --- | --- |
-| Marker, popup and attribution text | `#30352a` / `#e3dab0` | 8.94:1 |
-| Cluster and selected letter | `#e3dab0` / `#26322f` | 9.45:1 |
-| Zoom/fullscreen controls | `#26322f` / `#e3dab0` | 9.45:1 |
-| Secondary interface text | `#575e44` / `#e3dab0` | 4.83:1 |
-| Cartographic label / halo | `#30372a` / `#e1d7a8` | 8.49:1 |
-| Water label / halo | `#d5d0af` / `#202827` | 9.66:1 |
+| Marker, popup and attribution text | `#2b1a12` / `#eed4a7` | 11.60:1 |
+| Cluster and selected letter | `#eed4a7` / `#102033` | 11.45:1 |
+| Zoom/fullscreen controls | `#102033` / `#eed4a7` | 11.45:1 |
+| Secondary interface text | `#684728` / `#eed4a7` | 5.80:1 |
+| Cartographic label / halo | `#2b1a12` / `#eed4a7` | 11.60:1 |
+| Water label / halo | `#eed4a7` / `#181b21` | 12.00:1 |
 
 These ratios apply to the defaults. Recheck contrast after editing colors. A subtle, static SVG grain and edge shading age only the vector background. Set `--map-grain-opacity` to `0` to disable the effect; `--map-aged-edge` adjusts its edge tint. Markers, controls and popups sit in separate panes, so their contrast remains unchanged by the texture.
 
@@ -80,8 +80,10 @@ The palette tests wait for a zoom to finish before unmounting. Leaflet 1.9.4 has
 - Existing map browser suite: 28 passed, 1 intermittent failure in `applies partial cities automatically without moving the filters on /map at 390px` (city URL parameter timing). A previous run hit the desktop variant and a selected-popup timing failure; their focused reruns passed. The failing mobile case then passed three consecutive focused reruns; the unchanged baseline also passed its focused repetitions. The cause of the intermittent failure is not attributed to this PR. Keep this limitation visible when reviewing the experimental PR.
 - Actual production build: vector layer visible, raster layer removed, worker and `/api/map/features`, `/api/map/messages`, `/api/map/filter-options` returned HTTP 200, no page errors.
 
-### Dark-sea fantasy atlas refinement
+### Site-derived atlas refinement
 
-The latest supplied fantasy-map reference guides the active palette: charcoal seas, olive parchment continents and dark ink. Forests use muted olive, cities and buildings use aged ochres, and major roads use desaturated brass. These HEX values are interpreted from the reference, not exact sampled colors. Land labels use dark ink with a light halo; water names use pale ink with a dark halo. A static, low-opacity paper grain remains confined to the vector background, keeping letters and controls crisp.
+The dark-sea/light-land composition remains, with its colors anchored to the existing website rather than an independent olive palette. The sea uses the exact `.site-header` base color (`#181b21`). Land uses `--paper` (`#d9ac70`); labels use `--ink` (`#2b1a12`), and light paper uses `--paper-light` (`#eed4a7`). The palette configuration records these source anchors from `globals.css`.
 
-The earlier nautical palette remains available in Git history and its world capture is retained for comparison. The current configuration files still control the active colors and texture. This palette is applied to real-world cartography.
+Vegetation mixes paper with 13% site brown, residential areas with 5%, buildings with 20%, building outlines/paths with 35%, road outlines with 40%, railways with 45%, and boundaries with 55%. Major roads mix paper with 35% site gold (`#c79a50`). This keeps detail within the website's warm brown, paper and gold family. Marker, control and popup tokens use the same ink, brown, light paper and navy as the page.
+
+The paper texture is still confined to the cartography. The earlier olive and nautical world captures remain available for comparison. The additional `?frame=brand` fixture uses the actual `.site-header` and `.paper-world` CSS to show the map alongside the existing site colors.

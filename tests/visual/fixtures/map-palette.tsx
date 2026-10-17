@@ -19,8 +19,10 @@ function Fixture() {
   const [fullscreen, setFullscreen] = useState(false)
   const [selected, setSelected] = useState<string>()
   const [visible, setVisible] = useState(true)
+  const brandFrame = new URLSearchParams(location.search).get('frame') === 'brand'
   return <NextIntlClientProvider locale="en" messages={{ Map: messages }} timeZone="UTC"><MapQueryProvider>
-    <main style={{ maxWidth: 1200, margin: '24px auto', padding: '0 12px' }}>
+    {brandFrame && <header className="site-header"><span className="nav-brand">Atiny Atlas</span></header>}
+    <main className={brandFrame ? 'paper-world' : undefined} style={{ maxWidth: 1200, margin: '24px auto', padding: '0 12px' }}>
       <h1 style={{ margin: '0 0 8px', color: '#102033', fontSize: 24 }}>ATINY letters · Barcelona</h1>
       <p style={{ margin: '0 0 16px' }}>Water, city and terrain · map palette</p>
       <button onClick={() => setSelected(features[2].publicId)}>Select letter</button>
