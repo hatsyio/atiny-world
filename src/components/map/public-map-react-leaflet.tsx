@@ -9,10 +9,11 @@ import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { useLeafletContext } from '@react-leaflet/core'
 import leaflet from 'leaflet'
-import { MapContainer, Marker, Popup, TileLayer, ZoomControl, useMap } from 'react-leaflet'
+import { MapContainer, Marker, Popup, ZoomControl, useMap } from 'react-leaflet'
 import type { PublicMapFeature } from '@/domain/messages/public-message'
 import type { LeafletMapProps } from './leaflet-map'
-import { CARTO_ATTRIBUTION, cartoTileUrl, configureMarkerIcons, createMessageIcon } from './basemap'
+import { configureMarkerIcons, createMessageIcon } from './basemap'
+import { VectorBasemap, VECTOR_ATTRIBUTION } from './vector-basemap'
 import { publicMessageQuery } from './map-queries'
 import { MarkerCluster } from './marker-cluster'
 import { navigateToMessage, navigateToLocation, prefersReducedMotion } from './map-navigation'
@@ -84,11 +85,11 @@ function PublicMarker({ feature, onSelect, selected, centered, focusSelection = 
   }
   useEffect(() => {
     const element = marker.current?.getElement()
-    if (element) element.title = title
+    if (element) { element.title = title; element.setAttribute('aria-pressed', String(selected)) }
     if (marker.current) marker.current.options.title = title
     const button = popup.current?.getElement()?.querySelector<HTMLAnchorElement>('.leaflet-popup-close-button')
     if (button) { button.title = closeLabel; button.setAttribute('aria-label', closeLabel) }
-  }, [title, closeLabel])
+  }, [title, closeLabel, selected])
 
   useEffect(() => {
     if (!selected || centered.current === `${feature.publicId}:${selectionVersion}`) return
@@ -188,9 +189,9 @@ export function ReactLeafletPublicMap({ geographicTarget, navigationVersion, fea
   configureMarkerIcons(leaflet)
   const view = initialView ?? { latitude: 20, longitude: 0, zoom: 2 }
   const located = features.find(feature => feature.publicId === selectedPublicId)
-  return <MapContainer className="map__canvas" center={[view.latitude, view.longitude]} zoom={view.zoom} maxZoom={19}
+  return <MapContainer className="map__canvas" center={[view.latitude, view.longitude]} zoom={view.zoom} minZoom={1} maxZoom={19}
     zoomControl={false} maxBounds={[[-85.05112878, -Infinity], [85.05112878, Infinity]]} maxBoundsViscosity={1}>
-    <TileLayer url={cartoTileUrl(apiKey)} attribution={`${CARTO_ATTRIBUTION} | <a href="https://www.geoapify.com/">Powered by Geoapify</a> | © OpenStreetMap contributors`} maxZoom={19} />
+    <VectorBasemap apiKey={apiKey} attribution={`${VECTOR_ATTRIBUTION} | <a href="https://www.geoapify.com/">Powered by Geoapify</a>`} />
     <ZoomControl position="topleft" zoomInTitle={t('zoomIn')} zoomOutTitle={t('zoomOut')} />
     <FullscreenControl {...behavior} />
     <MarkerCluster>{features.filter(feature => feature.publicId !== selectedPublicId).map(feature => <PublicMarker key={feature.publicId} feature={feature} onSelect={onSelect}

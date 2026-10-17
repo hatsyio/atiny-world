@@ -5,9 +5,10 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useMemo, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import * as leaflet from 'leaflet'
-import { MapContainer, Marker, TileLayer, ZoomControl, useMapEvents } from 'react-leaflet'
+import { MapContainer, Marker, ZoomControl, useMapEvents } from 'react-leaflet'
 import type { LocationSelectionMapProps } from './location-selection-map'
-import { CARTO_ATTRIBUTION, cartoTileUrl, configureMarkerIcons } from './basemap'
+import { configureMarkerIcons } from './basemap'
+import { VectorBasemap } from './vector-basemap'
 
 function publicPoint(position: leaflet.LatLng) {
   const longitude = position.lng >= -180 && position.lng <= 180 ? position.lng : ((position.lng + 180) % 360 + 360) % 360 - 180
@@ -56,8 +57,9 @@ function SelectionControls({ point, focusPoint, precise, onPointChange }: Locati
 
 export function ReactLeafletSelectionMap(props: LocationSelectionMapProps & { apiKey: string }) {
   return <MapContainer className="location-picker__precise-map" center={props.point ? [props.point.latitude, props.point.longitude] : [20, 0]}
-    zoom={props.point ? 14 : 2} attributionControl zoomControl={false} scrollWheelZoom={false}>
-    <TileLayer url={cartoTileUrl(props.apiKey)} attribution={CARTO_ATTRIBUTION} maxZoom={19} />
+    zoom={props.point ? 14 : 2} minZoom={1} maxZoom={19}
+    maxBounds={[[-85.05112878, -Infinity], [85.05112878, Infinity]]} maxBoundsViscosity={1} attributionControl zoomControl={false} scrollWheelZoom={false}>
+    <VectorBasemap apiKey={props.apiKey} />
     <SelectionControls {...props} />
   </MapContainer>
 }

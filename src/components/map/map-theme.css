@@ -1,0 +1,100 @@
+/* Map interface colors. Edit cartographic colors in src/config/map-style.config.ts. */
+:root {
+  --map-paper: #eed4a7;
+  --map-paper-hover: #d9ac70;
+  --map-ink: #2b1a12;
+  --map-muted: #684728;
+  --map-brown: #6a3b20;
+  --map-navy: #102033;
+  --map-navy-hover: #213c55;
+  --map-on-navy: #eed4a7;
+  --map-border: #b88d59;
+  --map-focus: #102033;
+  --map-halo: #faf0da;
+  --map-shadow: #241a1759;
+  --map-disabled: #746042;
+  --map-canvas: #181b21;
+  --map-grain-opacity: .12;
+  --map-aged-edge: #57321f33;
+}
+
+.leaflet-container { background: var(--map-canvas); }
+.leaflet-marker-icon.map-message-marker,
+.leaflet-marker-icon.map-message-cluster {
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--map-brown);
+  border-radius: 50%;
+  background: var(--map-paper);
+  color: var(--map-ink);
+  box-shadow: 0 0 0 2px var(--map-halo), 0 2px 6px var(--map-shadow);
+  font-family: var(--font-interface), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.leaflet-marker-icon.map-message-cluster {
+  border: 4px double var(--map-on-navy);
+  background: var(--map-navy);
+  color: var(--map-on-navy);
+}
+.leaflet-marker-icon.map-message-marker:hover { background: var(--map-paper-hover); }
+.leaflet-marker-icon.map-message-cluster:hover { background: var(--map-navy-hover); }
+.leaflet-marker-icon.map-message-marker--selected,
+.leaflet-marker-icon.map-message-marker--selected:hover {
+  border: 4px double var(--map-on-navy);
+  background: var(--map-navy);
+  color: var(--map-on-navy);
+  outline: 2px solid var(--map-navy);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px var(--map-halo), 0 3px 8px var(--map-shadow);
+}
+.leaflet-marker-icon.map-message-marker:focus-visible,
+.leaflet-marker-icon.map-message-cluster:focus-visible {
+  outline: 3px dashed var(--map-focus);
+  outline-offset: 5px;
+  box-shadow: 0 0 0 5px var(--map-halo);
+}
+.map-message-marker svg { display: block; width: 16px; height: 16px; }
+.leaflet-container .leaflet-bar {
+  border: 1px solid var(--map-border);
+  box-shadow: 0 1px 6px var(--map-shadow);
+}
+.leaflet-container .leaflet-bar a,
+.leaflet-container .leaflet-control-zoom-fullscreen {
+  background: var(--map-paper);
+  color: var(--map-navy);
+  border-color: var(--map-border);
+}
+.leaflet-container .leaflet-bar a:hover,
+.leaflet-container .leaflet-control-zoom-fullscreen:hover { background: var(--map-paper-hover); color: var(--map-navy); }
+.leaflet-container .leaflet-bar a.leaflet-disabled { background: var(--map-paper); color: var(--map-disabled); }
+.leaflet-container .leaflet-bar a:focus-visible,
+.leaflet-container .leaflet-control-zoom-fullscreen:focus-visible,
+.leaflet-container .leaflet-popup-close-button:focus-visible {
+  outline: 3px dashed var(--map-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--map-halo);
+}
+.leaflet-container .leaflet-control-attribution {
+  background: var(--map-paper);
+  color: var(--map-ink);
+  max-width: calc(100% - 12px);
+}
+.leaflet-container .leaflet-control-attribution a { color: var(--map-navy); text-decoration: underline; }
+
+/* Age the cartography only: marker, popup and control panes remain crisp. */
+.leaflet-gl-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--map-grain-opacity);
+  background-image:
+    radial-gradient(ellipse at center, transparent 45%, var(--map-aged-edge) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23705025' d='M0 0h180v180H0z' filter='url(%23grain)' opacity='.65'/%3E%3C/svg%3E");
+  background-size: 100% 100%, 180px 180px;
+  mix-blend-mode: multiply;
+}
