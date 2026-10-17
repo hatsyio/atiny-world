@@ -2,6 +2,8 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests/visual',
+  // The map palette has its own fixture server and Playwright configuration.
+  testIgnore: '**/map-palette.spec.ts',
   fullyParallel: true,
   workers: 2,
   forbidOnly: !!process.env.CI,

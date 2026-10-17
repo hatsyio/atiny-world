@@ -87,3 +87,9 @@ The dark-sea/light-land composition remains, with its colors anchored to the exi
 Vegetation mixes paper with 13% site brown, residential areas with 5%, buildings with 20%, building outlines/paths with 35%, road outlines with 40%, railways with 45%, and boundaries with 55%. Major roads mix paper with 35% site gold (`#c79a50`). This keeps detail within the website's warm brown, paper and gold family. Marker, control and popup tokens use the same ink, brown, light paper and navy as the page.
 
 The paper texture is still confined to the cartography. The earlier olive and nautical world captures remain available for comparison. The additional `?frame=brand` fixture uses the actual `.site-header` and `.paper-world` CSS to show the map alongside the existing site colors.
+
+### CI fixture routing
+
+The shared UI visual suite runs against the dropdown fixture on port 8770. Map palette tests run separately with `playwright.palette.config.ts` against port 8771; `PALETTE_BASE_URL` lets CI supply its already-running map fixture. `pnpm test:visual` executes both suites. The default Playwright configuration excludes `map-palette.spec.ts` so those tests cannot accidentally run against the dropdown page.
+
+The original CI failure was caused by that accidental discovery: all six map tests ran against port 8770 and timed out looking for map elements that were absent from the page. The corrected workflow starts the map fixture explicitly, runs its dedicated configuration, and uploads traces/screenshots if either visual suite fails. The map tests also passed in the same Linux Playwright container used by CI without real credentials.

@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "test": "pnpm test:bdd && pnpm test:unit",
     "test:unit": "vitest run tests/unit",
-    "test:visual": "playwright test",
+    "test:visual": "playwright test && playwright test --config playwright.palette.config.ts",
     "test:bdd": "node scripts/run-db-suite.mjs cucumber-js --config cucumber.mjs",
     "test:integration": "node scripts/run-db-suite.mjs vitest run tests/integration",
     "test:contract": "node scripts/run-db-suite.mjs vitest run tests/contract",
