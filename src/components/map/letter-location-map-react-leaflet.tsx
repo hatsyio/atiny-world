@@ -5,9 +5,10 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useMemo, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import * as leaflet from 'leaflet'
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
+import { MapContainer, Marker, Popup } from 'react-leaflet'
 import type { PublicPoint } from '@/domain/messages/public-message'
-import { CARTO_ATTRIBUTION, cartoTileUrl, createMessageIcon } from './basemap'
+import { createMessageIcon } from './basemap'
+import { VectorBasemap } from './vector-basemap'
 
 function translateCloseButton(popup: leaflet.Popup | null, label: string) {
   const button = popup?.getElement()?.querySelector<HTMLAnchorElement>('.leaflet-popup-close-button')
@@ -39,6 +40,10 @@ export function ReactLeafletLetterMap({ point, content, apiKey }: { point: Publi
       className="map__canvas"
       center={position}
       zoom={15}
+      minZoom={1}
+      maxZoom={19}
+      maxBounds={[[-85.05112878, -Infinity], [85.05112878, Infinity]]}
+      maxBoundsViscosity={1}
       attributionControl
       zoomControl={false}
       dragging={false}
@@ -48,7 +53,7 @@ export function ReactLeafletLetterMap({ point, content, apiKey }: { point: Publi
       boxZoom={false}
       keyboard={false}
     >
-      <TileLayer url={cartoTileUrl(apiKey)} attribution={CARTO_ATTRIBUTION} maxZoom={19} />
+      <VectorBasemap apiKey={apiKey} />
       <Marker ref={marker} position={position} icon={icon} title={markerTitle} autoPanOnFocus={false}>
         <Popup
           ref={popup}
