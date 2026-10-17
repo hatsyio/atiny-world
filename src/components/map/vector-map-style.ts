@@ -25,8 +25,9 @@ export function createVectorMapStyle(colors: MapColors = mapStyle.colors): Style
       layer.paint = { ...layer.paint, 'line-color': color }
     }
     if (layer.type === 'symbol') {
-      layer.paint = { ...layer.paint, 'text-color': source === 'water_name' || source === 'waterway' ? colors.waterLabels : colors.labels,
-        'text-halo-color': colors.labelHalo }
+      const waterLabel = source === 'water_name' || source === 'waterway'
+      layer.paint = { ...layer.paint, 'text-color': waterLabel ? colors.waterLabels : colors.labels,
+        'text-halo-color': waterLabel ? colors.waterLabelHalo : colors.labelHalo }
       if (layer.paint['icon-color']) layer.paint['icon-color'] = colors.labels
     }
   }

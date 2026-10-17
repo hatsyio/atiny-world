@@ -27,7 +27,8 @@ function Fixture() {
       <button onClick={() => setVisible(current => !current)}>{visible ? 'Hide map' : 'Show map'}</button>
       {visible && <section className={fullscreen ? 'map map--fullscreen' : 'map'}>
         <ReactLeafletPublicMap features={features} apiKey={process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY ?? 'fixture'}
-          initialView={{ latitude: 41.395, longitude: 2.16, zoom: 12 }} selectedPublicId={selected} focusSelection={false}
+          initialView={new URLSearchParams(location.search).get('view') === 'world'
+            ? { latitude: 20, longitude: 0, zoom: 2 } : { latitude: 41.395, longitude: 2.16, zoom: 12 }} selectedPublicId={selected} focusSelection={false}
           isFullscreen={fullscreen} onToggleFullscreen={() => setFullscreen(current => !current)} onSelect={() => {}} />
       </section>}
     </main>

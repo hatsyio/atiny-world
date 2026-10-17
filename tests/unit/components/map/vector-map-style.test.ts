@@ -15,6 +15,14 @@ describe('editable vector cartography', () => {
     expect(layer('road_minor_fill')?.minzoom).toBe(15)
   })
 
+  it('keeps water labels on a light halo and land labels on a dark halo', () => {
+    const style = createVectorMapStyle({ ...mapStyle.colors, labelHalo: '#111111', waterLabelHalo: '#eeeeee' })
+    const paint = (id: string) => style.layers.find(layer => layer.id === id)?.paint
+    expect(paint('watername_ocean')).toMatchObject({ 'text-halo-color': '#eeeeee' })
+    expect(paint('waterway_label')).toMatchObject({ 'text-halo-color': '#eeeeee' })
+    expect(paint('place_country_1')).toMatchObject({ 'text-halo-color': '#111111' })
+  })
+
   it('creates independent styles so edits cannot leak between map instances', () => {
     const first = createVectorMapStyle()
     first.layers.length = 0

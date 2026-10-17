@@ -9,8 +9,8 @@ Edit **`src/config/map-style.config.ts`** and reload the map. The same configura
 ```ts
 export const mapStyle = {
   colors: {
-    land: '#e6cf9f',
-    water: '#b6c2be',
+    land: '#5a351c',
+    water: '#d8af73',
     // Other feature colors are listed in the configuration file.
   },
 }
@@ -18,36 +18,38 @@ export const mapStyle = {
 
 | Setting | Default | Use |
 | --- | --- | --- |
-| `land` | `#e6cf9f` | Aged parchment land and country boundary halo |
-| `water` | `#b6c2be` | Seas, lakes and rivers |
-| `waterShore` | `#c6cbb7` | Water edge/shadow |
-| `vegetation` | `#cbc79f` | Parks, woodland and natural land cover |
-| `residential` | `#ddc292` | Residential areas |
-| `buildings` | `#cdb185` | Buildings and roofs |
-| `buildingOutline` | `#a98b5c` | Building outlines |
-| `roads` | `#f4e4bf` | Minor roads and airport surfaces |
-| `majorRoads` | `#d9b87c` | Primary/secondary roads, trunks and motorways |
-| `roadOutline` | `#b49a70` | Road casings, including bridges and tunnels |
-| `paths` | `#a38c66` | Paths |
-| `railways` | `#8e8b6e` | Rail lines; dashes use `roads` |
-| `boundaries` | `#9a805b` | Country and administrative boundaries |
-| `labels` | `#5e442d` | Place, road, building-number and point-of-interest text |
-| `waterLabels` | `#4d5b50` | Water names |
-| `labelHalo` | `#f4e4bf` | Text halo |
+| `land` | `#5a351c` | Dark sepia continents and country boundary halo |
+| `water` | `#d8af73` | Light parchment seas, lakes and rivers |
+| `waterShore` | `#e6c58f` | Water edge/shadow |
+| `vegetation` | `#4b3721` | Parks, woodland and natural land cover |
+| `residential` | `#684529` | Residential areas |
+| `buildings` | `#795333` | Buildings and roofs |
+| `buildingOutline` | `#422916` | Building outlines |
+| `roads` | `#ac814c` | Minor roads and airport surfaces |
+| `majorRoads` | `#c49a60` | Primary/secondary roads, trunks and motorways |
+| `roadOutline` | `#382216` | Road casings, including bridges and tunnels |
+| `paths` | `#8b6a42` | Paths |
+| `railways` | `#ae8b59` | Rail lines; dashes use `roads` |
+| `boundaries` | `#a07841` | Country and administrative boundaries |
+| `labels` | `#f3dbab` | Place, road, building-number and point-of-interest text |
+| `waterLabels` | `#5b3b20` | Water names |
+| `labelHalo` | `#402818` | Dark halo for light labels on land |
+| `waterLabelHalo` | `#e4c28a` | Light halo for dark water names |
 
 The configuration changes paint colors; CARTO's existing placement, geometry, widths, opacity and zoom-dependent visibility remain intact. Changes to those advanced properties belong in the style builder or the pinned style, rather than the color palette.
 
 ## Letters and controls
 
-Edit **`src/components/map/map-theme.css`** for all `--map-*` interface tokens. Warm parchment markers have a sepia border and a pale paper halo. Faded blue-ink clusters have a double border and a numeric count. Selected letters have a double border plus an outer ring; keyboard focus adds a dashed outline. Selection is also exposed as `aria-pressed`.
+Edit **`src/components/map/map-theme.css`** for all `--map-*` interface tokens. Warm parchment markers have a sepia border and a pale paper halo. Deep navy clusters have a double border and a numeric count. Selected letters have a double border plus an outer ring; keyboard focus adds a dashed outline. Selection is also exposed as `aria-pressed`.
 
 | Content | Foreground / background | Contrast |
 | --- | --- | --- |
-| Marker, popup and attribution text | `#412d1b` / `#f4e4bf` | 10.33:1 |
-| Cluster and selected letter | `#f4e4bf` / `#283f46` | 8.84:1 |
-| Zoom/fullscreen controls | `#283f46` / `#f4e4bf` | 8.84:1 |
-| Secondary interface text | `#6a5134` / `#f4e4bf` | 5.88:1 |
-| Cartographic label / halo | `#5e442d` / `#f4e4bf` | 7.13:1 |
+| Marker, popup and attribution text | `#2b1a12` / `#f4dab0` | 12.31:1 |
+| Cluster and selected letter | `#f4dab0` / `#102033` | 12.14:1 |
+| Zoom/fullscreen controls | `#102033` / `#f4dab0` | 12.14:1 |
+| Secondary interface text | `#684728` / `#f4dab0` | 6.15:1 |
+| Cartographic label / halo | `#f3dbab` / `#402818` | 10.12:1 |
+| Water label / halo | `#5b3b20` / `#e4c28a` | 5.92:1 |
 
 These ratios apply to the defaults. Recheck contrast after editing colors. A subtle, static SVG grain and edge shading age only the vector background. Set `--map-grain-opacity` to `0` to disable the effect; `--map-aged-edge` adjusts its edge tint. Markers, controls and popups sit in separate panes, so their contrast remains unchanged by the texture.
 
@@ -72,7 +74,7 @@ The palette tests wait for a zoom to finish before unmounting. Leaflet 1.9.4 has
 ### Verification record (2026-10-17)
 
 - `pnpm build`, `pnpm typecheck`, `pnpm lint`: passed.
-- `pnpm test`: 51 BDD scenarios and 892 unit tests passed. A subsequent full unit run hit a timing failure in `language-switcher.test.tsx` (`Saving language…` versus `Language saved.`); its isolated rerun passed. This unrelated test was not changed.
+- `pnpm test`: 51 BDD scenarios and 893 unit tests passed after the reference palette refinement. An earlier full unit run hit a timing failure in `language-switcher.test.tsx` (`Saving language…` versus `Language saved.`); its isolated rerun passed. This unrelated test was not changed.
 - Integration: 163 passed. Contract: 61 passed. The existing `20261014143000_geographic_locations.sql` migration had to be applied to the local test database first; this PR adds no schema changes.
 - Palette browser suite: 6 passed, including actual context loss and three viewport widths.
 - Existing map browser suite: 28 passed, 1 intermittent failure in `applies partial cities automatically without moving the filters on /map at 390px` (city URL parameter timing). A previous run hit the desktop variant and a selected-popup timing failure; their focused reruns passed. The failing mobile case then passed three consecutive focused reruns; the unchanged baseline also passed its focused repetitions. The cause of the intermittent failure is not attributed to this PR. Keep this limitation visible when reviewing the experimental PR.
@@ -80,4 +82,4 @@ The palette tests wait for a zoom to finish before unmounting. Leaflet 1.9.4 has
 
 ### Vintage parchment refinement
 
-The follow-up palette uses ochre parchment land, muted sage water, olive vegetation and sepia labels. A static, low-opacity paper grain is confined to the vector background; letters and controls remain crisp. The existing configuration files still control all colors, and the CSS texture can be disabled independently. Updated comparison, popup and fullscreen captures show this refinement.
+The supplied nautical reference guides the palette: dark sepia continents against a light parchment sea, with antique gold details, cream paper and deep navy controls. Residential areas, buildings, roads and vegetation use related brown/olive/gold tones. These HEX values are interpreted from the reference, not exact sampled colors. Land labels use cream ink with a dark halo; water names use dark ink with a separate light halo. A static, low-opacity paper grain is confined to the vector background; letters and controls remain crisp. The existing configuration files still control all colors, and the CSS texture can be disabled independently. Updated comparison, popup and fullscreen captures show this refinement.

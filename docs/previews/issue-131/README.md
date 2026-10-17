@@ -1,6 +1,6 @@
 # Map palette comparison
 
-The same production map component is rendered in a deterministic letter harness. CARTO tiles are real; letter data is a local fixture. All captures use Barcelona at latitude 41.395, longitude 2.16 and Leaflet zoom 12. Browser: Chromium. Height: 900 px. The baseline uses commit `628556c`; the updated view uses this branch.
+The same production map component is rendered in a deterministic letter harness. CARTO tiles are real; letter data is a local fixture. The before/after, popup and fullscreen captures use Barcelona at latitude 41.395, longitude 2.16 and Leaflet zoom 12. Browser: Chromium. Height: 900 px. The baseline uses commit `628556c`; the updated view uses this branch.
 
 | Viewport | Before: raster and original palette | After: vector and vintage parchment palette |
 | --- | --- | --- |
@@ -19,6 +19,12 @@ The same production map component is rendered in a deterministic letter harness.
 | --- | --- |
 | ![Desktop fullscreen map](fullscreen-1440.png) | ![Mobile fullscreen map](fullscreen-390.png) |
 
-The screenshots show paper markers over urban land, the sea and natural terrain, faded blue-ink clusters and a selected letter with a double border and outer ring. Browser assertions separately check dashed keyboard focus and contrast of at least 4.5:1 for normal, selected and hovered letters, clusters, controls, popup and attribution text. The 320 px viewport is tested without adding another near-identical capture.
+The screenshots show paper markers over dark sepia urban land, the parchment sea and brown/olive natural terrain, navy clusters and a selected letter with a double border and outer ring. Browser assertions separately check dashed keyboard focus and contrast of at least 4.5:1 for normal, selected and hovered letters, clusters, controls, popup and attribution text. The 320 px viewport is tested without adding another near-identical capture.
 
 See [palette configuration and verification](../../map-palette.md) for editing instructions, default colors, fallback behavior and reproduction commands.
+
+## Nautical reference at world scale
+
+The supplied reference uses dark continents on a light parchment sea. The world view (1024 px viewport, center 20°N / 0°, zoom 2) below shows the same relationship in the interactive vector map; streets and cities add the derived brown and antique-gold tones at closer zooms.
+
+![Nautical reference palette at world scale](reference-world.png)

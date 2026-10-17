@@ -1,19 +1,19 @@
 /* Map interface colors. Edit cartographic colors in src/config/map-style.config.ts. */
 :root {
-  --map-paper: #f4e4bf;
-  --map-paper-hover: #e8d0a2;
-  --map-ink: #412d1b;
-  --map-muted: #6a5134;
-  --map-brown: #7b5834;
-  --map-navy: #283f46;
-  --map-navy-hover: #38575c;
-  --map-on-navy: #f4e4bf;
-  --map-border: #997b4b;
-  --map-focus: #283f46;
-  --map-halo: #faefd3;
-  --map-shadow: #51351b40;
-  --map-disabled: #746448;
-  --map-canvas: #b6c2be;
+  --map-paper: #f4dab0;
+  --map-paper-hover: #e8c78f;
+  --map-ink: #2b1a12;
+  --map-muted: #684728;
+  --map-brown: #6a3b20;
+  --map-navy: #102033;
+  --map-navy-hover: #1c354c;
+  --map-on-navy: #f4dab0;
+  --map-border: #a37b42;
+  --map-focus: #102033;
+  --map-halo: #e5bd7a;
+  --map-shadow: #241a1759;
+  --map-disabled: #746042;
+  --map-canvas: #d8af73;
   --map-grain-opacity: .12;
   --map-aged-edge: #70502533;
 }
