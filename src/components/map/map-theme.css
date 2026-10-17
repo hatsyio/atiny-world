@@ -1,19 +1,21 @@
 /* Map interface colors. Edit cartographic colors in src/config/map-style.config.ts. */
 :root {
-  --map-paper: #fff6e5;
-  --map-paper-hover: #efdfc2;
-  --map-ink: #38271c;
-  --map-muted: #65513e;
-  --map-brown: #785334;
-  --map-navy: #17354a;
-  --map-navy-hover: #244d65;
-  --map-on-navy: #fff6e5;
-  --map-border: #9b805c;
-  --map-focus: #17354a;
-  --map-halo: #fffdf5;
-  --map-shadow: #10203340;
-  --map-disabled: #746c60;
-  --map-canvas: #b8cdd1;
+  --map-paper: #f4e4bf;
+  --map-paper-hover: #e8d0a2;
+  --map-ink: #412d1b;
+  --map-muted: #6a5134;
+  --map-brown: #7b5834;
+  --map-navy: #283f46;
+  --map-navy-hover: #38575c;
+  --map-on-navy: #f4e4bf;
+  --map-border: #997b4b;
+  --map-focus: #283f46;
+  --map-halo: #faefd3;
+  --map-shadow: #51351b40;
+  --map-disabled: #746448;
+  --map-canvas: #b6c2be;
+  --map-grain-opacity: .12;
+  --map-aged-edge: #70502533;
 }
 
 .leaflet-container { background: var(--map-canvas); }
@@ -81,3 +83,18 @@
   max-width: calc(100% - 12px);
 }
 .leaflet-container .leaflet-control-attribution a { color: var(--map-navy); text-decoration: underline; }
+
+/* Age the cartography only: marker, popup and control panes remain crisp. */
+.leaflet-gl-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--map-grain-opacity);
+  background-image:
+    radial-gradient(ellipse at center, transparent 45%, var(--map-aged-edge) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23705025' d='M0 0h180v180H0z' filter='url(%23grain)' opacity='.65'/%3E%3C/svg%3E");
+  background-size: 100% 100%, 180px 180px;
+  mix-blend-mode: multiply;
+}

@@ -9,8 +9,8 @@ Edit **`src/config/map-style.config.ts`** and reload the map. The same configura
 ```ts
 export const mapStyle = {
   colors: {
-    land: '#f3ecdf',
-    water: '#b8cdd1',
+    land: '#e6cf9f',
+    water: '#b6c2be',
     // Other feature colors are listed in the configuration file.
   },
 }
@@ -18,38 +18,40 @@ export const mapStyle = {
 
 | Setting | Default | Use |
 | --- | --- | --- |
-| `land` | `#f3ecdf` | Paper-colored land and country boundary halo |
-| `water` | `#b8cdd1` | Seas, lakes and rivers |
-| `waterShore` | `#c8dadd` | Water edge/shadow |
-| `vegetation` | `#d8dfc8` | Parks, woodland and natural land cover |
-| `residential` | `#e8dfd0` | Residential areas |
-| `buildings` | `#d9cbb8` | Buildings and roofs |
-| `buildingOutline` | `#bba98f` | Building outlines |
-| `roads` | `#fff9ed` | Minor roads and airport surfaces |
-| `majorRoads` | `#e8d2a6` | Primary/secondary roads, trunks and motorways |
-| `roadOutline` | `#c5b79f` | Road casings, including bridges and tunnels |
-| `paths` | `#b6aa96` | Paths |
-| `railways` | `#9c9b91` | Rail lines; dashes use `roads` |
-| `boundaries` | `#a99c8d` | Country and administrative boundaries |
-| `labels` | `#344b5a` | Place, road, building-number and point-of-interest text |
-| `waterLabels` | `#344f5a` | Water names |
-| `labelHalo` | `#fff9ed` | Text halo |
+| `land` | `#e6cf9f` | Aged parchment land and country boundary halo |
+| `water` | `#b6c2be` | Seas, lakes and rivers |
+| `waterShore` | `#c6cbb7` | Water edge/shadow |
+| `vegetation` | `#cbc79f` | Parks, woodland and natural land cover |
+| `residential` | `#ddc292` | Residential areas |
+| `buildings` | `#cdb185` | Buildings and roofs |
+| `buildingOutline` | `#a98b5c` | Building outlines |
+| `roads` | `#f4e4bf` | Minor roads and airport surfaces |
+| `majorRoads` | `#d9b87c` | Primary/secondary roads, trunks and motorways |
+| `roadOutline` | `#b49a70` | Road casings, including bridges and tunnels |
+| `paths` | `#a38c66` | Paths |
+| `railways` | `#8e8b6e` | Rail lines; dashes use `roads` |
+| `boundaries` | `#9a805b` | Country and administrative boundaries |
+| `labels` | `#5e442d` | Place, road, building-number and point-of-interest text |
+| `waterLabels` | `#4d5b50` | Water names |
+| `labelHalo` | `#f4e4bf` | Text halo |
 
 The configuration changes paint colors; CARTO's existing placement, geometry, widths, opacity and zoom-dependent visibility remain intact. Changes to those advanced properties belong in the style builder or the pinned style, rather than the color palette.
 
 ## Letters and controls
 
-Edit **`src/components/map/map-theme.css`** for all `--map-*` interface tokens. Warm paper markers have a brown border and a white halo. Navy clusters have a double border and a numeric count. Selected letters have a double border plus an outer ring; keyboard focus adds a dashed outline. Selection is also exposed as `aria-pressed`.
+Edit **`src/components/map/map-theme.css`** for all `--map-*` interface tokens. Warm parchment markers have a sepia border and a pale paper halo. Faded blue-ink clusters have a double border and a numeric count. Selected letters have a double border plus an outer ring; keyboard focus adds a dashed outline. Selection is also exposed as `aria-pressed`.
 
 | Content | Foreground / background | Contrast |
 | --- | --- | --- |
-| Marker, popup and attribution text | `#38271c` / `#fff6e5` | 13.26:1 |
-| Cluster and selected letter | `#fff6e5` / `#17354a` | 11.90:1 |
-| Zoom/fullscreen controls | `#17354a` / `#fff6e5` | 11.90:1 |
-| Secondary interface text | `#65513e` / `#fff6e5` | 6.99:1 |
-| Cartographic label / halo | `#344b5a` / `#fff9ed` | 8.71:1 |
+| Marker, popup and attribution text | `#412d1b` / `#f4e4bf` | 10.33:1 |
+| Cluster and selected letter | `#f4e4bf` / `#283f46` | 8.84:1 |
+| Zoom/fullscreen controls | `#283f46` / `#f4e4bf` | 8.84:1 |
+| Secondary interface text | `#6a5134` / `#f4e4bf` | 5.88:1 |
+| Cartographic label / halo | `#5e442d` / `#f4e4bf` | 7.13:1 |
 
-These ratios apply to the defaults. Recheck contrast after editing colors. The old CSS sepia filter now applies only to the static map placeholder, so it cannot alter configured live-map colors or control contrast.
+These ratios apply to the defaults. Recheck contrast after editing colors. A subtle, static SVG grain and edge shading age only the vector background. Set `--map-grain-opacity` to `0` to disable the effect; `--map-aged-edge` adjusts its edge tint. Markers, controls and popups sit in separate panes, so their contrast remains unchanged by the texture.
+
+The old CSS sepia filter now applies only to the static map placeholder, so it cannot alter configured live-map colors or control contrast.
 
 ## Rendering and fallback
 
@@ -75,3 +77,7 @@ The palette tests wait for a zoom to finish before unmounting. Leaflet 1.9.4 has
 - Palette browser suite: 6 passed, including actual context loss and three viewport widths.
 - Existing map browser suite: 28 passed, 1 intermittent failure in `applies partial cities automatically without moving the filters on /map at 390px` (city URL parameter timing). A previous run hit the desktop variant and a selected-popup timing failure; their focused reruns passed. The failing mobile case then passed three consecutive focused reruns; the unchanged baseline also passed its focused repetitions. The cause of the intermittent failure is not attributed to this PR. Keep this limitation visible when reviewing the experimental PR.
 - Actual production build: vector layer visible, raster layer removed, worker and `/api/map/features`, `/api/map/messages`, `/api/map/filter-options` returned HTTP 200, no page errors.
+
+### Vintage parchment refinement
+
+The follow-up palette uses ochre parchment land, muted sage water, olive vegetation and sepia labels. A static, low-opacity paper grain is confined to the vector background; letters and controls remain crisp. The existing configuration files still control all colors, and the CSS texture can be disabled independently. Updated comparison, popup and fullscreen captures show this refinement.
