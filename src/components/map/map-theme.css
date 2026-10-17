@@ -1,21 +1,21 @@
 /* Map interface colors. Edit cartographic colors in src/config/map-style.config.ts. */
 :root {
-  --map-paper: #f4dab0;
-  --map-paper-hover: #e8c78f;
-  --map-ink: #2b1a12;
-  --map-muted: #684728;
-  --map-brown: #6a3b20;
-  --map-navy: #102033;
-  --map-navy-hover: #1c354c;
-  --map-on-navy: #f4dab0;
-  --map-border: #a37b42;
-  --map-focus: #102033;
-  --map-halo: #e5bd7a;
-  --map-shadow: #241a1759;
-  --map-disabled: #746042;
-  --map-canvas: #d8af73;
+  --map-paper: #e3dab0;
+  --map-paper-hover: #d4c797;
+  --map-ink: #30352a;
+  --map-muted: #575e44;
+  --map-brown: #4e5a3d;
+  --map-navy: #26322f;
+  --map-navy-hover: #394a40;
+  --map-on-navy: #e3dab0;
+  --map-border: #77734c;
+  --map-focus: #26322f;
+  --map-halo: #f0e8c4;
+  --map-shadow: #101a1959;
+  --map-disabled: #6b6e54;
+  --map-canvas: #202827;
   --map-grain-opacity: .12;
-  --map-aged-edge: #70502533;
+  --map-aged-edge: #37433233;
 }
 
 .leaflet-container { background: var(--map-canvas); }

@@ -6,7 +6,9 @@ describe('editable vector cartography', () => {
   it('changes each feature independently without changing road geometry or zoom rules', () => {
     const style = createVectorMapStyle({ ...mapStyle.colors, water: '#123456', roads: '#abcdef', labels: '#654321' })
     const layer = (id: string) => style.layers.find(layer => layer.id === id)
-    expect(layer('water')?.paint).toMatchObject({ 'fill-color': '#123456' })
+    // CARTO's translated water_shadow is painted last and covers the ocean.
+    expect(layer('water_shadow')?.paint).toMatchObject({ 'fill-color': '#123456' })
+    expect(layer('water')?.paint).toMatchObject({ 'fill-color': mapStyle.colors.waterShore })
     expect(layer('waterway')?.paint).toMatchObject({ 'line-color': '#123456' })
     expect(layer('road_minor_fill')?.paint).toMatchObject({ 'line-color': '#abcdef', 'line-width': expect.any(Object) })
     expect(layer('place_city_r5')?.paint).toMatchObject({ 'text-color': '#654321' })

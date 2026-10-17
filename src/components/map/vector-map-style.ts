@@ -9,7 +9,8 @@ export function createVectorMapStyle(colors: MapColors = mapStyle.colors): Style
     const source = 'source-layer' in layer ? layer['source-layer'] : undefined
     if (layer.type === 'background') layer.paint = { ...layer.paint, 'background-color': colors.land }
     if (layer.type === 'fill') {
-      const color = source === 'water' ? (layer.id === 'water_shadow' ? colors.waterShore : colors.water)
+      // Voyager paints the translated water_shadow last; it must carry the main sea color.
+      const color = source === 'water' ? (layer.id === 'water_shadow' ? colors.water : colors.waterShore)
         : source === 'building' ? colors.buildings
           : layer.id === 'landuse_residential' ? colors.residential : colors.vegetation
       layer.paint = { ...layer.paint, 'fill-color': color }
