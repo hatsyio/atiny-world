@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 
-import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
@@ -22,6 +22,7 @@ type Props = Pick<LeafletMapProps, 'features' | 'onSelect' | 'initialView' | 'on
   apiKey: string
   isFullscreen: boolean
   onToggleFullscreen: () => void
+  overlay?: ReactNode
 }
 
 function MessageContent({ publicId, onSelect, popup, focusOnLoad }: { publicId: string; onSelect: Props['onSelect']; popup: RefObject<leaflet.Popup | null>; focusOnLoad: boolean }) {
@@ -173,6 +174,25 @@ function FullscreenControl({ isFullscreen, onToggleFullscreen }: Pick<Props, 'is
     aria-pressed={isFullscreen} onClick={onToggleFullscreen}>⛶</button>, container)
 }
 
+function MessagesControl({ children }: { children: ReactNode }) {
+  const map = useMap()
+  const container = useMemo(() => {
+    const element = document.createElement('div')
+    element.className = 'map__messages-control'
+    leaflet.DomEvent.disableClickPropagation(element)
+    leaflet.DomEvent.disableScrollPropagation(element)
+    return element
+  }, [])
+  useEffect(() => {
+    // Leaflet stacks bottom-right controls above the attribution, including when it wraps.
+    const control = new leaflet.Control({ position: 'bottomright' })
+    control.onAdd = () => container
+    control.addTo(map)
+    return () => { control.remove() }
+  }, [map, container])
+  return createPortal(children, container)
+}
+
 function GeographicNavigation({ geographicTarget, navigationVersion }: Pick<Props, 'geographicTarget' | 'navigationVersion'>) {
   const map = useMap()
   useEffect(() => {
@@ -183,7 +203,7 @@ function GeographicNavigation({ geographicTarget, navigationVersion }: Pick<Prop
   return null
 }
 
-export function ReactLeafletPublicMap({ geographicTarget, navigationVersion, features, onSelect, initialView, apiKey, selectedPublicId, focusSelection, onPreview, selectionVersion, ...behavior }: Props) {
+export function ReactLeafletPublicMap({ geographicTarget, navigationVersion, features, onSelect, initialView, apiKey, selectedPublicId, focusSelection, onPreview, selectionVersion, overlay, ...behavior }: Props) {
   const t = useTranslations('Map.leaflet')
   const centered = useRef<string | null>(null)
   configureMarkerIcons(leaflet)
@@ -194,6 +214,7 @@ export function ReactLeafletPublicMap({ geographicTarget, navigationVersion, fea
     <VectorBasemap apiKey={apiKey} attribution={`${VECTOR_ATTRIBUTION} | <a href="https://www.geoapify.com/">Powered by Geoapify</a>`} />
     <ZoomControl position="topleft" zoomInTitle={t('zoomIn')} zoomOutTitle={t('zoomOut')} />
     <FullscreenControl {...behavior} />
+    {overlay ? <MessagesControl>{overlay}</MessagesControl> : null}
     <MarkerCluster>{features.filter(feature => feature.publicId !== selectedPublicId).map(feature => <PublicMarker key={feature.publicId} feature={feature} onSelect={onSelect}
       selected={false} centered={centered} onPreview={onPreview} />)}</MarkerCluster>
     {located ? <PublicMarker key={located.publicId} feature={located} onSelect={onSelect} selected centered={centered} focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={onPreview} /> : null}

@@ -10,7 +10,7 @@ const output = resolve(root, '.visual-test-build/map-palette')
 await build({
   entryPoints: ['tests/visual/fixtures/map-palette.tsx'], bundle: true, format: 'esm', platform: 'browser', jsx: 'automatic',
   outdir: output, external: ['/images/*'], loader: { '.png': 'dataurl' },
-  define: { 'process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY': JSON.stringify(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY ?? 'fixture'), 'process.env.NODE_ENV': '"development"' },
+  define: { 'process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY': JSON.stringify(process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY ?? 'fixture'), 'process.env.NODE_ENV': '"development"', 'process.env': '{}' },
   alias: { '@': resolve(root, 'src') },
   // Next bundles this URL as a local asset; serve the same installed worker in this harness.
   plugins: [{ name: 'map-worker', setup(builder) {
@@ -21,7 +21,7 @@ await build({
     builder.onLoad({ filter: /vector-basemap\.tsx$/ }, async args => ({ contents: (await readFile(args.path, 'utf8')).replace("new URL('maplibre-gl/dist/maplibre-gl-worker.mjs', import.meta.url).href", "'/maplibre-worker.mjs'"), loader: 'tsx' }))
   } }],
 })
-const html = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/map-palette.css"><style>body{background:#f3ecdf}.map{height:560px}.map__canvas{height:100%}.map--fullscreen{height:100dvh}</style><body><div id="root"></div><script type="module" src="/map-palette.js"></script></body></html>'
+const html = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/map-palette.css"><style>body{background:#f3ecdf}.palette-fixture .map{height:560px}.palette-fixture .map__canvas{height:100%}.palette-fixture .map--fullscreen{height:100dvh}</style><body><div id="root"></div><script type="module" src="/map-palette.js"></script></body></html>'
 const types = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml' }
 createServer(async (request, response) => {
   const path = new URL(request.url, 'http://localhost').pathname

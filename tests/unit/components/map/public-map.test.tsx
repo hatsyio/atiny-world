@@ -123,7 +123,7 @@ describe('PublicMapLoader', () => {
     const props = { onSelect: vi.fn(), groupRequestUrl: '/api/map/messages?country=es' }
     const view = render(<LeafletMap {...props} features={[baseFeature, { ...baseFeature, publicId: 'second' }]} />)
     view.rerender(<LeafletMap {...props} features={count ? [baseFeature] : []} />)
-    await userEvent.setup().click(screen.getByRole('button', { name: /view \d+ messages?/i }))
+    await userEvent.setup().click(await screen.findByRole('button', { name: /view \d+ messages?/i }))
     if (count) expect(await screen.findByText('Filtered letter')).toBeInTheDocument()
     else expect(await screen.findByText('No messages in this area.')).toBeInTheDocument()
   })
@@ -134,7 +134,7 @@ describe('PublicMapLoader', () => {
     expect(screen.getByRole('status').textContent).toMatch(/loading map/i)
   })
 
-  it('offers the group control without an external fullscreen button', () => {
+  it('offers the group control without an external fullscreen button', async () => {
     process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY = 'test-key'
     render(
       <LeafletMap
@@ -143,7 +143,7 @@ describe('PublicMapLoader', () => {
       />,
     )
 
-    expect(screen.getByRole('button', { name: /view \d+ messages/i })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: /view \d+ messages/i })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Pantalla completa' })).toBeNull()
   })
 })
