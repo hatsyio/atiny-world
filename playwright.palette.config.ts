@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests/visual',
-  testMatch: 'map-palette.spec.ts',
+  testMatch: ['map-palette.spec.ts', 'map-attribution.spec.ts'],
   outputDir: './test-results/map-palette',
   workers: 1,
   forbidOnly: !!process.env.CI,

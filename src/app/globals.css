@@ -116,12 +116,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map__filters-toggle:hover, .map__filters-toggle[aria-expanded='true'] { background: var(--map-navy-hover); }
 .map__filters-panel { width: 100%; background: var(--map-paper); border: 2px solid var(--map-brown); }
 .map__filters-panel .map-filters { grid-template-columns: minmax(0, 1fr); gap: 1rem; padding: 1rem; }
-.map__overlay { position: absolute; z-index: 500; right: 1rem; bottom: 1rem; width: min(350px, calc(100% - 2rem)); display: flex; flex-direction: column-reverse; align-items: flex-end; gap: .5rem; pointer-events: none; }
+/* Keep the bottom stack inside the canvas and clear of the top-left controls. */
+.map__canvas .leaflet-bottom.leaflet-right { display: flex; flex-direction: column; align-items: flex-end; max-width: 100%; max-height: calc(100% - 8rem); }
+.map__canvas .leaflet-control-attribution { flex-shrink: 0; }
+.map__canvas .map__messages-control { display: flex; min-height: 0; margin-right: 1rem; margin-bottom: 1rem; pointer-events: none; }
+.map__overlay { min-height: 0; width: min(350px, calc(100cqw - 2rem)); display: flex; flex-direction: column-reverse; align-items: flex-end; gap: .5rem; pointer-events: none; font: 1rem/normal Georgia, 'Times New Roman', serif; }
 .map__group-toggle, .map__message-panel { pointer-events: auto; box-shadow: 0 3px 14px var(--map-shadow); }
-.map__group-toggle { cursor: pointer; background: var(--map-navy); color: var(--map-on-navy); border: 1px solid var(--gold); padding: .65rem 1rem; }
+.map__group-toggle { flex-shrink: 0; cursor: pointer; background: var(--map-navy); color: var(--map-on-navy); border: 1px solid var(--gold); padding: .65rem 1rem; }
 .map__group-toggle:hover, .map__group-toggle[aria-expanded='true'] { background: var(--map-navy-hover); }
-.map__message-panel { width: 100%; max-height: min(350px, 62vh); overflow-y: auto; background: var(--map-paper); border: 2px solid var(--map-brown); }
-.map--fullscreen .map__overlay { width: min(420px, calc(100% - 2rem)); }
+.map__message-panel { min-height: 0; width: 100%; max-height: min(350px, 62vh); overflow-y: auto; background: var(--map-paper); border: 2px solid var(--map-brown); }
+.map--fullscreen .map__overlay { width: min(420px, calc(100cqw - 2rem)); }
 .map--fullscreen .map__message-panel { max-height: min(620px, 68vh); }
 .cluster-list-wrap { padding: .4rem; }
 .cluster-list-wrap > [role='status'] { padding: .6rem; }
@@ -291,9 +295,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .map__canvas { height: 310px; }
   .map-message-letter .map-message-popup { -webkit-line-clamp: 5; }
   .map__filters { top: .5rem; right: .5rem; width: min(250px, calc(100% - 1rem)); }
-  .map__overlay { right: .5rem; bottom: .5rem; width: min(350px, calc(100% - 1rem)); }
+  .map__canvas .map__messages-control { margin-right: .5rem; margin-bottom: .5rem; }
+  .map__overlay { width: min(350px, calc(100cqw - 1rem)); }
   .map__message-panel { max-height: 220px; }
-  .map--fullscreen .map__overlay { width: min(350px, calc(100% - 1rem)); }
+  .map--fullscreen .map__overlay { width: min(350px, calc(100cqw - 1rem)); }
   .map--fullscreen .map__message-panel { max-height: 55vh; }
   .section-heading h2 { letter-spacing: .1em; }
   .letter-grid { grid-template-columns: 1fr; max-width: 400px; margin: auto; }

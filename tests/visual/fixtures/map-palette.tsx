@@ -3,6 +3,7 @@ import { useState } from 'react'
 import leaflet from 'leaflet'
 import { NextIntlClientProvider } from 'next-intl'
 import { ReactLeafletPublicMap } from '@/components/map/public-map-react-leaflet'
+import { LeafletMap } from '@/components/map/leaflet-map'
 import { MapQueryProvider } from '@/components/map/map-query-provider'
 import messages from '@/i18n/messages/en/map.json'
 import '@/app/globals.css'
@@ -20,14 +21,15 @@ function Fixture() {
   const [selected, setSelected] = useState<string>()
   const [visible, setVisible] = useState(true)
   const brandFrame = new URLSearchParams(location.search).get('frame') === 'brand'
+  const attributionFixture = new URLSearchParams(location.search).has('attribution')
   return <NextIntlClientProvider locale="en" messages={{ Map: messages }} timeZone="UTC"><MapQueryProvider>
     {brandFrame && <header className="site-header"><span className="nav-brand">Atiny Atlas</span></header>}
-    <main className={brandFrame ? 'paper-world' : undefined} style={{ maxWidth: 1200, margin: '24px auto', padding: '0 12px' }}>
+    <main className={[brandFrame ? 'paper-world' : '', attributionFixture ? '' : 'palette-fixture'].join(' ')} style={{ maxWidth: 1200, margin: '24px auto', padding: '0 12px' }}>
       <h1 style={{ margin: '0 0 8px', color: '#102033', fontSize: 24 }}>ATINY letters · Barcelona</h1>
       <p style={{ margin: '0 0 16px' }}>Water, city and terrain · map palette</p>
       <button onClick={() => setSelected(features[2].publicId)}>Select letter</button>
       <button onClick={() => setVisible(current => !current)}>{visible ? 'Hide map' : 'Show map'}</button>
-      {visible && <section className={fullscreen ? 'map map--fullscreen' : 'map'}>
+      {attributionFixture ? <LeafletMap features={features} onSelect={() => {}} groupRequestUrl="/api/map/messages" /> : visible && <section className={fullscreen ? 'map map--fullscreen' : 'map'}>
         <ReactLeafletPublicMap features={features} apiKey={process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY ?? 'fixture'}
           initialView={new URLSearchParams(location.search).get('view') === 'world'
             ? { latitude: 20, longitude: 0, zoom: 2 } : { latitude: 41.395, longitude: 2.16, zoom: 12 }} selectedPublicId={selected} focusSelection={false}

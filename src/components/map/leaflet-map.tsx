@@ -64,7 +64,35 @@ export function LeafletMap({ geographicTarget, navigationVersion, initialView, o
       <MapErrorBoundary fallback={<><div className="map__canvas" /><p role="status">{t('unavailable')}</p></>}>
         <ClientMap geographicTarget={geographicTarget} navigationVersion={navigationVersion} initialView={initialView} onViewChange={onViewChange} features={features} onSelect={onSelect}
           onViewportChange={onViewportChange} selectedPublicId={selectedPublicId} focusSelection={focusSelection} selectionVersion={selectionVersion} onPreview={onPreview} apiKey={cartoApiKey}
-          isFullscreen={isFullscreen} onToggleFullscreen={() => setIsFullscreen(current => !current)} />
+          isFullscreen={isFullscreen} onToggleFullscreen={() => setIsFullscreen(current => !current)}
+          overlay={!hideGroupList ? (
+            <div className="map__overlay">
+              <button
+                className="map__group-toggle"
+                type="button"
+                aria-expanded={isClusterListOpen}
+                aria-controls="map-cluster-list"
+                onClick={() => {
+                  setIsClusterListOpen((current) => !current)
+                  setIsFiltersOpen(false)
+                }}
+              >
+                {t('viewMessages', {count: features.length})}
+              </button>
+              {isClusterListOpen ? (
+                <div id="map-cluster-list" className="map__message-panel" aria-label={t('messages')}>
+                  {groupRequestUrl ? <MessageClusterList
+                    key={groupRequestUrl}
+                    requestUrl={groupRequestUrl}
+                    onSelect={(publicId) => {
+                      onSelect(publicId)
+                      setIsClusterListOpen(false)
+                    }}
+                  /> : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null} />
       </MapErrorBoundary>
       {filters && onFiltersChange && (!hideGroupList || isFullscreen) ? (
         <div className="map__filters">
@@ -81,34 +109,6 @@ export function LeafletMap({ geographicTarget, navigationVersion, initialView, o
             {t('filters')}{filters.city || filters.country ? ` (${Number(Boolean(filters.city)) + Number(Boolean(filters.country))})` : ''}
           </button>
           {isFiltersOpen ? <div id="map-filters-panel" className="map__filters-panel"><MapFilters value={filters} onChange={onFiltersChange} /></div> : null}
-        </div>
-      ) : null}
-      {!hideGroupList ? (
-        <div className="map__overlay">
-          <button
-            className="map__group-toggle"
-            type="button"
-            aria-expanded={isClusterListOpen}
-            aria-controls="map-cluster-list"
-            onClick={() => {
-              setIsClusterListOpen((current) => !current)
-              setIsFiltersOpen(false)
-            }}
-          >
-            {t('viewMessages', {count: features.length})}
-          </button>
-          {isClusterListOpen ? (
-            <div id="map-cluster-list" className="map__message-panel" aria-label={t('messages')}>
-              {groupRequestUrl ? <MessageClusterList
-                key={groupRequestUrl}
-                requestUrl={groupRequestUrl}
-                onSelect={(publicId) => {
-                  onSelect(publicId)
-                  setIsClusterListOpen(false)
-                }}
-              /> : null}
-            </div>
-          ) : null}
         </div>
       ) : null}
     </section>
