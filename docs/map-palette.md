@@ -36,7 +36,7 @@ export const mapStyle = {
 | `labelHalo` | `#eed4a7` | Light halo for dark labels on land |
 | `waterLabelHalo` | `#181b21` | Dark halo for light water names |
 
-The `water` setting colors the dominant ocean fill, including CARTO's translated overlay; `waterShore` colors its narrow exposed shoreline. The configuration changes paint colors; CARTO's existing placement, geometry, widths, opacity and zoom-dependent visibility remain intact. Changes to those advanced properties belong in the style builder or the pinned style, rather than the color palette.
+The `water` setting colors the dominant ocean fill, including CARTO's translated overlay; `waterShore` colors its narrow exposed shoreline. The configuration changes paint colors; CARTO's existing placement, geometry, widths, opacity and zoom-dependent visibility remain intact. Changes to those advanced properties belong in the style builder rather than the color palette.
 
 ## Letters and controls
 
@@ -61,7 +61,9 @@ Leaflet still owns navigation, clustering, markers, popups and controls. A lazil
 
 Raster tiles remain visible while the vector layer loads. They are removed when GL is ready. Without WebGL2, on an initialization/resource error, context loss, or a 15-second startup timeout, the map retains or restores the original CARTO raster layer. Raster fallback preserves letter interactions and interface colors, but **cannot use the editable cartographic colors**. The initial raster/vector overlap also downloads both sets of tiles during startup. The adapter requires a minimum Leaflet zoom of 1.
 
-The pinned Voyager style is in `src/components/map/styles/carto-voyager.json`, retrieved from [CARTO's Voyager style](https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json). Its geometry and label rules are retained and its paint is customized. Upstream licensing is preserved in `CARTO-LICENSE.md`. The map credits CARTO, OpenStreetMap and OpenMapTiles, and retains the existing Geoapify attribution in the public explorer.
+MapLibre loads the current [CARTO Voyager style](https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json) and applies the palette through `setStyle`'s `transformStyle` callback before rendering. This uses CARTO's maintained vector v2 basemap with the Protomaps schema, including `roads`, `buildings`, `boundaries`, `places` and `water`. The style supplies matching current tile, font and sprite URLs. These release URLs must not be frozen in the application because CARTO can replace them. See the [CARTO basemap FAQ](https://docs.carto.com/faqs/carto-basemaps).
+
+The map credits CARTO and OpenStreetMap, and retains the existing Geoapify attribution in the public explorer. `tests/fixtures/map/carto-voyager-v2.json` is a key-free snapshot of the official style retrieved on 2026-10-22, used only for regression tests. Its upstream license is preserved alongside it in `CARTO-LICENSE.md`. Refresh this fixture when reviewing upstream cartography changes; the running map always loads the current hosted style.
 
 ## Verification and screenshots
 

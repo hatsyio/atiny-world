@@ -20,11 +20,18 @@ async function expectReadable(element: Locator) {
 for (const width of [320, 390, 1440]) {
   test(`vector tiles, focus, popup and fullscreen at ${width}px`, async ({ page }) => {
     const errors: string[] = []
+    const tilePaths: string[] = []
     page.on('pageerror', error => errors.push(error.message))
+    page.on('request', request => {
+      const path = new URL(request.url()).pathname
+      if (path.includes('/carto.streets/')) tilePaths.push(path)
+    })
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/')
     await expect(page.locator('.leaflet-gl-layer')).toHaveCSS('opacity', '1', { timeout: 30_000 })
     await expect(page.locator('.leaflet-tile')).toHaveCount(0)
+    expect(tilePaths.some(path => path.includes('/carto.streets/v2/'))).toBe(true)
+    expect(tilePaths.some(path => path.includes('/carto.streets/v1/'))).toBe(false)
     await expectReadable(page.locator('.map-message-cluster').first())
     await expectReadable(page.locator('.map-message-marker').first())
     await expectReadable(page.locator('.leaflet-control-zoom-in'))
@@ -87,8 +94,25 @@ test('keeps raster tiles and letter interaction when WebGL is unavailable', asyn
 
 test('returns to raster when a vector resource fails', async ({ page }) => {
   const errors: string[] = []
+  let rejectedVectorTile = false
   page.on('pageerror', error => errors.push(error.message))
-  await page.route('**/vector/carto.streets/**', route => route.abort())
+  await page.route('**/vectortiles/carto.streets/v2/**', route => {
+    rejectedVectorTile = true
+    return route.abort()
+  })
+  await page.goto('/')
+  await expect(page.locator('.leaflet-tile-loaded').first()).toBeVisible()
+  await expect(page.locator('.leaflet-gl-layer')).toHaveCount(0, { timeout: 20_000 })
+  expect(rejectedVectorTile).toBe(true)
+  await page.getByRole('button', { name: 'Select letter' }).click()
+  await expect(page.locator('.map-letter-popup')).toContainText('From this corner')
+  expect(errors).toEqual([])
+})
+
+test('keeps raster tiles and letter interaction when the current vector style fails', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await page.route('**/gl/voyager-gl-style/style.json*', route => route.abort())
   await page.goto('/')
   await expect(page.locator('.leaflet-tile-loaded').first()).toBeVisible()
   await expect(page.locator('.leaflet-gl-layer')).toHaveCount(0, { timeout: 20_000 })

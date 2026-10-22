@@ -1,24 +1,25 @@
 import type { StyleSpecification } from 'maplibre-gl'
-import voyager from './styles/carto-voyager.json'
 import { mapStyle, type MapColors } from '@/config/map-style.config'
 
+export const CARTO_VECTOR_STYLE_URL = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+
 /** Retain CARTO's geometry, label placement and zoom hierarchy; replace paint only. */
-export function createVectorMapStyle(colors: MapColors = mapStyle.colors): StyleSpecification {
-  const style = structuredClone(voyager) as unknown as StyleSpecification
+export function createVectorMapStyle(voyager: StyleSpecification, colors: MapColors = mapStyle.colors): StyleSpecification {
+  const style = structuredClone(voyager)
   for (const layer of style.layers) {
     const source = 'source-layer' in layer ? layer['source-layer'] : undefined
     if (layer.type === 'background') layer.paint = { ...layer.paint, 'background-color': colors.land }
     if (layer.type === 'fill') {
       // Voyager paints the translated water_shadow last; it must carry the main sea color.
       const color = source === 'water' ? (layer.id === 'water_shadow' ? colors.water : colors.waterShore)
-        : source === 'building' ? colors.buildings
+        : source === 'buildings' ? colors.buildings
           : layer.id === 'landuse_residential' ? colors.residential : colors.vegetation
       layer.paint = { ...layer.paint, 'fill-color': color }
-      if (source === 'building') layer.paint['fill-outline-color'] = colors.buildingOutline
+      if (source === 'buildings') layer.paint['fill-outline-color'] = colors.buildingOutline
     }
     if (layer.type === 'line') {
-      const color = source === 'waterway' ? colors.water
-        : source === 'boundary' ? (layer.id.endsWith('_outline') ? colors.land : colors.boundaries)
+      const color = source === 'water' ? colors.water
+        : source === 'boundaries' ? (layer.id.endsWith('_outline') ? colors.land : colors.boundaries)
           : layer.id.includes('rail') ? (layer.id.endsWith('_dash') ? colors.roads : colors.railways)
             : layer.id.includes('path') ? colors.paths
               : layer.id.includes('_case') ? colors.roadOutline
@@ -26,7 +27,7 @@ export function createVectorMapStyle(colors: MapColors = mapStyle.colors): Style
       layer.paint = { ...layer.paint, 'line-color': color }
     }
     if (layer.type === 'symbol') {
-      const waterLabel = source === 'water_name' || source === 'waterway'
+      const waterLabel = source === 'water' || layer.id.startsWith('watername_')
       layer.paint = { ...layer.paint, 'text-color': waterLabel ? colors.waterLabels : colors.labels,
         'text-halo-color': waterLabel ? colors.waterLabelHalo : colors.labelHalo }
       if (layer.paint['icon-color']) layer.paint['icon-color'] = colors.labels

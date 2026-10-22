@@ -7,9 +7,9 @@ import leaflet from 'leaflet'
 import type { Map as VectorMap } from 'maplibre-gl'
 import type { MaplibreGL } from '@maplibre/maplibre-gl-leaflet'
 import { CARTO_ATTRIBUTION, cartoTileUrl } from './basemap'
-import { cartoResourceRequest, createVectorMapStyle } from './vector-map-style'
+import { CARTO_VECTOR_STYLE_URL, cartoResourceRequest, createVectorMapStyle } from './vector-map-style'
 
-export const VECTOR_ATTRIBUTION = `${CARTO_ATTRIBUTION}, <a href="https://openmaptiles.org/">OpenMapTiles</a>`
+export const VECTOR_ATTRIBUTION = CARTO_ATTRIBUTION
 
 /** Leaflet keeps ownership of navigation, markers and controls; GL draws only the background. */
 export function VectorBasemap({ apiKey, attribution = VECTOR_ATTRIBUTION }: { apiKey: string; attribution?: string }) {
@@ -61,7 +61,7 @@ export function VectorBasemap({ apiKey, attribution = VECTOR_ATTRIBUTION }: { ap
               return this
             }
           }
-          vector = new VectorLayer({ style: createVectorMapStyle(), attributionControl: false,
+          vector = new VectorLayer({ attributionControl: false,
             transformRequest: resource => cartoResourceRequest(resource, apiKey) })
           vector.addTo(map)
           vector.getContainer().style.opacity = '0'
@@ -70,6 +70,10 @@ export function VectorBasemap({ apiKey, attribution = VECTOR_ATTRIBUTION }: { ap
           renderer.on('error', fallback)
           canvas = vector.getCanvas()
           canvas.addEventListener('webglcontextlost', fallback)
+          // CARTO's style resolves the current release of tiles, fonts and sprites together.
+          renderer.setStyle(CARTO_VECTOR_STYLE_URL, {
+            transformStyle: (_previous, next) => createVectorMapStyle(next),
+          })
         }).catch(fallback)
       }
     }
