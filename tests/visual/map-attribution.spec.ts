@@ -4,6 +4,9 @@ async function expectSeparateControls(page: Page) {
   const attribution = page.locator('.leaflet-control-attribution')
   const button = page.getByRole('button', { name: 'View 5 messages' })
   await expect(attribution).toBeVisible()
+  for (const name of ['OpenStreetMap contributors', 'CARTO', 'Powered by Geoapify']) {
+    await expect(attribution.getByRole('link', { name, exact: true })).toBeVisible()
+  }
   await expect(button).toBeVisible()
   await expect.poll(async () => {
     const text = await attribution.boundingBox()
@@ -88,7 +91,7 @@ for (const width of [390, 1440]) {
       await page.evaluate(top => scrollTo({ top, behavior: 'instant' }), box.y + box.height / 2 - 32)
       expect(await control.evaluate(element => {
         const box = element.getBoundingClientRect()
-        return document.elementFromPoint(box.left + box.width / 2, 32)?.closest('.site-header') !== null
+        return Boolean(document.elementFromPoint(box.left + box.width / 2, 32)?.closest('.site-header'))
       })).toBe(true)
     }
     await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }))

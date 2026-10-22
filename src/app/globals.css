@@ -104,7 +104,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .map-feedback { display: grid; place-items: center; }
 .map-feedback [role='status'] { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem; width: 100%; padding: .5rem 1rem; text-align: center; }
 .map-feedback p { margin: 0; }
-.map { min-height: 390px; position: relative; }
+.map { min-height: 390px; position: relative; isolation: isolate; }
 .map--fullscreen { position: fixed; inset: 0; min-height: 0; padding: 0; z-index: 1000; background: var(--map-paper); }
 .map__canvas { container-type: inline-size; height: clamp(360px, 43vw, 540px); width: 100%; background: var(--map-canvas); }
 .map--preview .map__canvas { position: relative; background: transparent url('/images/world-silhouette.svg') center / contain no-repeat; filter: sepia(.42) contrast(.94); }

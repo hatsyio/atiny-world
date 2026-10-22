@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { useLeafletContext } from '@react-leaflet/core'
 import leaflet from 'leaflet'
-import { MapContainer, Marker, Popup, ZoomControl, useMap } from 'react-leaflet'
+import { AttributionControl, MapContainer, Marker, Popup, ZoomControl, useMap } from 'react-leaflet'
 import type { PublicMapFeature } from '@/domain/messages/public-message'
 import type { LeafletMapProps } from './leaflet-map'
 import { configureMarkerIcons, createMessageIcon } from './basemap'
@@ -210,7 +210,8 @@ export function ReactLeafletPublicMap({ geographicTarget, navigationVersion, fea
   const view = initialView ?? { latitude: 20, longitude: 0, zoom: 2 }
   const located = features.find(feature => feature.publicId === selectedPublicId)
   return <MapContainer className="map__canvas" center={[view.latitude, view.longitude]} zoom={view.zoom} minZoom={1} maxZoom={19}
-    zoomControl={false} maxBounds={[[-85.05112878, -Infinity], [85.05112878, Infinity]]} maxBoundsViscosity={1}>
+    attributionControl={false} zoomControl={false} maxBounds={[[-85.05112878, -Infinity], [85.05112878, Infinity]]} maxBoundsViscosity={1}>
+    <AttributionControl prefix={false} />
     <VectorBasemap apiKey={apiKey} attribution={`${VECTOR_ATTRIBUTION} | <a href="https://www.geoapify.com/">Powered by Geoapify</a>`} />
     <ZoomControl position="topleft" zoomInTitle={t('zoomIn')} zoomOutTitle={t('zoomOut')} />
     <FullscreenControl {...behavior} />

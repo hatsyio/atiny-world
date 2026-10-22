@@ -77,12 +77,17 @@
   outline-offset: 3px;
   box-shadow: 0 0 0 3px var(--map-halo);
 }
-.leaflet-container .leaflet-control-attribution {
+.leaflet-container .leaflet-control.leaflet-control-attribution {
   background: var(--map-paper);
   color: var(--map-ink);
   max-width: calc(100% - 12px);
+  margin: 0 6px 6px;
+  padding: 3px 7px;
+  border: 1px solid var(--map-border);
+  border-radius: 3px;
+  font: 11px/1.5 var(--font-interface, Arial), sans-serif;
 }
-.leaflet-container .leaflet-control-attribution a { color: var(--map-navy); text-decoration: underline; }
+.leaflet-container .leaflet-control.leaflet-control-attribution a { color: var(--map-navy); text-decoration: underline; }
 
 /* Age the cartography only: marker, popup and control panes remain crisp. */
 .leaflet-gl-layer::after {
