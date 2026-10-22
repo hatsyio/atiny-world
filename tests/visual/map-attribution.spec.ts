@@ -40,6 +40,8 @@ for (const width of [320, 390, 768, 1440]) {
     } }))
     await page.goto('/?attribution')
     await expectSeparateControls(page)
+    await expect(page.locator('.leaflet-control-attribution')).toHaveCSS('background-color', 'rgb(238, 212, 167)')
+    await expect(page.locator('.leaflet-control-attribution')).toHaveCSS('font-size', '11px')
     await testInfo.attach('separate-controls', { body: await page.locator('.map').screenshot(), contentType: 'image/png' })
     // Transparent space beside the closed control must still receive map gestures.
     expect(await page.locator('.map__messages-control').evaluate(element => {
@@ -68,5 +70,30 @@ for (const width of [320, 390, 768, 1440]) {
     await lastLetter.click()
     await expect(page.locator('#map-cluster-list')).toHaveCount(0)
     expect(errors).toEqual([])
+  })
+}
+
+for (const width of [390, 1440]) {
+  test(`map controls stay behind sticky navigation while scrolling at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 })
+    await page.addInitScript(() => { Object.defineProperty(window, 'WebGL2RenderingContext', { value: undefined }) })
+    await page.route('**/basemaps.cartocdn.com/**', route => route.abort())
+    await page.goto('/?attribution')
+    const attribution = page.locator('.leaflet-control-attribution')
+    await expect(attribution).toBeVisible()
+    for (const control of [attribution, page.getByRole('button', { name: 'View 5 messages' })]) {
+      await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }))
+      const box = await control.boundingBox()
+      if (!box) throw new Error('Map control is missing')
+      await page.evaluate(top => scrollTo({ top, behavior: 'instant' }), box.y + box.height / 2 - 32)
+      expect(await control.evaluate(element => {
+        const box = element.getBoundingClientRect()
+        return document.elementFromPoint(box.left + box.width / 2, 32)?.closest('.site-header') !== null
+      })).toBe(true)
+    }
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }))
+    await page.getByRole('button', { name: 'Enter fullscreen', exact: true }).click()
+    await expect(page.locator('.map--fullscreen')).toBeVisible()
+    expect(await page.locator('.map--fullscreen').evaluate(element => document.elementFromPoint(100, 32)?.closest('.map--fullscreen') === element)).toBe(true)
   })
 }

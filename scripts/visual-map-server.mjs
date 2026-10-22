@@ -26,10 +26,14 @@ const types = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'te
 createServer(async (request, response) => {
   const path = new URL(request.url, 'http://localhost').pathname
   try {
-    if (path === '/') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(html); return }
+    if (path === '/') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(new URL(request.url, 'http://localhost').searchParams.has('attribution') ? html.replace('</style>', '</style><link rel="stylesheet" href="/leaflet.css">') : html); return }
     if (path.startsWith('/api/messages/')) {
       response.setHeader('Content-Type', 'application/json')
       response.end(JSON.stringify({ content: 'From this corner of the world, music brings us closer. A letter to share memories, friendship and the same horizon.', author: { displayName: 'ATINY' }, locality: 'Barcelona', country: 'Spain' })); return
+    }
+    if (path === '/leaflet.css') {
+      response.setHeader('Content-Type', 'text/css')
+      response.end(await readFile(resolve(root, 'node_modules/leaflet/dist/leaflet.css'))); return
     }
     if (path === '/maplibre-worker.mjs') {
       response.setHeader('Content-Type', 'text/javascript')
