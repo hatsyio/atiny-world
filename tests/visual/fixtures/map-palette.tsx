@@ -23,7 +23,7 @@ function Fixture() {
   const brandFrame = new URLSearchParams(location.search).get('frame') === 'brand'
   const attributionFixture = new URLSearchParams(location.search).has('attribution')
   return <NextIntlClientProvider locale="en" messages={{ Map: messages }} timeZone="UTC"><MapQueryProvider>
-    {brandFrame && <header className="site-header"><span className="nav-brand">Atiny Atlas</span></header>}
+    {(brandFrame || attributionFixture) && <header className="site-header"><span className="nav-brand">Atiny Atlas</span><nav className="main-nav" aria-label="Main navigation"><a href="#home">Home</a><a href="#map">Map</a><a href="#letters">Letters</a></nav></header>}
     <main className={[brandFrame ? 'paper-world' : '', attributionFixture ? '' : 'palette-fixture'].join(' ')} style={{ maxWidth: 1200, margin: '24px auto', padding: '0 12px' }}>
       <h1 style={{ margin: '0 0 8px', color: '#102033', fontSize: 24 }}>ATINY letters · Barcelona</h1>
       <p style={{ margin: '0 0 16px' }}>Water, city and terrain · map palette</p>
@@ -36,6 +36,7 @@ function Fixture() {
           isFullscreen={fullscreen} onToggleFullscreen={() => setFullscreen(current => !current)} onSelect={() => {}} />
       </section>}
     </main>
+    {attributionFixture && <footer style={{ minHeight: 1200 }}>More letters from around the world</footer>}
   </MapQueryProvider></NextIntlClientProvider>
 }
 createRoot(document.getElementById('root')!).render(<Fixture />)
